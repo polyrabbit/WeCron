@@ -1,0 +1,43 @@
+server {
+    listen 80;
+    server_name weixin.at;
+    rewrite  ^/(.*)$ http://www.weixin.at/$1 permanent;
+}
+
+server {
+    listen 80;
+    server_name www.weixin.at;
+
+    charset     utf-8;
+    client_max_body_size 50M;
+
+    gzip on;
+    gzip_disable msie6;
+    gzip_vary on;
+    gzip_proxied any;
+    gzip_comp_level 2;
+    gzip_min_length 512;
+    # Also for HTTP 1.0
+    gzip_http_version 1.0;
+    gzip_types text/plain text/css application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript;
+
+    location /static/ {
+        alias {{ PROJ_HOME }}/static/;
+        expires 1d;
+    }
+
+    location /favicon.ico {
+        root {{ PROJ_HOME }}/static/;
+        expires 1d;
+    }
+
+    location /sitemap.xml {
+        root {{ PROJ_HOME }}/static/;
+        expires 1d;
+    }
+
+    location / {
+        include uwsgi_params;
+        uwsgi_pass unix:///tmp/wecron-uwsgi.sock;
+    }
+}

@@ -1,0 +1,9 @@
+[program:wecron]
+command = uwsgi --ini={{ PROJ_HOME }}/uwsgi.ini
+autostart = true
+autorestart = true
+stdout_logfile = /var/log/supervisor/wecron-out.log
+stderr_logfile = /var/log/supervisor/wecron-err.log
+user = root
+stopsignal = INT
+environment = TZ=Asia/Shanghai

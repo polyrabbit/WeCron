@@ -1,0 +1,109 @@
+- hosts: wecron
+  gather_facts: False
+
+  vars:
+    PROJ_HOME: /var/www/wecron
+    PROJ_VENV: "{{ PROJ_HOME }}/.venv"
+  # vars_files:
+  # Put my secret keys to inventory file
+  #   - keys.yml
+
+  tasks:
+    - name: Install system packages
+      sudo: True
+      apt: pkg="{{ item }}" state=installed
+      with_items:
+        - python2.7
+        - python-dev
+        - python-pip
+        - git
+        - supervisor
+
+### App
+    - name: Create directories
+      file: path="{{ item }}" state=directory mode=0775 owner="www-data" group="www-data"
+      sudo: True
+      with_items:
+          - "{{ PROJ_HOME }}"
+          - /var/log/wecron
+
+    - name: Install virtualenv
+      sudo: True
+      pip: name=virtualenv state=present version=1.11.4
+
+    - name: Create a virtualenv for wecron
+      shell: virtualenv "{{ PROJ_VENV }}"
+             creates="{{ PROJ_VENV }}/bin/activate"
+      notify:
+        - Install python dependencies
+
+    - name: Check python dependencies
+      copy: src=../requirements.txt dest="{{ PROJ_HOME }}/requirements.txt"
+      notify:
+        - Install python dependencies
+
+    - name: Copy code
+      synchronize: src=../WeCron dest="{{ PROJ_HOME }}" owner=no group=no perms=yes delete=yes
+      notify:
+        - Load wecron with supervisord
+
+##### Nginx
+    - name: Install nginx
+      sudo: True
+      apt: pkg=nginx state=installed update_cache=yes
+      notify:
+        - Start nginx
+
+    - name: Copy nginx config
+      sudo: True
+      template: src=conf/nginx.conf.j2 dest="/etc/nginx/sites-available/weixin.at"
+      notify:
+        # Handlers only run once after all tasks complete
+        - Reload nginx
+
+    - name: Link weixin.at config to site-available
+      sudo: True
+      file: src="/etc/nginx/sites-available/weixin.at" dest="/etc/nginx/sites-enabled/weixin.at" state=link
+
+#### Supervisor
+    - name: Copy supervisor config
+      template: src=conf/supervisor.conf.j2 dest=/etc/supervisor/conf.d/wecron.conf
+      sudo: True
+      notify:
+        - Load wecron with supervisord
+
+#### uwsgi
+    - name: Install uwsgi
+      sudo: True
+      pip: name=uwsgi state=present version=2.0.11.2
+      notify:
+          - Load wecron with supervisord
+
+    - name: Copy uwsgi config
+      template: src=conf/uwsgi.ini.j2 dest="{{ PROJ_HOME }}/uwsgi.ini"
+      notify:
+          - Load wecron with supervisord
+
+  handlers:
+    # Handlers run in the order written
+    - name: Start nginx
+      sudo: True
+      service: name=nginx state=started enabled=yes
+
+    - name: Reload nginx
+      sudo: True
+      service: name=nginx state=reloaded
+
+    - name: Install python dependencies
+      pip:
+          requirements: "{{ PROJ_HOME }}/requirements.txt"
+          virtualenv: "{{ PROJ_VENV }}"
+
+    - name: Start supervisor
+      sudo: True
+      service: name=supervisor state=started enabled=yes
+
+    - name: Load wecron with supervisord
+      sudo: True
+      supervisorctl: name=wecron state=restarted
+

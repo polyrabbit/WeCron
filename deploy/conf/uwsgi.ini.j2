@@ -1,0 +1,31 @@
+[uwsgi]
+chdir = {{ PROJ_HOME }}/WeCron
+wsgi-file = wecron/wsgi.py
+virtualenv = {{ PROJ_VENV }}
+# http-socket = 0.0.0.0:9090
+socket = /tmp/wecron-uwsgi.sock
+chmod-socket = 666
+
+uid = www-data
+gid = www-data
+
+env = LANG=en_US.UTF-8
+env = PYTHONIOENCODING=utf8
+env = WX_APPID={{ WX_APPID }}
+env = WX_APPSECRET={{ WX_APPSECRET }}
+env = WX_SIGN_TOKEN={{ WX_SIGN_TOKEN }}
+env = DJ_SECRET_KEY={{ DJ_SECRET_KEY }}
+env = DJ_DEBUG=0
+
+master = True
+threads = 4
+
+pidfile = /var/run/wecron-uwsgi.pid
+# daemonize = /var/log/wecron/app.log
+
+# destroy workers blocked for more than 30 seconds
+harakiri = 30
+max-requests = 1000
+vacuum = True
+
+stats = 127.0.0.1:9191
