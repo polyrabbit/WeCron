@@ -9,7 +9,15 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
 from django.views.generic import View
 
+from .wechat_message_handler import handle
+
 logger = logging.getLogger(__name__)
+
+
+# import sys
+# reload(sys)  # Reload does the trick!
+# sys.setdefaultencoding('UTF8')
+
 
 class WeiXinHook(View):
 
@@ -41,17 +49,6 @@ class WeiXinHook(View):
             return HttpResponse('Illegal message from weixin: \n%s' % request.body)
 
         message = self.wechat.get_message()
-        resp_txt = self.process_wx_message(message)
+        resp_txt = handle(message)
         return HttpResponse(self.wechat.response_text(resp_txt))
-
-    def process_wx_message(self, msg):
-        if msg.type == 'subscribe':
-            return 'Dear，这是我刚注册的微信号，功能还在开发中，请先关注着，初步完成后，我会邀请你试用的，敬请期待哦~'
-        import json
-        import sys
-        reload(sys)  # Reload does the trick!
-        sys.setdefaultencoding('UTF8')
-        reflect = msg.__dict__
-        reflect.pop('raw')
-        return json.dumps(reflect, ensure_ascii=False, indent=2)
 
