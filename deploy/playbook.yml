@@ -18,6 +18,7 @@
         - python-pip
         - git
         - supervisor
+        - libpq-dev
 
 ### App
     - name: Create directories
