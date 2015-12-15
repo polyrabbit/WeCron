@@ -35,6 +35,8 @@ class WeiXinHook(View):
 
         if self.wechat.check_signature(signature=signature, timestamp=timestamp, nonce=nonce):
             return super(WeiXinHook, self).dispatch(request, *args, **kwargs)
+        else:
+            logger.warning('Illegal Access!')
 
         return HttpResponse('Welcome to WeCron')
 
@@ -50,5 +52,5 @@ class WeiXinHook(View):
 
         message = self.wechat.get_message()
         resp_txt = handle(message)
-        return HttpResponse(self.wechat.response_text(resp_txt))
+        return HttpResponse(self.wechat.response_text(resp_txt), content_type='text/xml; charset=utf-8')
 

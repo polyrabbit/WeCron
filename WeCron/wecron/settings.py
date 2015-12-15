@@ -108,6 +108,41 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'standard': {
+            'format': '%(levelname)s - %(name)s - [%(asctime)s] %(message)s',
+            'datefmt': '%d/%b %H:%M:%S',
+        },
+    },
+    'filters': {
+        'require_debug_false': {
+            '()': 'django.utils.log.RequireDebugFalse'
+        }
+    },
+    'handlers': {
+        'console':{
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'standard'
+        },
+    },
+    'loggers': {
+        '': {
+            'handlers': ['console'],
+            'level': 'DEBUG' if DEBUG else 'INFO',
+            'propagate': True,
+        },
+        'django.db.backends': {
+            'handlers': ['console'],
+            'level': 'WARNING',
+            'propagate': True,
+        }
+    }
+}
+
 WX_APPID = os.environ.get('WX_APPID', 'xxx')
 WX_APPSECRET = os.environ.get('WX_APPSECRET', 'xxx')
 WX_SIGN_TOKEN = os.environ.get('WX_SIGN_TOKEN', 'xxx')

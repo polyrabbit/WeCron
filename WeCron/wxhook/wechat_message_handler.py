@@ -8,6 +8,7 @@ logger = logging.getLogger(__name__)
 class WechatMessageHandler(object):
 
     def handle(self, wxmsg):
+        logger.info('Get a %s from %s', wxmsg.type.lower(), wxmsg.source)
         handler = getattr(self, 'handle_%s' % wxmsg.type.lower(), self.handle_unknown)
         return handler(wxmsg)
 
