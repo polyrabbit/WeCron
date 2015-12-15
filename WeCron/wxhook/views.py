@@ -2,14 +2,12 @@
 from __future__ import unicode_literals, absolute_import
 import logging
 
-from wechat_sdk import WechatBasic
 from wechat_sdk.exceptions import ParseError
-from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
 from django.views.generic import View
 
-from .wechat_message_handler import handle
+from .wechat_client import WechatClient
 
 logger = logging.getLogger(__name__)
 
@@ -27,11 +25,7 @@ class WeiXinHook(View):
         timestamp = request.GET.get('timestamp', '')
         nonce = request.GET.get('nonce', '')
 
-        self.wechat = WechatBasic(
-                token=settings.WX_SIGN_TOKEN,
-                appid=settings.WX_APPID,
-                appsecret=settings.WX_APPSECRET
-            )
+        self.wechat = WechatClient()
 
         if self.wechat.check_signature(signature=signature, timestamp=timestamp, nonce=nonce):
             return super(WeiXinHook, self).dispatch(request, *args, **kwargs)
@@ -45,12 +39,9 @@ class WeiXinHook(View):
 
     def post(self, request):
         try:
-            self.wechat.parse_data(request.body)
+            wechat_resp = self.wechat.parse_message(request.body)
         except ParseError:
             logger.exception('Illegal message from weixin: \n%s', request.body)
             return HttpResponse('Illegal message from weixin: \n%s' % request.body)
-
-        message = self.wechat.get_message()
-        resp_txt = handle(message)
-        return HttpResponse(self.wechat.response_text(resp_txt), content_type='text/xml; charset=utf-8')
+        return HttpResponse(wechat_resp, content_type='text/xml; charset=utf-8')
 
