@@ -43,8 +43,27 @@
       notify:
         - Install python dependencies
 
+    - name: Install oneapm
+      pip:
+        name: blueware
+        extra_args: '-i http://pypi.oneapm.com/simple'
+        virtualenv: "{{ PROJ_VENV }}"
+
+    - name: Copy Makefile
+      copy: src=../Makefile dest="{{ PROJ_HOME }}/Makefile"
+      notify:
+        - Load wecron with supervisord
+
     - name: Copy code
-      synchronize: src=../WeCron dest="{{ PROJ_HOME }}" owner=no group=no perms=yes delete=yes
+      synchronize:
+        src: ../WeCron
+        dest: "{{ PROJ_HOME }}"
+        owner: no
+        group: no
+        perms: yes
+        delete: yes
+        # rsync_opts:
+        #   - "--exclude='*.pyc'"
       notify:
         - Load wecron with supervisord
 
@@ -74,16 +93,14 @@
         - Load wecron with supervisord
 
 #### uwsgi
-    - name: Install uwsgi
-      sudo: True
-      pip: name=uwsgi state=present version=2.0.11.2
-      notify:
-          - Load wecron with supervisord
-
     - name: Copy uwsgi config
       template: src=conf/uwsgi.ini.j2 dest="{{ PROJ_HOME }}/uwsgi.ini"
       notify:
           - Load wecron with supervisord
+
+### oneapm
+    - name: Copy oneapm config
+      template: src=conf/blueware.ini.j2 dest="{{ PROJ_HOME }}/blueware.ini"
 
   handlers:
     # Handlers run in the order written
@@ -99,6 +116,8 @@
       pip:
           requirements: "{{ PROJ_HOME }}/requirements.txt"
           virtualenv: "{{ PROJ_VENV }}"
+      notify:
+          - Load wecron with supervisord
 
     - name: Start supervisor
       sudo: True

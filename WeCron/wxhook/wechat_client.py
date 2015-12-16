@@ -53,8 +53,8 @@ class WechatClient(WechatBasic):
     def handle_video(self):
         return self.response_text('video\n' + self.json_msg)
 
-    def handle_unknown(self, msg):
-        return self.response_text('unknown\n' + self.json_msg)
+    def handle_unknown(self):
+        return self.response_text(self.message.type.lower() + '\n' + self.json_msg)
 
 
 # Will wait until PR 37 get merged

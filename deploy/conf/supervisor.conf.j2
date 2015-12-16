@@ -1,9 +1,14 @@
 [program:wecron]
-command = uwsgi --ini={{ PROJ_HOME }}/uwsgi.ini
+directory = {{ PROJ_HOME }}
+command = make run-in-prod
 autostart = true
 autorestart = true
 stdout_logfile = /var/log/supervisor/wecron-out.log
 stderr_logfile = /var/log/supervisor/wecron-err.log
-user = root
+user = www-data
 stopsignal = INT
+# stop not only the parent process but also the spawned processes.
+stopasgroup = true
 environment = TZ=Asia/Shanghai
+# to activate virtualenv
+environment = PATH="{{ PROJ_VENV }}/bin"

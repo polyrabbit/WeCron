@@ -22,17 +22,22 @@ server {
     gzip_types text/plain text/css application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript;
 
     location /static/ {
-        alias {{ PROJ_HOME }}/static/;
+        alias {{ PROJ_HOME }}/staticfiles/;
         expires 1d;
     }
 
     location /favicon.ico {
-        root {{ PROJ_HOME }}/static/;
+        root {{ PROJ_HOME }}/staticfiles/;
         expires 1d;
     }
 
     location /sitemap.xml {
-        root {{ PROJ_HOME }}/static/;
+        root {{ PROJ_HOME }}/staticfiles/;
+        expires 1d;
+    }
+
+    location /robots.txt {
+        root {{ PROJ_HOME }}/staticfiles/;
         expires 1d;
     }
 

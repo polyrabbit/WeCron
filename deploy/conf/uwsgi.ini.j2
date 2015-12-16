@@ -26,9 +26,11 @@ env = WECRON_DB_USER={{ WECRON_DB_USER }}
 env = WECRON_DB_PASSWORD={{ WECRON_DB_PASSWORD }}
 
 master = True
+enable-threads = true
+single-interpreter = true
 threads = 4
 
-pidfile = /var/run/wecron-uwsgi.pid
+pidfile = /tmp/wecron-uwsgi.pid
 # daemonize = /var/log/wecron/app.log
 
 # destroy workers blocked for more than 30 seconds
