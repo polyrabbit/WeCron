@@ -7,7 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
 from django.views.generic import View
 
-from .wechat_client import WechatClient
+from .wechat_message import WechatMessage
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +25,7 @@ class WeiXinHook(View):
         timestamp = request.GET.get('timestamp', '')
         nonce = request.GET.get('nonce', '')
 
-        self.wechat = WechatClient()
+        self.wechat = WechatMessage()
 
         if self.wechat.check_signature(signature=signature, timestamp=timestamp, nonce=nonce):
             return super(WeiXinHook, self).dispatch(request, *args, **kwargs)

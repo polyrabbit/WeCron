@@ -20,5 +20,5 @@ from wxhook.views import WeiXinHook
 
 urlpatterns = [
     url(r'wxhook', WeiXinHook.as_view()),
-    url(r'^admin/', include(admin.site.urls)),
+    # url(r'^admin/', include(admin.site.urls)),  # Tuning django's user model is a disaster
 ]

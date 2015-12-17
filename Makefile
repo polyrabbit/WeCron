@@ -3,7 +3,7 @@
 run:
 	python WeCron/manage.py runserver 0.0.0.0:8000
 
-run-in-prod: collectstatic
+run-in-prod: syncdb collectstatic
 	BLUEWARE_CONFIG_FILE=$(CURDIR)/blueware.ini blueware-admin run-program uwsgi --ini=uwsgi.ini
 
 run-uwsgi-test:
@@ -20,3 +20,9 @@ collectstatic:
 clean:
 	find . -name '*.pyc' -delete
 	rm -rf WeCron/staticfiles
+
+syncdb:
+	python WeCron/manage.py migrate --noinput
+
+release:
+	ansible-playbook deploy/playbook.yml -v

@@ -3,12 +3,24 @@ directory = {{ PROJ_HOME }}
 command = make run-in-prod
 autostart = true
 autorestart = true
-stdout_logfile = /var/log/supervisor/wecron-out.log
-stderr_logfile = /var/log/supervisor/wecron-err.log
+stdout_logfile = {{ PROJ_HOME }}/log/out.log
+stderr_logfile = {{ PROJ_HOME }}/log/err.log
 user = www-data
 stopsignal = INT
-# stop not only the parent process but also the spawned processes.
+; Stop not only the parent process but also the spawned processes.
 stopasgroup = true
-environment = TZ=Asia/Shanghai
-# to activate virtualenv
-environment = PATH="{{ PROJ_VENV }}/bin"
+; To activate virtualenv
+environment = 
+    PATH="{{ PROJ_VENV }}/bin:%(ENV_PATH)s",
+    TZ="Asia/Shanghai",
+    WX_APPID="{{ WX_APPID }}",
+    WX_APPSECRET="{{ WX_APPSECRET }}",
+    WX_SIGN_TOKEN="{{ WX_SIGN_TOKEN }}",
+    DJ_SECRET_KEY="{{ DJ_SECRET_KEY }}",
+    DJ_DEBUG=0,
+    ; Set here to make migrate happy
+    WECRON_DB_HOST="{{ WECRON_DB_HOST }}",
+    WECRON_DB_PORT="{{ WECRON_DB_PORT }}",
+    WECRON_DB_NAME="{{ WECRON_DB_NAME }}",
+    WECRON_DB_USER="{{ WECRON_DB_USER }}",
+    WECRON_DB_PASSWORD="{{ WECRON_DB_PASSWORD }}"

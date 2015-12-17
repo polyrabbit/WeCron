@@ -7,13 +7,15 @@ from django.conf import settings
 from wechat_sdk import WechatBasic
 from wechat_sdk.reply import WechatReply
 
+from .models import User
+
 logger = logging.getLogger(__name__)
 
 
-class WechatClient(WechatBasic):
+class WechatMessage(WechatBasic):
 
     def __init__(self):
-        super(WechatClient, self).__init__(
+        super(WechatMessage, self).__init__(
                 token=settings.WX_SIGN_TOKEN,
             )
 
@@ -25,7 +27,8 @@ class WechatClient(WechatBasic):
 
     def parse_message(self, raw_msg):
         self.parse_data(raw_msg)  # Raises exception on error
-        logger.info('Get a %s from %s', self.message.type.lower(), self.message.source)
+        self.user = User.objects.get_or_fetch(self.message.source)
+        logger.info('Get a %s from %s', self.message.type.lower(), self.user.nickname)
         handler = getattr(self, 'handle_%s' % self.message.type.lower(), self.handle_unknown)
         return handler()
 
@@ -33,28 +36,33 @@ class WechatClient(WechatBasic):
         if self.message.content.startswith('#'):
             logger.info('Transfer to customer service')
             return GroupTransferReply(message=self.message).render()
-        return self.response_text("I'm a text\n" + self.json_msg)
+        return self.handle_unknown()
 
     def handle_subscribe(self):
-        return self.response_text('Dear，这是我刚注册的微信号，功能还在开发中，请先关注着，初步完成后，我会邀请你试用的，敬请期待哦~\n\n' + self.json_msg)
+        return self.response_text(
+            'Dear %s，这是我刚注册的微信号，功能还在开发中，请先关注着，初步完成后，我会邀请你试用的，敬请期待哦~' % self.user.nickname
+        )
 
-    def handle_voice(self):
-        return self.response_text('voice\n' + self.json_msg)
-
-    def handle_image(self):
-        return self.response_text('image\n' + self.json_msg)
-
-    def handle_location(self):
-        return self.response_text('location\n' + self.json_msg)
-
-    def handle_shortvideo(self):
-        return self.response_text('shortvideo\n' + self.json_msg)
-
-    def handle_video(self):
-        return self.response_text('video\n' + self.json_msg)
+    # def handle_voice(self):
+    #     return self.response_text('voice\n' + self.json_msg)
+    #
+    # def handle_image(self):
+    #     return self.response_text('image\n' + self.json_msg)
+    #
+    # def handle_location(self):
+    #     return self.response_text('location\n' + self.json_msg)
+    #
+    # def handle_shortvideo(self):
+    #     return self.response_text('shortvideo\n' + self.json_msg)
+    #
+    # def handle_video(self):
+    #     return self.response_text('video\n' + self.json_msg)
 
     def handle_unknown(self):
-        return self.response_text(self.message.type.lower() + '\n' + self.json_msg)
+        return self.response_text(
+            'Hi %s! your %s message is\n%s' % (
+                self.user.nickname, self.message.type.lower(), self.json_msg)
+        )
 
 
 # Will wait until PR 37 get merged

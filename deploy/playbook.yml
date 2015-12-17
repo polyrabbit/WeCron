@@ -26,7 +26,7 @@
       sudo: True
       with_items:
           - "{{ PROJ_HOME }}"
-          - /var/log/wecron
+          - "{{ PROJ_HOME }}/log"
 
     - name: Install virtualenv
       sudo: True
@@ -49,12 +49,12 @@
         extra_args: '-i http://pypi.oneapm.com/simple'
         virtualenv: "{{ PROJ_VENV }}"
 
-    - name: Copy Makefile
+    - name: Update Makefile
       copy: src=../Makefile dest="{{ PROJ_HOME }}/Makefile"
       notify:
         - Load wecron with supervisord
 
-    - name: Copy code
+    - name: Update code
       synchronize:
         src: ../WeCron
         dest: "{{ PROJ_HOME }}"
@@ -74,7 +74,7 @@
       notify:
         - Start nginx
 
-    - name: Copy nginx config
+    - name: Update nginx config
       sudo: True
       template: src=conf/nginx.conf.j2 dest="/etc/nginx/sites-available/weixin.at"
       notify:
@@ -86,20 +86,20 @@
       file: src="/etc/nginx/sites-available/weixin.at" dest="/etc/nginx/sites-enabled/weixin.at" state=link
 
 #### Supervisor
-    - name: Copy supervisor config
+    - name: Update supervisor config
       template: src=conf/supervisor.conf.j2 dest=/etc/supervisor/conf.d/wecron.conf
       sudo: True
       notify:
         - Load wecron with supervisord
 
 #### uwsgi
-    - name: Copy uwsgi config
+    - name: Update uwsgi config
       template: src=conf/uwsgi.ini.j2 dest="{{ PROJ_HOME }}/uwsgi.ini"
       notify:
           - Load wecron with supervisord
 
 ### oneapm
-    - name: Copy oneapm config
+    - name: Update oneapm config
       template: src=conf/blueware.ini.j2 dest="{{ PROJ_HOME }}/blueware.ini"
 
   handlers:
