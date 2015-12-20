@@ -4,10 +4,14 @@ import logging
 import json
 
 from wechatpy.replies import TextReply, TransferCustomerServiceReply
+from wechatpy.client.api import WeChatSemantic
 
 from .models import User
+from common import wechat_client
 
 logger = logging.getLogger(__name__)
+
+semantic = WeChatSemantic(client=wechat_client)
 
 
 class WechatMessage(object):
@@ -35,7 +39,19 @@ class WechatMessage(object):
         if self.message.content.startswith('#'):
             logger.info('Transfer to customer service')
             return TransferCustomerServiceReply(message=self.message).render()
-        return self.handle_unknown()
+        try:
+            reminder = semantic.search(
+                query=self.message.content,
+                category='remind',
+                uid=self.message.source,
+                city='上海')  # F**k, weixin always needs the city param
+            return self.text_reply(
+                'Hi %s! 你的提醒分析结果是\n%s' % (
+                    self.user.nickname, json.dumps(reminder, ensure_ascii=False, indent=2))
+            )
+        except Exception as e:  # Catch all kinds of wired errors
+            logger.exception('Semantic parse error')
+            return self.handle_unknown()
 
     def handle_subscribe(self):
         return self.text_reply(
@@ -48,8 +64,9 @@ class WechatMessage(object):
                 self.user.nickname, self.message.type.lower(), self.json_msg)
         )
 
-    # def handle_voice(self):
-    #     return self.response_text('voice\n' + self.json_msg)
+    def handle_voice(self):
+        self.message.content = getattr(self.message, 'recognition', '') or ''
+        return self.handle_text()
     #
     # def handle_image(self):
     #     return self.response_text('image\n' + self.json_msg)
