@@ -3,23 +3,16 @@ from __future__ import unicode_literals, absolute_import
 import logging
 
 from django.conf import settings
-from wechat_sdk import WechatBasic
+from wechatpy import WeChatClient
 
 logger = logging.getLogger(__name__)
 
+"""
+A stateless client, there should be only one instance of wechat_client,
+for there is only one instance of access_token globally.
+"""
+wechat_client = WeChatClient(
+    appid=settings.WX_APPID,
+    secret=settings.WX_APPSECRET
+)
 
-class WechatClient(WechatBasic):
-    """A stateless class"""
-
-    def __new__(cls, *args, **kw):
-        if not hasattr(cls, '_instance'):
-            cls._instance = super(WechatClient, cls).__new__(cls, *args, **kw)
-        return cls._instance
-
-    def __init__(self):
-        super(WechatClient, self).__init__(
-                appid=settings.WX_APPID,
-                appsecret=settings.WX_APPSECRET
-            )
-
-wechat_client = WechatClient()

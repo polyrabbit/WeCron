@@ -13,7 +13,7 @@ class UserManager(BaseUserManager):
     def get_or_fetch(self, pk):
         if self.filter(pk=pk).exists():
             return self.get(pk=pk)
-        user_json = wechat_client.get_user_info(pk)
+        user_json = wechat_client.user.get(pk)
         return self.create(**user_json)
 
     def create_superuser(self, openid, password, **extra_fields):
