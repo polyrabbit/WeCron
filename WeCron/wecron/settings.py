@@ -41,6 +41,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'wxhook',
+    'remind'
 )
 
 MIDDLEWARE_CLASSES = (

@@ -1,17 +1,14 @@
 #coding: utf-8
-from __future__ import unicode_literals
+from __future__ import unicode_literals, absolute_import
 import logging
 import json
 
 from wechatpy.replies import TextReply, TransferCustomerServiceReply
-from wechatpy.client.api import WeChatSemantic
 
 from .models import User
-from common import wechat_client
+from .semantic_parser import parse
 
 logger = logging.getLogger(__name__)
-
-semantic = WeChatSemantic(client=wechat_client)
 
 
 class WechatMessage(object):
@@ -36,15 +33,11 @@ class WechatMessage(object):
         return handler()
 
     def handle_text(self):
-        if self.message.content.startswith('#'):
+        if self.message.content.startswith('客服'):
             logger.info('Transfer to customer service')
             return TransferCustomerServiceReply(message=self.message).render()
         try:
-            reminder = semantic.search(
-                query=self.message.content,
-                category='remind',
-                uid=self.message.source,
-                city='上海')  # F**k, weixin always needs the city param
+            reminder = parse(self.message.content, uid=self.message.source)
             return self.text_reply(
                 'Hi %s! 你的提醒分析结果是\n%s' % (
                     self.user.nickname, json.dumps(reminder, ensure_ascii=False, indent=2))
