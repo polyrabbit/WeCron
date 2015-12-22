@@ -34,4 +34,9 @@ def shutdown_scheduler():
 def update_user_info():
     print "+"*10, 'updating user info'
 
+
+@scheduler.scheduled_job('cron', hour=4, jobstore='default', timezone=settings.TIME_ZONE)
+def remove_outdated_reminds():
+    print '-'*10, 'removing outdated reminds'
+
 scheduler.start()

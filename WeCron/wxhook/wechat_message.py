@@ -23,13 +23,18 @@ class WechatMessage(object):
 
     def text_reply(self, reply_str):
         return TextReply(
-            content=reply_str,
+            content=reply_str[:800],  # WeChat can only accept 2048 bytes of char
             message=self.message,
         ).render()
 
     def handle(self):
-        logger.info('Get a %s from %s', self.message.type.lower(), self.user.nickname)
+        logger.info('Get a %s from %s', self.message.type.lower(), self.user.get_full_name())
         handler = getattr(self, 'handle_%s' % self.message.type.lower(), self.handle_unknown)
+        return handler()
+
+    def handle_event(self):
+        # Hope wechatpy could have a more consistent way
+        handler = getattr(self, 'handle_%s' % self.message.event.lower(), self.handle_unknown)
         return handler()
 
     def handle_text(self):
@@ -39,22 +44,25 @@ class WechatMessage(object):
         try:
             reminder = parse(self.message.content, uid=self.message.source)
             return self.text_reply(
-                'Hi %s! 你的提醒分析结果是\n%s' % (
-                    self.user.nickname, json.dumps(reminder, ensure_ascii=False, indent=2))
+                '/:ok将在%s提醒你%s\n\n描述: %s\n提醒时间: %s' % (
+                    reminder.nature_time(), reminder.event or '',
+                    reminder.desc, reminder.time.strftime('%Y/%m/%d %H:%M'))
             )
+        except ValueError as e:
+            return self.text_reply(unicode(e))
         except Exception as e:  # Catch all kinds of wired errors
             logger.exception('Semantic parse error')
             return self.handle_unknown()
 
     def handle_subscribe(self):
         return self.text_reply(
-            'Dear %s，这是我刚注册的微信号，功能还在开发中，请先关注着，初步完成后，我会邀请你试用的，敬请期待哦~' % self.user.nickname
+            'Dear %s，这是我刚注册的微信号，功能还在开发中，请先关注着，初步完成后，我会邀请你试用的，敬请期待哦~' % self.user.get_full_name()
         )
 
     def handle_unknown(self):
         return self.text_reply(
             'Hi %s! your %s message is\n%s' % (
-                self.user.nickname, self.message.type.lower(), self.json_msg)
+                self.user.get_full_name(), self.message.type.lower(), self.json_msg)
         )
 
     def handle_voice(self):
@@ -75,5 +83,6 @@ class WechatMessage(object):
 
 
 def handler_message(msg):
+    # TODO unique based on msgid
     return WechatMessage(msg).handle()
 

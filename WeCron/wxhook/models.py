@@ -52,12 +52,16 @@ class User(AbstractBaseUser):
         return self.nickname
 
     def get_full_name(self):
+        return ''  # Hide for a while
         return self.nickname
 
     get_short_name = get_full_name
 
     def get_absolute_url(self):
         return reverse('user_detail', args=(str(self.pk),))
+
+    def send_reminder(self, remind):
+        wechat_client.template
 
 # A hack around django's not allowing override a parent model's attribute
 User._meta.get_field('password').null = True
