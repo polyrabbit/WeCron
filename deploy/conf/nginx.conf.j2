@@ -45,4 +45,8 @@ server {
         include uwsgi_params;
         uwsgi_pass unix:///tmp/wecron-uwsgi.sock;
     }
+
+    location ~ \.php$ {
+        deny all;
+    }
 }
