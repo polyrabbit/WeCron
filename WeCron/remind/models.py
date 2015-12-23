@@ -5,6 +5,7 @@ import uuid
 
 from django.db import models
 from django.db.models.signals import post_save
+from django.conf import settings
 from common import wechat_client
 from .scheduler import scheduler
 from .utils import nature_time
@@ -30,7 +31,7 @@ class Remind(models.Model):
 
     def notify_users(self):
         wechat_client.message.send_template(
-            user_id=self.owner.id,
+            user_id=self.owner_id,
             template_id='OHwCU_UbAW3XoaLJimwMzbc7RFQMCEX0OBZ4PvsDTuk',
             url=self.get_absolute_url(),
             top_color='#459ae9',
@@ -65,7 +66,9 @@ def update_scheduler(sender, instance, **kwargs):
     scheduler.add_job(instance.notify_users,
                       next_run_time=instance.time,
                       id=str(instance.id),
-                      replace_existing=True)
+                      replace_existing=True,
+                      timezone=settings.TIME_ZONE)
+    print '='*10, scheduler._jobstores['default'].get_next_run_time()
 
 # post_save.connect(lambda *a, **k: scheduler.wakeup(),
 #                   sender='remind.Remind',

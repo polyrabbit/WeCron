@@ -5,6 +5,7 @@ virtualenv = {{ PROJ_VENV }}
 # http-socket = 0.0.0.0:9090
 socket = /tmp/wecron-uwsgi.sock
 chmod-socket = 666
+log-format = %(addr) - worker:%(wid) - [%(ltime)] "%(method) %(uri) %(proto)" %(status) %(size) %(msecs)ms "%(referer)" "%(uagent)"
 
 uid = www-data
 gid = www-data
