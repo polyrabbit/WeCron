@@ -5,8 +5,7 @@ import uuid
 
 from django.db import models
 from django.db.models.signals import post_save
-from django.utils.dateparse import parse_datetime
-from django.utils import timezone
+from common import wechat_client
 from .scheduler import scheduler
 from .utils import nature_time
 
@@ -20,6 +19,7 @@ class Remind(models.Model):
     event = models.TextField('提醒事件', default='', blank=True, null=True)
     media_url = models.URLField('语音', max_length=320, blank=True, null=True)
     repeat = models.CharField('重复', max_length=128, blank=True, null=True)
+    owner = models.ForeignKey('wxhook.User', verbose_name='创建者')
 
     class Meta:
         ordering = ["-time"]
@@ -28,49 +28,45 @@ class Remind(models.Model):
     def nature_time(self):
         return nature_time(self.time)
 
-    @classmethod
-    def from_wechat_api(cls, resp_json):
-        """
-        {
-            "errcode": 0,
-            "query": "提醒我上午十点开会",
-            "semantic": {
-                "details": {
-                    "answer": "",
-                    "context_info": {},
-                    "datetime": {
-                        "date": "2015-12-23",
-                        "date_lunar": "2015-11-13",
-                        "time": "10:00:00",
-                        "time_ori": "上午十点",
-                        "type": "DT_ORI",
-                        "week": "3"
-                    },
-                    "event": "开会",
-                    "hit_str": "提醒 我 上午 十点 开会 ",
-                    "remind_type": "0"
-                },
-                "intent": "SEARCH"
+    def notify_users(self):
+        wechat_client.message.send_template(
+            user_id=self.owner.id,
+            template_id='OHwCU_UbAW3XoaLJimwMzbc7RFQMCEX0OBZ4PvsDTuk',
+            url=self.get_absolute_url(),
+            top_color='#459ae9',
+            data={
+                   "first": {
+                       "value": '\U0001f514%s\n' % self.event if self.event else
+                           self.time.strftime('%Y/%m/%d %H:%M到了'),
+                       "color": "#459ae9"
+                   },
+                   "keyword1": {
+                       "value": self.time.strftime('%Y/%m/%d %H:%M'),
+                   },
+                   "keyword2": {
+                       "value": self.desc
+                   },
+                   # "remark": {
+                   #     "value": "欢迎再次购买！",
+                   #     "color": "#459ae9"
+                   # }
             },
-            "type": "remind"
-        }
-        """
-        dt_str = '%s %s+08:00' % (
-            resp_json['semantic']['details']['datetime']['date'],
-            resp_json['semantic']['details']['datetime']['time'],
-        )  # there could be nothing in details
-        dt = parse_datetime(dt_str)
-        if dt <= timezone.now():  # GMT and UTC time can compares
-            # TODO use a specified exception
-            raise ValueError('/:no时间已过，请改后再试。')
+        )
 
-        remind = cls(time=dt,
-                     desc=resp_json.get('query', ''),
-                     event=resp_json['semantic']['details'].get('event', ''))
-        remind.save()
-        return remind
+    def get_absolute_url(self):
+        return 'http://www.weixin.at'
 
 
-post_save.connect(lambda *a, **k: scheduler.wakeup(),
-                  sender='remind.Remind',
-                  dispatch_uid='update-scheduler')
+from django.dispatch import receiver
+
+@receiver(post_save, sender='remind.Remind', dispatch_uid='update-scheduler')
+def update_scheduler(sender, instance, **kwargs):
+    scheduler.wakeup()
+    scheduler.add_job(instance.notify_users,
+                      next_run_time=instance.time,
+                      id=str(instance.id),
+                      replace_existing=True)
+
+# post_save.connect(lambda *a, **k: scheduler.wakeup(),
+#                   sender='remind.Remind',
+#                   dispatch_uid='update-scheduler')

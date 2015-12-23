@@ -48,6 +48,10 @@ class User(AbstractBaseUser):
         ordering = ["-subscribe_time"]
         db_table = 'user'
 
+    @property
+    def id(self):
+        return self.openid
+
     def __unicode__(self):
         return self.nickname
 
@@ -59,9 +63,6 @@ class User(AbstractBaseUser):
 
     def get_absolute_url(self):
         return reverse('user_detail', args=(str(self.pk),))
-
-    def send_reminder(self, remind):
-        wechat_client.template
 
 # A hack around django's not allowing override a parent model's attribute
 User._meta.get_field('password').null = True

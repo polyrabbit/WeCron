@@ -15,7 +15,7 @@ def delta2dict( delta ):
         '小时'   : int(delta.seconds / 3600),
         '分' : int(delta.seconds / 60) % 60,
         '秒' : delta.seconds % 60,
-        '毫秒' : delta.microseconds
+        # '毫秒' : delta.microseconds
     }
 
 
@@ -35,7 +35,7 @@ def nature_time(dt, precision=2, past_tense='{}前', future_tense='{}后'):
     d = delta2dict(delta)
     hlist = []
     count = 0
-    units = ('年', '天', '小时', '分', '秒', '毫秒')
+    units = ('年', '天', '小时', '分', '秒')
     for unit in units:
         if count >= precision:
             break  # met precision

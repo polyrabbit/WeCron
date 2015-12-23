@@ -28,13 +28,12 @@ class WechatMessage(object):
         ).render()
 
     def handle(self):
-        logger.info('Get a %s from %s', self.message.type.lower(), self.user.get_full_name())
+        logger.info('Get a %s from %s', self.message.type.lower(), self.user.nickname)
         handler = getattr(self, 'handle_%s' % self.message.type.lower(), self.handle_unknown)
         return handler()
 
     def handle_event(self):
-        # Hope wechatpy could have a more consistent way
-        handler = getattr(self, 'handle_%s' % self.message.event.lower(), self.handle_unknown)
+        handler = getattr(self, 'handle_event_%s' % self.message.event.lower(), self.handle_event_unknown)
         return handler()
 
     def handle_text(self):
@@ -43,8 +42,10 @@ class WechatMessage(object):
             return TransferCustomerServiceReply(message=self.message).render()
         try:
             reminder = parse(self.message.content, uid=self.message.source)
+            reminder.owner = self.user
+            reminder.save()
             return self.text_reply(
-                '/:ok将在%s提醒你%s\n\n描述: %s\n提醒时间: %s' % (
+                '/:ok将在%s提醒你%s\n\n内容: %s\n提醒时间: %s' % (
                     reminder.nature_time(), reminder.event or '',
                     reminder.desc, reminder.time.strftime('%Y/%m/%d %H:%M'))
             )
@@ -54,7 +55,7 @@ class WechatMessage(object):
             logger.exception('Semantic parse error')
             return self.handle_unknown()
 
-    def handle_subscribe(self):
+    def handle_event_subscribe(self):
         return self.text_reply(
             'Dear %s，这是我刚注册的微信号，功能还在开发中，请先关注着，初步完成后，我会邀请你试用的，敬请期待哦~' % self.user.get_full_name()
         )
@@ -63,6 +64,12 @@ class WechatMessage(object):
         return self.text_reply(
             'Hi %s! your %s message is\n%s' % (
                 self.user.get_full_name(), self.message.type.lower(), self.json_msg)
+        )
+
+    def handle_event_unknown(self):
+        return self.text_reply(
+            'Hi %s! your %s event is\n%s' % (
+                self.user.get_full_name(), self.message.event.lower(), self.json_msg)
         )
 
     def handle_voice(self):
