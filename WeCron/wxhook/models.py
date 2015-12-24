@@ -1,5 +1,7 @@
 #coding: utf-8
 from __future__ import unicode_literals, absolute_import
+from datetime import datetime
+import pytz
 
 from common import wechat_client
 
@@ -13,8 +15,11 @@ class UserManager(BaseUserManager):
     def get_or_fetch(self, pk):
         if self.filter(pk=pk).exists():
             return self.get(pk=pk)
-        user_json = wechat_client.user.get(pk)
-        return self.create(**user_json)
+        user_dict = wechat_client.user.get(pk)
+        if 'subscribe_time' in user_dict:
+            user_dict['subscribe_time'] = \
+                datetime.fromtimestamp(user_dict['subscribe_time'], pytz.utc)
+        return self.create(**user_dict)
 
     def create_superuser(self, openid, password, **extra_fields):
         user = self.model(openid=openid, **extra_fields)
@@ -36,7 +41,7 @@ class User(AbstractBaseUser):
     province = models.CharField('省份', max_length=100, null=True)
     language = models.CharField('语言', max_length=50, null=True)
     headimgurl = models.CharField('头像地址', max_length=200, null=True)
-    subscribe_time = models.IntegerField('关注时间', null=True)
+    subscribe_time = models.DateTimeField('关注时间', null=True)
     remark = models.CharField('备注', max_length=200, null=True)
     groupid = models.IntegerField('分组ID', null=True)
 
