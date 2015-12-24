@@ -77,16 +77,16 @@ class WechatMessage(object):
         return self.handle_text()
     #
     # def handle_image(self):
-    #     return self.response_text('image\n' + self.json_msg)
-    #
-    # def handle_location(self):
-    #     return self.response_text('location\n' + self.json_msg)
+    #     return self.text_reply('image\n' + self.json_msg)
+
+    def handle_location(self):
+        return self.text_reply('基于地理位置的提醒正在开发,敬请期待~\n' + self.json_msg)
     #
     # def handle_shortvideo(self):
-    #     return self.response_text('shortvideo\n' + self.json_msg)
+    #     return self.text_reply('shortvideo\n' + self.json_msg)
     #
     # def handle_video(self):
-    #     return self.response_text('video\n' + self.json_msg)
+    #     return self.text_reply('video\n' + self.json_msg)
 
 
 def handler_message(msg):

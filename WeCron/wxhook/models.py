@@ -13,8 +13,9 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 class UserManager(BaseUserManager):
 
     def get_or_fetch(self, pk):
-        if self.filter(pk=pk).exists():
-            return self.get(pk=pk)
+        u = self.filter(pk=pk).first()
+        if u:
+            return u
         user_dict = wechat_client.user.get(pk)
         if 'subscribe_time' in user_dict:
             user_dict['subscribe_time'] = \

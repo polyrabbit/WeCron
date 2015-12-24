@@ -4,11 +4,8 @@ import logging
 import uuid
 
 from django.db import models
-from django.db.models.signals import post_save
-from django.conf import settings
 from common import wechat_client
-from .scheduler import scheduler
-from .utils import nature_time
+from remind.utils import nature_time
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +17,14 @@ class Remind(models.Model):
     event = models.TextField('提醒事件', default='', blank=True, null=True)
     media_url = models.URLField('语音', max_length=320, blank=True, null=True)
     repeat = models.CharField('重复', max_length=128, blank=True, null=True)
-    owner = models.ForeignKey('wxhook.User', verbose_name='创建者')
+    owner = models.ForeignKey('wxhook.User', verbose_name='创建者',
+                              related_name='reminds_created')
+    subscribers = models.ManyToManyField('wxhook.User', verbose_name='订阅者',
+                                         related_name='reminds_subscribed')
+    status = models.CharField('状态', max_length=10, default='pending',
+                              choices=(('pending', 'pending'),
+                                       ('running', 'running'),
+                                       ('done', 'done')))
 
     class Meta:
         ordering = ["-time"]
@@ -30,6 +34,7 @@ class Remind(models.Model):
         return nature_time(self.time)
 
     def notify_users(self):
+        logger.info('Sending notification to user %s', self.owner.nickname)
         wechat_client.message.send_template(
             user_id=self.owner_id,
             template_id='OHwCU_UbAW3XoaLJimwMzbc7RFQMCEX0OBZ4PvsDTuk',
@@ -37,8 +42,8 @@ class Remind(models.Model):
             top_color='#459ae9',
             data={
                    "first": {
-                       "value": '\U0001f514%s\n' % self.event if self.event else
-                           self.time.strftime('%Y/%m/%d %H:%M到了'),
+                       "value": '\U0001f514%s\n' % self.event if self.event else \
+                           self.time.strftime('%Y/%m/%d %H:%M到了'.encode('utf-8')).decode('utf-8'),
                        "color": "#459ae9"
                    },
                    "keyword1": {
@@ -57,19 +62,5 @@ class Remind(models.Model):
     def get_absolute_url(self):
         return 'http://www.weixin.at'
 
-
-from django.dispatch import receiver
-
-@receiver(post_save, sender='remind.Remind', dispatch_uid='update-scheduler')
-def update_scheduler(sender, instance, **kwargs):
-    scheduler.wakeup()
-    scheduler.add_job(instance.notify_users,
-                      next_run_time=instance.time,
-                      id=str(instance.id),
-                      replace_existing=True,
-                      timezone=settings.TIME_ZONE)
-    print '='*10, scheduler._jobstores['default'].get_next_run_time()
-
-# post_save.connect(lambda *a, **k: scheduler.wakeup(),
-#                   sender='remind.Remind',
-#                   dispatch_uid='update-scheduler')
+    def __unicode__(self):
+        return '%s: %s' % (self.owner.nickname, self.desc)
