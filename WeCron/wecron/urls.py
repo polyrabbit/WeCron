@@ -19,6 +19,8 @@ from django.contrib import admin
 from wxhook.views import WeiXinHook
 
 urlpatterns = [
-    url(r'wxhook', WeiXinHook.as_view()),
+    url(r'^wxhook$', WeiXinHook.as_view()),
+    url(r'^reminds/', include('remind.urls')),
+
     # url(r'^admin/', include(admin.site.urls)),  # Tuning django's user model is a disaster
 ]

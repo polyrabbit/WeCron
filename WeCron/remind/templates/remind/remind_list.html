@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>我的提醒</title>
+</head>
+<body>
+{% for rem in reminds %}
+    <a href="{{ rem.get_absolute_url }}">rem.id</a>
+    {{ rem }}
+{% endfor %}
+
+</body>
+</html>

@@ -4,6 +4,7 @@ import logging
 import uuid
 
 from django.db import models
+from django.core.urlresolvers import reverse
 from common import wechat_client
 from remind.utils import nature_time
 
@@ -42,7 +43,7 @@ class Remind(models.Model):
             top_color='#459ae9',
             data={
                    "first": {
-                       "value": '\U0001f514%s\n' % self.event if self.event else \
+                       "value": '\U0001F552%s\n' % self.event if self.event else \
                            self.time.strftime('%Y/%m/%d %H:%M到了'.encode('utf-8')).decode('utf-8'),
                        "color": "#459ae9"
                    },
@@ -60,7 +61,8 @@ class Remind(models.Model):
         )
 
     def get_absolute_url(self):
-        return 'http://www.weixin.at'
+        return reverse('remind_detail', kwargs={'pk': self.pk})
 
     def __unicode__(self):
         return '%s: %s' % (self.owner.nickname, self.desc)
+

@@ -11,8 +11,10 @@ run-uwsgi-test:
 		--module=wecron.wsgi:application \
 		--env DJANGO_SETTINGS_MODULE=wecron.settings \
 		--http :8000 \
+		--enable-threads \
+		--processes=4 \
+		--master
 		# --home=/path/to/virtual/env \   # optional path to a virtualenv
-		--processes=4 
 
 collectstatic:
 	python WeCron/manage.py collectstatic --noinput -v0 --clear
