@@ -19,6 +19,7 @@
         - git
         - supervisor
         - libpq-dev
+        - ntpdate
 
 ### App
     - name: Create directories
@@ -37,6 +38,10 @@
              creates="{{ PROJ_VENV }}/bin/activate"
       notify:
         - Install python dependencies
+
+    - name: Crontab for setting correct time
+      cron: name="update time" minute="0" hour="0" job="ntpdate pool.ntp.org"
+      sudo: True
 
     - name: Check python dependencies
       copy: src=../requirements.txt dest="{{ PROJ_HOME }}/requirements.txt"

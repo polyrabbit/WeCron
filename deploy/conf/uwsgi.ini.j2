@@ -2,6 +2,7 @@
 chdir = {{ PROJ_HOME }}/WeCron
 wsgi-file = wecron/wsgi.py
 virtualenv = {{ PROJ_VENV }}
+strict = True
 # http-socket = 0.0.0.0:9090
 socket = /tmp/wecron-uwsgi.sock
 chmod-socket = 666
@@ -14,9 +15,10 @@ env = LANG=en_US.UTF-8
 env = PYTHONIOENCODING=utf8
 
 master = True
-enable-threads = true
-single-interpreter = true
-threads = 4
+enable-threads = True
+single-interpreter = True
+lazy-apps = True  # This is important for apscheduler to work
+processes = 4
 
 pidfile = /tmp/wecron-uwsgi.pid
 # daemonize = /var/log/wecron/app.log
@@ -25,5 +27,6 @@ pidfile = /tmp/wecron-uwsgi.pid
 harakiri = 30
 max-requests = 1000
 vacuum = True
+worker-reload-mercy = 5
 
 stats = 127.0.0.1:9191

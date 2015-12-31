@@ -7,7 +7,6 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.util import timedelta_seconds
 from django.utils import timezone
 from django.db import transaction
-from django.db.models.signals import post_save
 from .remind import Remind
 
 logger = logging.getLogger(__name__)
@@ -41,8 +40,6 @@ class RemindScheduler(BackgroundScheduler):
                 return wait_seconds
 
 
-scheduler = RemindScheduler()
-
 # import sys, socket
 #
 # try:
@@ -73,8 +70,3 @@ scheduler = RemindScheduler()
 # def remove_outdated_reminds():
 #     print '-'*10, 'removing outdated reminds'
 
-post_save.connect(lambda *a, **k: scheduler.wakeup(),
-                  sender='remind.Remind',
-                  dispatch_uid='update-scheduler')
-
-scheduler.start()

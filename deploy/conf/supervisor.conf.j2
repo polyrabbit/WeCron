@@ -10,6 +10,7 @@ stopsignal = INT
 ; Stop not only the parent process but also the spawned processes.
 stopasgroup = true
 ; To activate virtualenv
+; Set secret keys here to make migrate happy
 environment = 
     PATH="{{ PROJ_VENV }}/bin:%(ENV_PATH)s",
     TZ="Asia/Shanghai",
@@ -18,7 +19,6 @@ environment =
     WX_SIGN_TOKEN="{{ WX_SIGN_TOKEN }}",
     DJ_SECRET_KEY="{{ DJ_SECRET_KEY }}",
     DJ_DEBUG=0,
-    ; Set here to make migrate happy
     WECRON_DB_HOST="{{ WECRON_DB_HOST }}",
     WECRON_DB_PORT="{{ WECRON_DB_PORT }}",
     WECRON_DB_NAME="{{ WECRON_DB_NAME }}",

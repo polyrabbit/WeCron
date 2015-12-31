@@ -2,9 +2,12 @@
 from __future__ import unicode_literals, absolute_import
 import logging
 import uuid
+from urlparse import urljoin
 
 from django.db import models
 from django.core.urlresolvers import reverse
+from django.utils.timezone import localtime
+from django.conf import settings
 from common import wechat_client
 from remind.utils import nature_time
 
@@ -13,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 class Remind(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
-    time = models.DateTimeField('提醒时间')
+    time = models.DateTimeField('提醒时间', db_index=True)
     desc = models.TextField('原始描述', default='', blank=True, null=True)
     event = models.TextField('提醒事件', default='', blank=True, null=True)
     media_url = models.URLField('语音', max_length=320, blank=True, null=True)
@@ -34,6 +37,9 @@ class Remind(models.Model):
     def nature_time(self):
         return nature_time(self.time)
 
+    def local_remind_time(self):
+        return localtime(self.time).strftime('%Y/%m/%d %H:%M')
+
     def notify_users(self):
         logger.info('Sending notification to user %s', self.owner.nickname)
         wechat_client.message.send_template(
@@ -43,12 +49,12 @@ class Remind(models.Model):
             top_color='#459ae9',
             data={
                    "first": {
-                       "value": '\U0001F552%s\n' % self.event if self.event else \
-                           self.time.strftime('%Y/%m/%d %H:%M到了'.encode('utf-8')).decode('utf-8'),
+                       "value": '\U0001F552 %s\n' % (self.event if self.event else
+                                                     '%s到了' % self.local_remind_time()),
                        "color": "#459ae9"
                    },
                    "keyword1": {
-                       "value": self.time.strftime('%Y/%m/%d %H:%M'),
+                       "value": self.local_remind_time(),
                    },
                    "keyword2": {
                        "value": self.desc
@@ -61,7 +67,7 @@ class Remind(models.Model):
         )
 
     def get_absolute_url(self):
-        return reverse('remind_detail', kwargs={'pk': self.pk})
+        return urljoin('http://www.weixin.at', reverse('remind_detail', kwargs={'pk': self.pk.hex}))
 
     def __unicode__(self):
         return '%s: %s' % (self.owner.nickname, self.desc)

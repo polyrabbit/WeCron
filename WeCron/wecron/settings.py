@@ -41,7 +41,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'wxhook',
-    'remind'
+    'remind.apps.RemindConfig',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -119,7 +119,7 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'standard': {
-            'format': '%(levelname)s - %(name)s - [%(asctime)s] %(message)s , %(thread)d - %(threadName)s : %(process)d - %(processName)s',
+            'format': '%(levelname)s - %(name)s - [%(asctime)s] %(message)s',
             'datefmt': '%d/%b %H:%M:%S',
         },
     },
@@ -145,7 +145,12 @@ LOGGING = {
             'handlers': ['console'],
             'level': 'WARNING',
             'propagate': True,
-        }
+        },
+        'blueware': {
+            'handlers': ['console'],
+            'level': 'WARNING',
+            'propagate': True,
+        },
     }
 }
 

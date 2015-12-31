@@ -50,6 +50,8 @@ class User(AbstractBaseUser):
 
     USERNAME_FIELD = 'openid'
 
+    is_staff = True
+
     class Meta:
         ordering = ["-subscribe_time"]
         db_table = 'user'
@@ -62,7 +64,6 @@ class User(AbstractBaseUser):
         return self.nickname
 
     def get_full_name(self):
-        return ''  # Hide for a while
         return self.nickname
 
     get_short_name = get_full_name

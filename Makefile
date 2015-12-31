@@ -10,10 +10,12 @@ run-uwsgi-test:
 	uwsgi --chdir=WeCron \
 		--module=wecron.wsgi:application \
 		--env DJANGO_SETTINGS_MODULE=wecron.settings \
+		--strict \
 		--http :8000 \
+		--worker-reload-mercy=5 \
 		--enable-threads \
 		--processes=4 \
-		--master
+		--master \
 		# --home=/path/to/virtual/env \   # optional path to a virtualenv
 
 collectstatic:
