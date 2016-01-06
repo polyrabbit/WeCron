@@ -60,7 +60,7 @@ def parse_by_wechat_api(text, **kwargs):
     dt = parse_datetime(dt_str)
     if dt <= timezone.now():  # GMT and UTC time can compares
         # TODO use a specified exception
-        raise ValueError('/:no时间已过，请改后再试。')
+        raise ValueError('/:no%s已经过去了，请重设一个将来的提醒。' % dt.strftime('%Y-%m-%d %H:%M:%S'))
     return Remind(time=dt,
                   desc=wechat_result.get('query', ''),
                   event=wechat_result['semantic']['details'].get('event', ''))

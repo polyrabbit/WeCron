@@ -22,9 +22,9 @@ class Remind(models.Model):
     media_url = models.URLField('语音', max_length=320, blank=True, null=True)
     repeat = models.CharField('重复', max_length=128, blank=True, null=True)
     owner = models.ForeignKey('wxhook.User', verbose_name='创建者',
-                              related_name='reminds_created')
+                              related_name='time_reminds_created', on_delete=models.DO_NOTHING)
     subscribers = models.ManyToManyField('wxhook.User', verbose_name='订阅者',
-                                         related_name='reminds_subscribed')
+                                         related_name='time_reminds_subscribed')
     status = models.CharField('状态', max_length=10, default='pending',
                               choices=(('pending', 'pending'),
                                        ('running', 'running'),
@@ -32,7 +32,7 @@ class Remind(models.Model):
 
     class Meta:
         ordering = ["-time"]
-        db_table = 'remind'
+        db_table = 'time_remind'
 
     def nature_time(self):
         return nature_time(self.time)

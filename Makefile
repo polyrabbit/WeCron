@@ -24,9 +24,15 @@ collectstatic:
 clean:
 	find . -name '*.pyc' -delete
 	rm -rf WeCron/staticfiles
+	rm -rf staticfiles
 
 syncdb:
 	python WeCron/manage.py migrate --noinput
 
 release:
 	ansible-playbook deploy/playbook.yml -v
+
+test:
+	cd WeCron && \
+		python -Wall manage.py test
+

@@ -69,6 +69,13 @@
         delete: yes
         # rsync_opts:
         #   - "--exclude='*.pyc'"
+      # sudo: True
+      # copy:
+      #     src: ../WeCron
+      #     dest: "{{ PROJ_HOME }}"
+      #     owner: www-data
+      #     group: www-data
+      #     mode: 0775
       notify:
         - Load wecron with supervisord
 

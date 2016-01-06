@@ -10,12 +10,12 @@ def delta2dict( delta ):
     """Accepts a delta, returns a dictionary of units"""
     delta = abs( delta )
     return {
-        '年'   : int(delta.days / 365),
-        '天'    : int(delta.days % 365),
-        '小时'   : int(delta.seconds / 3600),
-        '分' : int(delta.seconds / 60) % 60,
-        '秒' : delta.seconds % 60,
-        # '毫秒' : delta.microseconds
+        '年': int(delta.days / 365),
+        '天': int(delta.days % 365),
+        '小时': int(delta.seconds / 3600),
+        '分': int(delta.seconds / 60) % 60,
+        '秒': delta.seconds % 60,
+        '毫秒': delta.microseconds
     }
 
 
@@ -35,12 +35,14 @@ def nature_time(dt, precision=2, past_tense='{}前', future_tense='{}后'):
     d = delta2dict(delta)
     hlist = []
     count = 0
-    units = ('年', '天', '小时', '分', '秒')
+    units = ('年', '天', '小时', '分', '秒', '毫秒')
     for unit in units:
         if count >= precision:
             break  # met precision
         if d[unit] == 0:
             continue  # skip 0's
+        if hlist and unit == units[-1]:  # skip X秒XX毫秒
+            break
         hlist.append('%s%s' % (d[unit], unit))
         count += 1
     human_delta = ''.join(hlist)

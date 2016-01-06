@@ -36,9 +36,10 @@ class WeiXinHook(View):
 
     def post(self, request):
         try:
-            msg = parse_message(request.body)
+            req_text = request.body.decode('utf-8')
+            msg = parse_message(req_text)
         except Exception as e:
-            logger.exception('Illegal message from weixin: \n%s', request.body)
-            return HttpResponse('Illegal message from weixin: \n%s' % request.body)
+            logger.exception('Illegal message from weixin: \n%s', req_text)
+            return HttpResponse('Illegal message from weixin: \n%s' % req_text)
         wechat_resp = handler_message(msg)
         return HttpResponse(wechat_resp, content_type='text/xml; charset=utf-8')
