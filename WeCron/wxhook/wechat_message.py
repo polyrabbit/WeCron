@@ -5,6 +5,7 @@ import json
 
 from wechatpy.replies import TextReply, TransferCustomerServiceReply
 
+from common import wechat_client
 from .models import User
 from .semantic_parser import parse
 
@@ -53,24 +54,39 @@ class WechatMessage(object):
             return self.text_reply(unicode(e))
         except Exception as e:  # Catch all kinds of wired errors
             logger.exception('Semantic parse error')
-            return self.handle_unknown()
+            return self.text_reply(
+                '\U0001F648抱歉，我还只是一个比较初级的定时机器人，理解不了您刚才所说的话：\n\n“%s”\n\n'
+                '或者您可以换个姿势告诉我该怎么定时，比如这样：\n\n' 
+                '“五分钟后提醒我该起锅了”。\n'
+                '“周五晚上提醒我打电话给老妈”。\n'
+                '“1月22号上午提醒我给女朋友买束花/:rose”。' % self.message.content
+            )
 
     def handle_event_subscribe(self):
         return self.text_reply(
-            'Dear %s，这是我刚注册的微信号，功能还在开发中，请先关注着，初步完成后，我会邀请你试用的，敬请期待哦~' % self.user.get_full_name()
+            'Dear %s，这是我刚注册的微信号，功能还在开发中，使用过程中如有不便请及时向我反馈哦。\n\n'
+            '现在，直接输入文字或者语音就可以快速创建提醒啦~ 您可以这样说：\n\n'
+            '“五分钟后提醒我该起锅了”。\n'
+            '“周五晚上提醒我打电话给老妈”。\n'
+            '“1月22号上午提醒我给女朋友买束花/:rose”。\n\n'
+            '现在就来试试吧！'
+            % self.user.get_full_name()
         )
 
     def handle_unknown(self):
         return self.text_reply(
-            'Hi %s! your %s message is\n%s' % (
-                self.user.get_full_name(), self.message.type.lower(), self.json_msg)
+            '/:jj如需设置提醒，只需用语音或文字告诉我就行了，比如这样：\n\n' 
+            '“五分钟后提醒我该起锅了”。\n'
+            '“周五晚上提醒我打电话给老妈”。\n'
+            '“1月22号上午提醒我给女朋友买束花/:rose”。'
         )
 
     def handle_event_unknown(self):
-        return self.text_reply(
-            'Hi %s! your %s event is\n%s' % (
-                self.user.get_full_name(), self.message.event.lower(), self.json_msg)
-        )
+        return self.handle_unknown()
+        # return self.text_reply(
+        #     'Hi %s! your %s event is\n%s' % (
+        #         self.user.get_full_name(), self.message.event.lower(), self.json_msg)
+        # )
 
     def handle_voice(self):
         self.message.content = getattr(self.message, 'recognition', '') or ''
@@ -80,7 +96,7 @@ class WechatMessage(object):
     #     return self.text_reply('image\n' + self.json_msg)
 
     def handle_location(self):
-        return self.text_reply('基于地理位置的提醒正在开发,敬请期待~\n' + self.json_msg)
+        return self.text_reply('\U0001F4AA基于地理位置的提醒正在开发中，敬请期待~\n' + self.json_msg)
     #
     # def handle_shortvideo(self):
     #     return self.text_reply('shortvideo\n' + self.json_msg)
