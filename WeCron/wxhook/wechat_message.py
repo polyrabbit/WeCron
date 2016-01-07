@@ -3,6 +3,7 @@ from __future__ import unicode_literals, absolute_import
 import logging
 import json
 
+from django.utils import timezone
 from wechatpy.replies import TextReply, TransferCustomerServiceReply
 
 from common import wechat_client
@@ -38,9 +39,6 @@ class WechatMessage(object):
         return handler()
 
     def handle_text(self):
-        if self.message.content.startswith('客服'):
-            logger.info('Transfer to customer service')
-            return TransferCustomerServiceReply(message=self.message).render()
         try:
             reminder = parse(self.message.content, uid=self.message.source)
             reminder.owner = self.user
@@ -48,7 +46,7 @@ class WechatMessage(object):
             return self.text_reply(
                 '/:ok将在%s提醒你%s\n\n内容: %s\n提醒时间: %s' % (
                     reminder.nature_time(), reminder.event or '',
-                    reminder.desc, reminder.time.strftime('%Y/%m/%d %H:%M'))
+                    reminder.desc, reminder.local_time_string())
             )
         except ValueError as e:
             return self.text_reply(unicode(e))
@@ -91,18 +89,32 @@ class WechatMessage(object):
     def handle_voice(self):
         self.message.content = getattr(self.message, 'recognition', '') or ''
         return self.handle_text()
-    #
-    # def handle_image(self):
-    #     return self.text_reply('image\n' + self.json_msg)
 
     def handle_location(self):
         return self.text_reply('\U0001F4AA基于地理位置的提醒正在开发中，敬请期待~\n' + self.json_msg)
-    #
-    # def handle_shortvideo(self):
-    #     return self.text_reply('shortvideo\n' + self.json_msg)
-    #
-    # def handle_video(self):
-    #     return self.text_reply('video\n' + self.json_msg)
+
+    def handle_event_click(self):
+        if self.message.key.lower() == 'time_remind_today':
+            now = timezone.now()
+            time_reminds = self.user.get_time_reminds().filter(time__date=now).order_by('time').all()
+            remind_text_list = []
+            next_run_found = False
+            for rem in time_reminds:
+                emoji = '\U0001F552'
+                # takewhile is too aggressive
+                if rem.time < now:
+                    emoji = '\U00002713 '
+                elif not next_run_found:
+                    next_run_found = True
+                    emoji = '\U0001F51C'
+
+                remind_text_list.append('%s %s (%s)' % (emoji, rem.title(), rem.local_time_string('%H:%M')))
+
+            if remind_text_list:
+                return self.text_reply('/:sunHi %s, 你今天的提醒有:\n\n%s' % (self.user.get_full_name(),
+                                                                       '\n'.join(reversed(remind_text_list))))
+            return self.text_reply('\U0001F44F今天没有提醒，休息一下吧！')
+        return self.handle_event_unknown()
 
 
 def handler_message(msg):

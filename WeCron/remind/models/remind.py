@@ -37,8 +37,13 @@ class Remind(models.Model):
     def nature_time(self):
         return nature_time(self.time)
 
-    def local_remind_time(self):
-        return localtime(self.time).strftime('%Y/%m/%d %H:%M')
+    def local_time_string(self, fmt='%Y/%m/%d %H:%M'):
+        return localtime(self.time).strftime(fmt)
+
+    def title(self):
+        if self.event:
+            return self.event
+        return '闹钟'
 
     def notify_users(self):
         logger.info('Sending notification to user %s', self.owner.nickname)
@@ -49,12 +54,11 @@ class Remind(models.Model):
             top_color='#459ae9',
             data={
                    "first": {
-                       "value": '\U0001F552 %s\n' % (self.event if self.event else
-                                                     '%s到了' % self.local_remind_time()),
+                       "value": '\U0001F552 %s\n' % self.title(),
                        "color": "#459ae9"
                    },
                    "keyword1": {
-                       "value": self.local_remind_time(),
+                       "value": self.local_time_string(),
                    },
                    "keyword2": {
                        "value": self.desc
@@ -70,5 +74,5 @@ class Remind(models.Model):
         return urljoin('http://www.weixin.at', reverse('remind_detail', kwargs={'pk': self.pk.hex}))
 
     def __unicode__(self):
-        return '%s: %s' % (self.owner.nickname, self.desc)
+        return '%s: %s (%s)' % (self.owner.nickname, self.desc, self.local_time_string('%Y/%m/%d %H:%M:%S'))
 

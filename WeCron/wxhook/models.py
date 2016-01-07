@@ -71,5 +71,10 @@ class User(AbstractBaseUser):
     def get_absolute_url(self):
         return reverse('user_detail', args=(str(self.pk),))
 
+    def get_time_reminds(self):
+        created = self.time_reminds_created.all()
+        subscribed = self.time_reminds_subscribed.all()
+        return (created | subscribed).order_by('time')
+
 # A hack around django's not allowing override a parent model's attribute
 User._meta.get_field('password').null = True
