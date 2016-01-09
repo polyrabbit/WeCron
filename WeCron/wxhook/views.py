@@ -11,7 +11,7 @@ from wechatpy.utils import check_signature
 from wechatpy import parse_message
 from wechatpy.exceptions import InvalidSignatureException
 
-from .wechat_message import handler_message
+from .wechat_message import handle_message
 
 logger = logging.getLogger(__name__)
 
@@ -41,5 +41,5 @@ class WeiXinHook(View):
         except Exception as e:
             logger.exception('Illegal message from weixin: \n%s', req_text)
             return HttpResponse('Illegal message from weixin: \n%s' % req_text)
-        wechat_resp = handler_message(msg)
+        wechat_resp = handle_message(msg)
         return HttpResponse(wechat_resp, content_type='text/xml; charset=utf-8')

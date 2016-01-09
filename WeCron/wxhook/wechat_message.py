@@ -90,8 +90,10 @@ class WechatMessage(object):
         self.message.content = getattr(self.message, 'recognition', '') or ''
         return self.handle_text()
 
-    def handle_location(self):
+    def handle_event_location(self):
         return self.text_reply('\U0001F4AA基于地理位置的提醒正在开发中，敬请期待~\n' + self.json_msg)
+
+    handle_location = handle_event_location
 
     def handle_event_click(self):
         if self.message.key.lower() == 'time_remind_today':
@@ -117,7 +119,7 @@ class WechatMessage(object):
         return self.handle_event_unknown()
 
 
-def handler_message(msg):
+def handle_message(msg):
     # TODO unique based on msgid
     return WechatMessage(msg).handle()
 
