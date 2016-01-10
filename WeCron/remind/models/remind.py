@@ -6,7 +6,7 @@ from urlparse import urljoin
 
 from django.db import models
 from django.core.urlresolvers import reverse
-from django.utils.timezone import localtime
+from django.utils.timezone import localtime, now
 from django.conf import settings
 from common import wechat_client
 from remind.utils import nature_time
@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 class Remind(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     time = models.DateTimeField('提醒时间', db_index=True)
+    create_time = models.DateTimeField('设置时间', default=now)
     desc = models.TextField('原始描述', default='', blank=True, null=True)
     event = models.TextField('提醒事件', default='', blank=True, null=True)
     media_url = models.URLField('语音', max_length=320, blank=True, null=True)
@@ -71,6 +72,7 @@ class Remind(models.Model):
         )
 
     def get_absolute_url(self):
+        return 'http://www.baidu.com'
         return urljoin('http://www.weixin.at', reverse('remind_detail', kwargs={'pk': self.pk.hex}))
 
     def __unicode__(self):
