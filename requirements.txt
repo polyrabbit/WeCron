@@ -8,3 +8,4 @@ pytz
 pycrypto==2.6.1
 ago==0.0.6
 tomorrow==0.2.4
+httmock==1.2.4

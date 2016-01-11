@@ -64,3 +64,7 @@ def parse_by_wechat_api(text, **kwargs):
     return Remind(time=dt,
                   desc=wechat_result.get('query', ''),
                   event=wechat_result['semantic']['details'].get('event', ''))
+
+
+def parse_by_boson(text):
+    pass

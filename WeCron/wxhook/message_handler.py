@@ -35,7 +35,7 @@ class WechatMessage(object):
         return handler()
 
     def handle_event(self):
-        handler = getattr(self, 'handle_event_%s' % self.message.event.lower(), self.handle_event_unknown)
+        handler = getattr(self, 'handle_%s_event' % self.message.event.lower(), self.handle_unknown_event)
         return handler()
 
     def handle_text(self):
@@ -61,7 +61,7 @@ class WechatMessage(object):
                 '“1月22号上午提醒我给女朋友买束花/:rose”。' % self.message.content
             )
 
-    def handle_event_subscribe(self):
+    def handle_subscribe_event(self):
         return self.text_reply(
             'Dear %s，这是我刚注册的微信号，功能还在开发中，使用过程中如有不便请及时向我反馈哦。\n\n'
             '现在，直接输入文字或者语音就可以快速创建提醒啦~ 您可以这样说：\n\n'
@@ -80,7 +80,7 @@ class WechatMessage(object):
             '“1月22号上午提醒我给女朋友买束花/:rose”。'
         )
 
-    def handle_event_unknown(self):
+    def handle_unknown_event(self):
         return self.handle_unknown()
         # return self.text_reply(
         #     'Hi %s! your %s event is\n%s' % (
@@ -91,12 +91,12 @@ class WechatMessage(object):
         self.message.content = getattr(self.message, 'recognition', '') or ''
         return self.handle_text()
 
-    def handle_event_location(self):
+    def handle_location_event(self):
         return self.text_reply('\U0001F4AA基于地理位置的提醒正在开发中，敬请期待~\n' + self.json_msg)
 
-    handle_location = handle_event_location
+    handle_location = handle_location_event
 
-    def handle_event_click(self):
+    def handle_click_event(self):
         if self.message.key.lower() == 'time_remind_today':
             now = timezone.now()
             time_reminds = self.user.get_time_reminds().filter(time__date=now).order_by('time').all()
@@ -117,7 +117,7 @@ class WechatMessage(object):
                 return self.text_reply('/:sunHi %s, 你今天的提醒有:\n\n%s' % (self.user.get_full_name(),
                                                                        '\n'.join(reversed(remind_text_list))))
             return self.text_reply('/:coffee今天没有提醒，休息一下吧！')
-        return self.handle_event_unknown()
+        return self.handle_unknown_event()
 
 
 def handle_message(msg):

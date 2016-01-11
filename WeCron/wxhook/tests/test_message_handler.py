@@ -5,6 +5,7 @@ from django.test import TestCase
 from django.db.models.signals import post_save
 from django.utils import timezone
 from wechatpy import parse_message
+from httmock import urlmatch, response, HTTMock
 
 from common import wechat_client
 from ..message_handler import handle_message
@@ -12,12 +13,61 @@ from wxhook.models import User
 from remind.models import Remind
 
 
-class CallbackResponseTestCase(TestCase):
+@urlmatch(netloc=r'(.*\.)?api\.weixin\.qq\.com$', path='.*token')
+def access_token_mock(url, request):
+    content = {
+        "access_token": "1234567890",
+        "expires_in": 7200
+    }
+    headers = {
+        'Content-Type': 'application/json'
+    }
+    return response(200, content, headers, request=request)
+
+
+@urlmatch(netloc=r'(.*\.)?api\.weixin\.qq\.com$', path='.*semantic')
+def semantic_parser_mock(url, request):
+    content = {
+        "errcode": 0,
+        "query": "提醒我明天上午十点开会",
+        "semantic": {
+            "details": {
+                "answer": "",
+                "context_info": {},
+                "datetime": {
+                    "date": '2999-11-13',
+                    "date_lunar": "2015-11-13",
+                    "time": "10:00:00",
+                    "time_ori": "上午十点",
+                    "type": "DT_ORI",
+                    "week": "3"
+                },
+                "event": "开会",
+                "hit_str": "提醒 我 明天 上午 十点 开会 ",
+                "remind_type": "0"
+            },
+            "intent": "SEARCH"
+        },
+        "type": "remind"
+    }
+    headers = {
+        'Content-Type': 'application/json'
+    }
+    return response(200, content, headers, request=request)
+
+
+class MessageHandlerTestCase(TestCase):
 
     # Common strings
-    cannot_understand = '理解不了您刚才所说的'
+    remind_desc = '提醒我明天上午十点开会'
     instructions_to_use = '如需设置提醒'
     remind_base_on_location = '基于地理位置的提醒'
+
+    mock = HTTMock(access_token_mock, semantic_parser_mock)
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.mock.__enter__()
 
     def setUp(self):
         User(openid='FromUser', nickname='UserName').save()
@@ -36,13 +86,13 @@ class CallbackResponseTestCase(TestCase):
         <FromUserName><![CDATA[FromUser]]></FromUserName>
         <CreateTime>1348831860</CreateTime>
         <MsgType><![CDATA[text]]></MsgType>
-        <Content><![CDATA[xxx]]></Content>
+        <Content><![CDATA[%s]]></Content>
         <MsgId>1234567890123456</MsgId>
         </xml>
-        """
+        """ % self.remind_desc
         wechat_msg = self.build_wechat_msg(req_text)
         resp_xml = handle_message(wechat_msg)
-        self.assertIn(self.cannot_understand, resp_xml)
+        self.assertIn('提醒时间:', resp_xml)
 
     def test_image(self):
         req_text = """
@@ -69,13 +119,13 @@ class CallbackResponseTestCase(TestCase):
         <MsgType><![CDATA[voice]]></MsgType>
         <MediaId><![CDATA[media_id]]></MediaId>
         <Format><![CDATA[Format]]></Format>
-        <Recognition><![CDATA[xxx]]></Recognition>
+        <Recognition><![CDATA[%s]]></Recognition>
         <MsgId>1234567890123456</MsgId>
         </xml>
-        """
+        """ % self.remind_desc
         wechat_msg = self.build_wechat_msg(req_text)
         resp_xml = handle_message(wechat_msg)
-        self.assertIn(self.cannot_understand, resp_xml)
+        self.assertIn('提醒时间:', resp_xml)
 
     def test_video(self):
         req_text = """
