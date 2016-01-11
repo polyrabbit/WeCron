@@ -7,6 +7,7 @@ from urlparse import urljoin
 from django.db import models
 from django.core.urlresolvers import reverse
 from django.utils.timezone import localtime, now
+from django.contrib.postgres.fields import ArrayField
 from common import wechat_client
 from remind.utils import nature_time
 
@@ -23,8 +24,9 @@ class Remind(models.Model):
     repeat = models.CharField('重复', max_length=128, blank=True, null=True)
     owner = models.ForeignKey('wxhook.User', verbose_name='创建者',
                               related_name='time_reminds_created', on_delete=models.DO_NOTHING)
-    participants = models.ManyToManyField('wxhook.User', verbose_name='订阅者',
-                                         related_name='time_reminds_participate')
+    # participants = models.ManyToManyField('wxhook.User', verbose_name='订阅者',
+    #                                       related_name='time_reminds_participate')
+    participants = ArrayField(models.CharField(max_length=40), verbose_name='订阅者', default=list)
     status = models.CharField('状态', max_length=10, default='pending',
                               choices=(('pending', 'pending'),
                                        ('running', 'running'),
@@ -47,29 +49,32 @@ class Remind(models.Model):
 
     def notify_users(self):
         logger.info('Sending notification to user %s', self.owner.nickname)
-        wechat_client.message.send_template(
-            user_id=self.owner_id,
-            template_id='IxUSVxfmI85P3LJciVVcUZk24uK6zNvZXYkeJrCm_48',
-            url=self.get_absolute_url(),
-            top_color='#459ae9',
-            data={
-                   "first": {
-                       "value": '\U0001F552 %s\n' % self.title(),
-                       "color": "#459ae9"
-                   },
-                   "keyword1": {
-                       "value": self.desc,
-                   },
-                   "keyword2": {
-                       "value": self.local_time_string(),
-                   },
-            },
-        )
+        for uid in [self.owner_id] + self.participants:
+            # TODO error prone, and wait for wechatpy to send request asynchronously
+            wechat_client.message.send_template(
+                user_id=uid,
+                template_id='IxUSVxfmI85P3LJciVVcUZk24uK6zNvZXYkeJrCm_48',
+                url=self.get_absolute_url(),
+                top_color='#459ae9',
+                data={
+                       "first": {
+                           "value": '\U0001F552 %s\n' % self.title(),
+                           "color": "#459ae9"
+                       },
+                       "keyword1": {
+                           "value": self.desc,
+                       },
+                       "keyword2": {
+                           "value": self.local_time_string(),
+                       },
+                },
+            )
 
     def get_absolute_url(self):
         return 'http://www.baidu.com'
         return urljoin('http://www.weixin.at', reverse('remind_detail', kwargs={'pk': self.pk.hex}))
 
     def __unicode__(self):
-        return '%s: %s (%s)' % (self.owner.nickname, self.desc, self.local_time_string('%Y/%m/%d %H:%M:%S'))
+        return '%s: %s (%s)' % (self.owner.nickname, self.desc or self.event,
+                                self.local_time_string('%Y/%m/%d %H:%M:%S'))
 

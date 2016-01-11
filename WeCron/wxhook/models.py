@@ -3,11 +3,12 @@ from __future__ import unicode_literals, absolute_import
 from datetime import datetime
 import pytz
 
-from common import wechat_client
-
 from django.db import models
 from django.core.urlresolvers import reverse
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+
+from common import wechat_client
+from remind.models import Remind
 
 
 class UserManager(BaseUserManager):
@@ -73,7 +74,7 @@ class User(AbstractBaseUser):
 
     def get_time_reminds(self):
         created = self.time_reminds_created.all()
-        participate = self.time_reminds_participate.all()
+        participate = Remind.objects.filter(participants__contains=[self.pk])
         return (created | participate).order_by('time')
 
 # A hack around django's not allowing override a parent model's attribute

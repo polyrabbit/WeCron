@@ -189,9 +189,14 @@ class CallbackResponseTestCase(TestCase):
         wechat_msg = self.build_wechat_msg(req_text)
         resp_xml = handle_message(wechat_msg)
         self.assertIn('今天没有提醒', resp_xml)
+        User(openid='abc', nickname='abc').save()
         r = Remind(time=timezone.now(), owner_id='FromUser', event='睡觉')
         r.save()
         resp_xml = handle_message(wechat_msg)
         self.assertIn(r.title(), resp_xml)
         self.assertIn(r.local_time_string('%H:%M'), resp_xml)
+
+        r = Remind(time=timezone.now(), owner_id='FromUser', event='吃饭', participants=['abc'])
+        r.save()
+        self.assertEqual(User.objects.get(pk='abc').get_time_reminds().first(), r)
 

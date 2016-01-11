@@ -44,7 +44,7 @@ class WechatMessage(object):
             reminder.owner = self.user
             reminder.save()
             return self.text_reply(
-                '/:ok将在%s提醒你%s\n\n内容: %s\n提醒时间: %s\n\n<a href="%s">查看详情</a>' % (
+                '/:ok将在%s提醒你%s\n\n描述: %s\n提醒时间: %s\n\n<a href="%s">查看详情</a>' % (
                     reminder.nature_time(), reminder.event or '',
                     reminder.desc, reminder.local_time_string(),
                     reminder.get_absolute_url())
