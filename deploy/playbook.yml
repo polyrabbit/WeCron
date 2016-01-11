@@ -20,6 +20,8 @@
         - supervisor
         - libpq-dev
         - ntpdate
+        - libffi-dev
+        - libssl-dev
 
 ### App
     - name: Create directories

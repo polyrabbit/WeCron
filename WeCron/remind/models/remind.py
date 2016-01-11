@@ -7,7 +7,6 @@ from urlparse import urljoin
 from django.db import models
 from django.core.urlresolvers import reverse
 from django.utils.timezone import localtime, now
-from django.conf import settings
 from common import wechat_client
 from remind.utils import nature_time
 
@@ -24,8 +23,8 @@ class Remind(models.Model):
     repeat = models.CharField('重复', max_length=128, blank=True, null=True)
     owner = models.ForeignKey('wxhook.User', verbose_name='创建者',
                               related_name='time_reminds_created', on_delete=models.DO_NOTHING)
-    subscribers = models.ManyToManyField('wxhook.User', verbose_name='订阅者',
-                                         related_name='time_reminds_subscribed')
+    participants = models.ManyToManyField('wxhook.User', verbose_name='订阅者',
+                                         related_name='time_reminds_participate')
     status = models.CharField('状态', max_length=10, default='pending',
                               choices=(('pending', 'pending'),
                                        ('running', 'running'),
@@ -50,7 +49,7 @@ class Remind(models.Model):
         logger.info('Sending notification to user %s', self.owner.nickname)
         wechat_client.message.send_template(
             user_id=self.owner_id,
-            template_id='OHwCU_UbAW3XoaLJimwMzbc7RFQMCEX0OBZ4PvsDTuk',
+            template_id='IxUSVxfmI85P3LJciVVcUZk24uK6zNvZXYkeJrCm_48',
             url=self.get_absolute_url(),
             top_color='#459ae9',
             data={
@@ -59,15 +58,11 @@ class Remind(models.Model):
                        "color": "#459ae9"
                    },
                    "keyword1": {
-                       "value": self.local_time_string(),
+                       "value": self.desc,
                    },
                    "keyword2": {
-                       "value": self.desc
+                       "value": self.local_time_string(),
                    },
-                   # "remark": {
-                   #     "value": "欢迎再次购买！",
-                   #     "color": "#459ae9"
-                   # }
             },
         )
 

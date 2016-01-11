@@ -7,7 +7,7 @@ from django.utils import timezone
 from wechatpy import parse_message
 
 from common import wechat_client
-from ..wechat_message import handle_message
+from ..message_handler import handle_message
 from wxhook.models import User
 from remind.models import Remind
 

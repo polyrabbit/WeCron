@@ -11,7 +11,7 @@ from wechatpy.utils import check_signature
 from wechatpy import parse_message
 from wechatpy.exceptions import InvalidSignatureException
 
-from .wechat_message import handle_message
+from .message_handler import handle_message
 
 logger = logging.getLogger(__name__)
 

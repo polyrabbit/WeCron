@@ -111,7 +111,7 @@ class WechatMessage(object):
                     next_run_found = True
                     emoji = '\U0001F51C'
 
-                remind_text_list.append('%s %s (%s)' % (emoji, rem.title(), rem.local_time_string('%H:%M')))
+                remind_text_list.append('%s %s - %s' % (emoji, rem.local_time_string('%H:%M'), rem.title()))
 
             if remind_text_list:
                 return self.text_reply('/:sunHi %s, 你今天的提醒有:\n\n%s' % (self.user.get_full_name(),
