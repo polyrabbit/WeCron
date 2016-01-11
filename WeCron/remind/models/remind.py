@@ -4,6 +4,7 @@ import logging
 import uuid
 from urlparse import urljoin
 
+from tomorrow import threads
 from django.db import models
 from django.core.urlresolvers import reverse
 from django.utils.timezone import localtime, now
@@ -47,28 +48,37 @@ class Remind(models.Model):
             return self.event
         return '闹钟'
 
+    @threads(10, timeout=60)
+    def notify_user_by_id(self, uid):
+        # TODO wechatpy is not thread-safe
+        name = self.owner._default_manager.get(pk=uid).get_full_name()
+        try:
+            res = wechat_client.message.send_template(
+                        user_id=uid,
+                        template_id='IxUSVxfmI85P3LJciVVcUZk24uK6zNvZXYkeJrCm_48',
+                        url=self.get_absolute_url(),
+                        top_color='#459ae9',
+                        data={
+                               "first": {
+                                   "value": '\U0001F552 %s\n' % self.title(),
+                                   "color": "#459ae9"
+                               },
+                               "keyword1": {
+                                   "value": self.desc,
+                               },
+                               "keyword2": {
+                                   "value": self.local_time_string(),
+                               },
+                        },
+                    )
+            logger.info('Successfully send notification to user %s(%s)', name, uid)
+            return res
+        except:
+            logger.exception('Failed to send notification to user %s(%s)', name, uid)
+
     def notify_users(self):
-        logger.info('Sending notification to user %s', self.owner.nickname)
         for uid in [self.owner_id] + self.participants:
-            # TODO error prone, and wait for wechatpy to send request asynchronously
-            wechat_client.message.send_template(
-                user_id=uid,
-                template_id='IxUSVxfmI85P3LJciVVcUZk24uK6zNvZXYkeJrCm_48',
-                url=self.get_absolute_url(),
-                top_color='#459ae9',
-                data={
-                       "first": {
-                           "value": '\U0001F552 %s\n' % self.title(),
-                           "color": "#459ae9"
-                       },
-                       "keyword1": {
-                           "value": self.desc,
-                       },
-                       "keyword2": {
-                           "value": self.local_time_string(),
-                       },
-                },
-            )
+            self.notify_user_by_id(uid)
 
     def get_absolute_url(self):
         return 'http://www.baidu.com'
