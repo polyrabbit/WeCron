@@ -5,10 +5,30 @@
     <title>我的提醒</title>
 </head>
 <body>
-{% for rem in reminds %}
-    <a href="{{ rem.get_absolute_url }}">rem.id</a>
-    {{ rem }}
-{% endfor %}
+
+{% load humanize %}
+{% regroup reminds by time|naturalday:"m月d日，D" as reminds_by_day %}
+
+<div class="list remind-list ">
+    {% for day_remind_list in reminds_by_day %}
+        <div class="list-heading">
+            <span>{{ day_remind_list.grouper }}</span>
+        </div>
+
+        {% for rem in day_remind_list.list %}
+            <div class="list-item">
+                <div class="list-item-title remind-title">
+                    <time datetime='{{ rem.time|date:"c" }}'>{{ rem.time|date:"H:i" }}</time>
+                    |
+                    <a href="{{ rem.get_absolute_url }}" class="message" data-pjax="true" title="Test using httmock">{{ rem.title }}</a>
+                </div>
+{#                <div class="byline">#}
+{#                 committed by polyrabbit ⋅ <a href="/polyrabbit/WeCron/commit/abbcf36d44fd7f95155f670725ceb606bf6f0efd"><code>abbcf36d</code></a>#}
+{#                </div>#}
+            </div>
+        {% endfor %}
+    {% endfor %}
+</div>
 
 </body>
 </html>

@@ -50,8 +50,8 @@ def parse_by_wechat_api(text, **kwargs):
         **kwargs
     )
     # wechat_result = json.loads(parse_by_wechat_api.__doc__)
-    logger.info('Semantic result from wechat, %s', json.dumps(
-        wechat_result, ensure_ascii=False, indent=2))
+    logger.debug('Semantic result from wechat, %s',
+                 json.dumps(wechat_result, ensure_ascii=False))
 
     dt_str = '%s %s+08:00' % (
         wechat_result['semantic']['details']['datetime']['date'],

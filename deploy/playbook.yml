@@ -42,7 +42,7 @@
         - Install python dependencies
 
     - name: Crontab for setting correct time
-      cron: name="update time" minute="0" hour="0" job="ntpdate pool.ntp.org"
+      cron: name="update time" minute="0" hour="0,12" job="/usr/sbin/ntpdate pool.ntp.org"
       sudo: True
 
     - name: Check python dependencies
