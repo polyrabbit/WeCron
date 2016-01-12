@@ -31,7 +31,8 @@ class RemindScheduler(BackgroundScheduler):
                         rem.notify_users()
                         rem.status = 'done'
                         rem.save()
-                    next_remind = Remind.objects.filter(time__gt=now).order_by('time').first()
+                    next_remind = Remind.objects.filter(
+                        status='pending', time__gt=now-grace_time).order_by('time').first()
                     wait_seconds = None
                     if next_remind:
                         wait_seconds = max(timedelta_seconds(next_remind.time - timezone.now()), 0)

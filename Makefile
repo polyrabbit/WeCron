@@ -29,10 +29,11 @@ clean:
 syncdb:
 	python WeCron/manage.py migrate --noinput
 
-release:
+release: test
 	ansible-playbook deploy/playbook.yml -v
 
 test:
 	cd WeCron && \
-		python -Wall manage.py test
+		python -Wall manage.py test && \
+		python manage.py check
 

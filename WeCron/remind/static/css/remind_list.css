@@ -1,0 +1,10 @@
+.list-heading {
+    position: relative;
+    padding: 7px 15px;
+    clear: both;
+    font-size: 12px;
+    font-weight: bold;
+    color: #767676;
+    background-color: #f5f5f5;
+    border-top: 1px solid #eee;
+}
