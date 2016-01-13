@@ -59,4 +59,7 @@ target/
 # Pycharm
 .idea/
 
+# OSX
+.DS_Store
+
 staticfiles/

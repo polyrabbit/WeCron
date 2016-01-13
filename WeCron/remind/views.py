@@ -10,6 +10,7 @@ class RemindListView(ListView):
     context_object_name = 'reminds'
 
     def get_queryset(self):
+        # return Remind.objects.order_by('time')
         return Remind.objects.filter(time__date__gte=timezone.now()).order_by('time')
 
 
