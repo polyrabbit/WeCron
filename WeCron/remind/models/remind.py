@@ -51,7 +51,11 @@ class Remind(models.Model):
     @threads(10, timeout=60)
     def notify_user_by_id(self, uid):
         # TODO wechatpy is not thread-safe
-        name = self.owner._default_manager.get(pk=uid).get_full_name()
+        user = self.owner._default_manager.get(pk=uid)
+        name = user.get_full_name()
+        if not user.subscribe:
+            logger.info('User %s has unsubscribed, skip sending notification' % name)
+            return
         try:
             res = wechat_client.message.send_template(
                         user_id=uid,

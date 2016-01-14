@@ -62,15 +62,19 @@ class WechatMessage(object):
             )
 
     def handle_subscribe_event(self):
+        self.user.subscribe = True
+        self.user.save()
         return self.text_reply(
             'Dear %s，这是我刚注册的微信号，功能还在开发中，使用过程中如有不便请及时向我反馈哦。\n\n'
-            '现在，直接输入文字或者语音就可以快速创建提醒啦~ 您可以这样说：\n\n'
-            '“五分钟后提醒我该起锅了”。\n'
-            '“周五晚上提醒我打电话给老妈”。\n'
-            '“1月22号上午提醒我给女朋友买束花/:rose”。\n\n'
-            '现在就来试试吧！'
+            '现在，直接输入文字或者语音就可以快速创建提醒啦！请点击“创建”查看如何创建提醒。\n\n'
+            'PS 这是一个开源项目，代码都在<a href="https://github.com/polyrabbit/WeCron">这里</a>，欢迎有开发技能的同学参与进来！'
             % self.user.get_full_name()
         )
+
+    def handle_unsubscribe_event(self):
+        self.user.subscribe = False
+        self.user.save()
+        return self.text_reply("Bye")
 
     def handle_unknown(self):
         return self.text_reply(

@@ -70,7 +70,8 @@ class MessageHandlerTestCase(TestCase):
         cls.mock.__enter__()
 
     def setUp(self):
-        User(openid='FromUser', nickname='UserName').save()
+        self.user = User(openid='FromUser', nickname='UserName')
+        self.user.save()
         self.settings(WX_APPID='123').enable()
         wechat_client.appid = '123'
         # Disable scheduler
@@ -207,6 +208,23 @@ class MessageHandlerTestCase(TestCase):
         wechat_msg = self.build_wechat_msg(req_text)
         resp_xml = handle_message(wechat_msg)
         self.assertIn('直接输入文字或者语音就可以快速创建提醒', resp_xml)
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.subscribe)
+
+    def test_unsubscribe_event(self):
+        req_text = """
+        <xml>
+        <ToUserName><![CDATA[toUser]]></ToUserName>
+        <FromUserName><![CDATA[FromUser]]></FromUserName>
+        <CreateTime>123456789</CreateTime>
+        <MsgType><![CDATA[event]]></MsgType>
+        <Event><![CDATA[unsubscribe]]></Event>
+        </xml>
+        """
+        wechat_msg = self.build_wechat_msg(req_text)
+        resp_xml = handle_message(wechat_msg)
+        self.user.refresh_from_db()
+        self.assertFalse(self.user.subscribe)
 
     def test_location_event(self):
         req_text = """
@@ -240,13 +258,13 @@ class MessageHandlerTestCase(TestCase):
         resp_xml = handle_message(wechat_msg)
         self.assertIn('今天没有提醒', resp_xml)
         User(openid='abc', nickname='abc').save()
-        r = Remind(time=timezone.now(), owner_id='FromUser', event='睡觉')
+        r = Remind(time=timezone.now(), owner_id=self.user.pk, event='睡觉')
         r.save()
         resp_xml = handle_message(wechat_msg)
         self.assertIn(r.title(), resp_xml)
         self.assertIn(r.local_time_string('%H:%M'), resp_xml)
 
-        r = Remind(time=timezone.now(), owner_id='FromUser', event='吃饭', participants=['abc'])
+        r = Remind(time=timezone.now(), owner_id=self.user.pk, event='吃饭', participants=['abc'])
         r.save()
         self.assertEqual(User.objects.get(pk='abc').get_time_reminds().first(), r)
 

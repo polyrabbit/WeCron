@@ -34,7 +34,8 @@ class UserManager(BaseUserManager):
 
 class User(AbstractBaseUser):
     openid = models.CharField(max_length=40, primary_key=True)
-    subscribe = models.NullBooleanField('是否订阅', null=True, choices=((0, '未定阅'), (1, '已订阅'),))
+    subscribe = models.NullBooleanField('是否订阅', default=True,
+                                        choices=((0, '未定阅'), (1, '已订阅'),))
     nickname = models.CharField('昵称', max_length=40, null=True)
     sex = models.SmallIntegerField('性别', null=True, choices=
             ((0, '未知'), (1, '男性'), (2, '女性'),))
