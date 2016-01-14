@@ -14,13 +14,18 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include(blog_urls))
 """
 from django.conf.urls import include, url
+from django.views.generic import TemplateView, RedirectView
 from django.contrib import admin
 
 from wxhook.views import WeiXinHook
 
 urlpatterns = [
+     url(r'^$',
+        RedirectView.as_view(url='https://github.com/polyrabbit/WeCron'), name='index'),
     url(r'^wxhook$', WeiXinHook.as_view(), name='weixin_callback'),
     url(r'^reminds/', include('remind.urls')),
+    url(r'^under_construction$',
+        TemplateView.as_view(template_name='under_construction.html'), name='under_construction'),
 
     # url(r'^admin/', include(admin.site.urls)),  # Tuning django's user model is a disaster
 ]

@@ -4,6 +4,7 @@
   vars:
     PROJ_HOME: /var/www/wecron
     PROJ_VENV: "{{ PROJ_HOME }}/.venv"
+    CODE_HOME: "{{ PROJ_HOME }}/WeCron"
   # vars_files:
   # Put my secret keys to inventory file
   #   - keys.yml

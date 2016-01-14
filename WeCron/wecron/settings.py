@@ -28,7 +28,7 @@ SECRET_KEY = os.environ['DJ_SECRET_KEY']
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = 'DJ_DEBUG' not in os.environ
 
-ALLOWED_HOSTS = ['.weixin.at']
+ALLOWED_HOSTS = ['.weixin.at', 'localhost']
 
 
 # Application definition
@@ -41,6 +41,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
+    'common',
     'wxhook',
     'remind.apps.RemindConfig',
 )
@@ -73,6 +74,18 @@ TEMPLATES = [
         },
     },
 ]
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'
+    },
+    'staticfiles': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'staticfiles',
+        'TIMEOUT': 3600 * 24 * 8,
+        'MAX_ENTRIES': 1000,
+    }
+}
 
 WSGI_APPLICATION = 'wecron.wsgi.application'
 
@@ -111,9 +124,9 @@ AUTH_USER_MODEL = 'wxhook.User'
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
-# STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATIC_ROOT = 'staticfiles'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATIC_URL = '/static/'
+STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.CachedStaticFilesStorage'
 
 LOGGING = {
     'version': 1,

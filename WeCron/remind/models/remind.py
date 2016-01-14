@@ -85,7 +85,7 @@ class Remind(models.Model):
             self.notify_user_by_id(uid)
 
     def get_absolute_url(self):
-        return 'http://www.baidu.com'
+        return urljoin('http://www.weixin.at', reverse('under_construction'))
         return urljoin('http://www.weixin.at', reverse('remind_detail', kwargs={'pk': self.pk.hex}))
 
     def __unicode__(self):
