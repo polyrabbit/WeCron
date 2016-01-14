@@ -1,10 +1,15 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>我的提醒</title>
-</head>
-<body>
+{% extends "remind/remind_base.html" %}
 
-</body>
-</html>
+{% block title %}我的提醒{% endblock %}
+
+
+{% load humanize %}
+{% block body %}
+    <div class="page" id='remind_detail'>
+        <header class="bar bar-nav">
+          <a class="button button-link button-nav pull-left back"></a>
+          <a class="icon icon-edit pull-right"></a>
+          <h1 class="title">标题</h1>
+        </header>
+    </div>
+{% endblock body %}

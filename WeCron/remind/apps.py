@@ -15,4 +15,3 @@ class RemindConfig(AppConfig):
                           weak=False,
                           dispatch_uid='update-scheduler')
         scheduler.start()
-

@@ -43,7 +43,12 @@ INSTALLED_APPS = (
     'django.contrib.humanize',
     'common',
     'wxhook',
+    'wechat_user.apps.WechatUserConfig',
     'remind.apps.RemindConfig',
+)
+
+AUTHENTICATION_BACKENDS = (
+    'wechat_user.backends.WechatBackend',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -118,7 +123,7 @@ USE_L10N = True
 
 USE_TZ = True
 
-AUTH_USER_MODEL = 'wxhook.User'
+AUTH_USER_MODEL = 'wechat_user.WechatUser'
 
 
 # Static files (CSS, JavaScript, Images)

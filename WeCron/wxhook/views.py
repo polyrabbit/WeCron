@@ -43,3 +43,4 @@ class WeiXinHook(View):
             return HttpResponse('Illegal message from weixin: \n%s' % req_text)
         wechat_resp = handle_message(msg)
         return HttpResponse(wechat_resp, content_type='text/xml; charset=utf-8')
+

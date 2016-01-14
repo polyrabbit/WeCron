@@ -70,8 +70,8 @@
         group: no
         perms: yes
         delete: yes
-        # rsync_opts:
-        #   - "--exclude='*.pyc'"
+        rsync_opts:
+          - "--exclude-from='../.gitignore'"
       # sudo: True
       # copy:
       #     src: ../WeCron

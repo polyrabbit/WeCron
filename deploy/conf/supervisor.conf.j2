@@ -3,6 +3,7 @@ directory = {{ PROJ_HOME }}
 command = make run-in-prod
 autostart = true
 autorestart = true
+startsecs = 5
 stdout_logfile = {{ PROJ_HOME }}/log/out.log
 stderr_logfile = {{ PROJ_HOME }}/log/err.log
 user = www-data

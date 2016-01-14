@@ -7,7 +7,7 @@ from django.utils import timezone
 from wechatpy.replies import TextReply, TransferCustomerServiceReply
 
 from common import wechat_client
-from .models import User
+from django.contrib.auth import get_user_model
 from .semantic_parser import parse
 
 logger = logging.getLogger(__name__)
@@ -17,7 +17,7 @@ class WechatMessage(object):
 
     def __init__(self, message):
         self.message = message
-        self.user = User.objects.get_or_fetch(message.source)
+        self.user = get_user_model().objects.get_or_fetch(message.source)
 
     @property
     def json_msg(self):
@@ -30,7 +30,8 @@ class WechatMessage(object):
         ).render()
 
     def handle(self):
-        logger.info('Get a %s from %s', self.message.type.lower(), self.user.nickname)
+        logger.info('Get a %s %s from %s', getattr(self.message, 'event', ''),
+                    self.message.type, self.user.nickname)
         handler = getattr(self, 'handle_%s' % self.message.type.lower(), self.handle_unknown)
         return handler()
 
@@ -67,7 +68,7 @@ class WechatMessage(object):
         return self.text_reply(
             'Dear %s，这是我刚注册的微信号，功能还在开发中，使用过程中如有不便请及时向我反馈哦。\n\n'
             '现在，直接输入文字或者语音就可以快速创建提醒啦！请点击“创建”查看如何创建提醒。\n\n'
-            'PS 这是一个开源项目，代码都在<a href="https://github.com/polyrabbit/WeCron">这里</a>，欢迎有开发技能的同学参与进来！'
+            'PS 这是一个开源项目，代码都在<a href="https://github.com/polyrabbit/WeCron">这里</a>\U0001F517，欢迎有开发技能的同学参与进来！'
             % self.user.get_full_name()
         )
 

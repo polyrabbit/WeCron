@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+{% load staticfiles %}
+<html lang="en">
+    <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <title>{% block title %}我的提醒{% endblock %}</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    {% block css %}
+        <link rel="stylesheet" href="//g.alicdn.com/msui/sm/0.6.1/css/sm.min.css">
+        <link href="{% static "css/weui.min.css" %}" rel="stylesheet">
+        <link href="{% static "css/app.v2.css" %}" rel="stylesheet">
+        <link href="{% static "css/remind_list.css" %}" rel="stylesheet">
+    {% endblock css %}
+    </head>
+  <body>
+    {% block body %}
+    {% endblock body %}
+
+    {% block footer %}
+    <script type='text/javascript' src='//g.alicdn.com/sj/lib/zepto/zepto.min.js' charset='utf-8'></script>
+    <script type='text/javascript' src='//g.alicdn.com/msui/sm/0.6.1/js/sm.min.js' charset='utf-8'></script>
+    {% endblock footer %}
+  </body>
+</html>

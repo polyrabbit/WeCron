@@ -9,7 +9,7 @@ from httmock import urlmatch, response, HTTMock
 
 from common import wechat_client
 from ..message_handler import handle_message
-from wxhook.models import User
+from wechat_user.models import WechatUser
 from remind.models import Remind
 
 
@@ -70,7 +70,7 @@ class MessageHandlerTestCase(TestCase):
         cls.mock.__enter__()
 
     def setUp(self):
-        self.user = User(openid='FromUser', nickname='UserName')
+        self.user = WechatUser(openid='FromUser', nickname='UserName')
         self.user.save()
         self.settings(WX_APPID='123').enable()
         wechat_client.appid = '123'
@@ -257,7 +257,7 @@ class MessageHandlerTestCase(TestCase):
         wechat_msg = self.build_wechat_msg(req_text)
         resp_xml = handle_message(wechat_msg)
         self.assertIn('今天没有提醒', resp_xml)
-        User(openid='abc', nickname='abc').save()
+        WechatUser(openid='abc', nickname='abc').save()
         r = Remind(time=timezone.now(), owner_id=self.user.pk, event='睡觉')
         r.save()
         resp_xml = handle_message(wechat_msg)
@@ -266,5 +266,5 @@ class MessageHandlerTestCase(TestCase):
 
         r = Remind(time=timezone.now(), owner_id=self.user.pk, event='吃饭', participants=['abc'])
         r.save()
-        self.assertEqual(User.objects.get(pk='abc').get_time_reminds().first(), r)
+        self.assertEqual(WechatUser.objects.get(pk='abc').get_time_reminds().first(), r)
 

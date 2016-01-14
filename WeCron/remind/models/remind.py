@@ -7,6 +7,7 @@ from urlparse import urljoin
 from tomorrow import threads
 from django.db import models
 from django.core.urlresolvers import reverse
+from django.conf import settings
 from django.utils.timezone import localtime, now
 from django.contrib.postgres.fields import ArrayField
 from common import wechat_client
@@ -20,18 +21,17 @@ class Remind(models.Model):
     time = models.DateTimeField('提醒时间', db_index=True)
     create_time = models.DateTimeField('设置时间', default=now)
     desc = models.TextField('原始描述', default='', blank=True, null=True)
+    remark = models.TextField('备注', default='', blank=True, null=True)
     event = models.TextField('提醒事件', default='', blank=True, null=True)
     media_url = models.URLField('语音', max_length=320, blank=True, null=True)
     repeat = models.CharField('重复', max_length=128, blank=True, null=True)
-    owner = models.ForeignKey('wxhook.User', verbose_name='创建者',
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name='创建者',
                               related_name='time_reminds_created', on_delete=models.DO_NOTHING)
-    # participants = models.ManyToManyField('wxhook.User', verbose_name='订阅者',
+    # participants = models.ManyToManyField('wechat_user.WechatUser', verbose_name='订阅者',
     #                                       related_name='time_reminds_participate')
     participants = ArrayField(models.CharField(max_length=40), verbose_name='订阅者', default=list)
-    status = models.CharField('状态', max_length=10, default='pending',
-                              choices=(('pending', 'pending'),
-                                       ('running', 'running'),
-                                       ('done', 'done')))
+    done = models.NullBooleanField('状态', default=False,
+                                        choices=((False, '未发送'), (True, '已发送'),))
 
     class Meta:
         ordering = ["-time"]
@@ -85,7 +85,8 @@ class Remind(models.Model):
             self.notify_user_by_id(uid)
 
     def get_absolute_url(self):
-        return urljoin('http://www.weixin.at', reverse('under_construction'))
+        # return urljoin('http://www.weixin.at', reverse('under_construction'))
+        return urljoin('http://www.weixin.at', reverse('remind_update', kwargs={'pk': self.pk.hex}))
         return urljoin('http://www.weixin.at', reverse('remind_detail', kwargs={'pk': self.pk.hex}))
 
     def __unicode__(self):

@@ -1,0 +1,12 @@
+{% extends "remind/remind_base.html" %}
+
+{% block title %}{{ form.event }}{% endblock %}
+
+{% load humanize %}
+{% block body %}
+    fsdfdsfsafsa
+    <form method="post">{% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="Submit" />
+    </form>
+{% endblock body %}

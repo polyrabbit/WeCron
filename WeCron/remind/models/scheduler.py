@@ -27,12 +27,12 @@ class RemindScheduler(BackgroundScheduler):
                 with transaction.atomic():
                     # Lock the row
                     for rem in Remind.objects.select_for_update().filter(
-                            status='pending', time__range=(now-grace_time, now)).all():
+                            done=False, time__range=(now-grace_time, now)).all():
                         rem.notify_users()
-                        rem.status = 'done'
+                        rem.done = True
                         rem.save()
                     next_remind = Remind.objects.filter(
-                        status='pending', time__gt=now-grace_time).order_by('time').first()
+                        done=False, time__gt=now-grace_time).order_by('time').first()
                     wait_seconds = None
                     if next_remind:
                         wait_seconds = max(timedelta_seconds(next_remind.time - timezone.now()), 0)
