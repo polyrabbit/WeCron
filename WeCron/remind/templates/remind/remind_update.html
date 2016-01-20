@@ -1,12 +1,76 @@
 {% extends "remind/remind_base.html" %}
 
-{% block title %}{{ form.event }}{% endblock %}
+{% block title %}{{ remind.event }} - {{ remind.time|date:"n月j日 H:i" }}{% endblock %}
 
 {% load humanize %}
 {% block body %}
-    fsdfdsfsafsa
-    <form method="post">{% csrf_token %}
-    {{ form.as_p }}
-    <input type="submit" value="Submit" />
+<div class="page" id='remind_update'>
+    <form method="post" action="">{% csrf_token %}
+    {{ form.non_field_errors }}
+<div class="content native-scroll">
+  <div class="list-block">
+    <ul>
+      <!-- Text inputs -->
+      <li>
+        <div class="item-content">
+          <div class="item-media"><i class="icon icon-message"></i></div>
+          <div class="item-inner">
+            <div class="item-input">
+              <input type="text" placeholder="提醒事件" maxlength="120" name="{{ form.event.html_name }}" value="{{ remind.event }}">
+            </div>
+          </div>
+            {{ form.event.errors }}
+        </div>
+      </li>
+      <li>
+        <div class="item-content">
+          <div class="item-media"><i class="icon icon-clock"></i></div>
+          <div class="item-inner">
+            <div class="item-input">
+              <input type="text" placeholder="提醒时间" name="{{ form.time.html_name }}" id="datetime-picker"
+                     value="{{ remind.time|date:"Y-m-d H:i" }}">
+            </div>
+          </div>
+            {{ form.time.errors }}
+        </div>
+      </li>
+      <li>
+        <div class="item-content">
+          <div class="item-media"><i class="icon icon-menu"></i></div>
+          <div class="item-inner">
+            <div class="item-input">
+              <input type="text" placeholder="添加备注" name="{{ form.desc.html_name }}" value="{{ remind.desc }}">
+            </div>
+          </div>
+            {{ form.desc.errors }}
+        </div>
+      </li>
+    </ul>
+  </div>
+
+    <div class="content-block">
+    <div class="row">
+      <input type="submit" class="weui_btn weui_btn_primary" value="保存"/>
+    </div>
+  </div>
+
+</div>
     </form>
+</div>
 {% endblock body %}
+
+{% block footer %}
+    {{ block.super }}
+    <script>
+    $(function() {
+        $("#datetime-picker").datetimePicker({
+            toolbarTemplate: '<header class="bar bar-nav">\
+              <button class="button button-link pull-right close-picker">确定</button>\
+              <h1 class="title">选择日期和时间</h1>\
+              </header>',
+            value: [{{ remind.time|date:"Y" }}, {{ remind.time|date:"m" }}, {{ remind.time|date:"d" }}, {{ remind.time|date:"H" }}, {{ remind.time|date:"i" }}]
+        });
+        $.init();
+    });
+    </script>
+{% endblock footer %}

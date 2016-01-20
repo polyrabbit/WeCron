@@ -31,9 +31,9 @@ class RemindListView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         # return Remind.objects.order_by('time')
-        return Remind.objects.filter(
-                owner=self.request.user,
-                time__date__gte=timezone.now()).order_by('time')
+        return self.request.user.get_time_reminds().filter(
+            time__date__gte=timezone.now()
+        ).order_by('time')
 
 
 class RemindDetailView(DetailView):
@@ -43,5 +43,9 @@ class RemindDetailView(DetailView):
 
 class RemindUpdateView(UpdateView):
     model = Remind
-    fields = ['time', 'desc', 'event', 'remark']
+    fields = ['time', 'desc', 'event']
     template_name = 'remind/remind_update.html'
+    context_object_name = 'remind'
+
+    def get_success_url(self):
+        return reverse('remind_update', kwargs={'pk': self.kwargs['pk']})
