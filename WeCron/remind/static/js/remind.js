@@ -1,11 +1,11 @@
-var myApp = new Framework7({
+var app = new Framework7({
     pushState: true,
     cache: false,
     router: false,
     onAjaxStart: function (xhr) {
-        myApp.showIndicator();
+        app.showIndicator();
     },
     onAjaxComplete: function (xhr) {
-        myApp.hideIndicator();
+        app.hideIndicator();
     }
 });

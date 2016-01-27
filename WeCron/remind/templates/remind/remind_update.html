@@ -3,128 +3,58 @@
 {% block title %}{{ remind.event }} - {{ remind.time|date:"n月j日 H:i" }}{% endblock %}
 
 {% load humanize %}
-{% block body %}
 
-
-<!-- Status bar overlay for full screen mode (PhoneGap) -->
-    <div class="statusbar-overlay"></div>
-    <!-- Views -->
-    <div class="views">
-      <!-- Your main view, should have "view-main" class -->
-      <div class="view view-main">
-        <!-- Top Navbar-->
-        <div class="navbar">
-          <div class="navbar-inner">
-            <!-- We need cool sliding animation on title element, so we have additional "sliding" class -->
-            <div class="center sliding">Awesome App</div>
-          </div>
-        </div>
-        <!-- Pages container, because we use fixed-through navbar and toolbar, it has additional appropriate classes-->
-        <div class="pages navbar-through toolbar-through">
-          <!-- Page, "data-page" contains page name -->
-          <div data-page="update" class="page">
-            <!-- Scrollable page content -->
-            <div class="page-content">
-
-<form method="post" action="">{% csrf_token %}
-    {{ form.non_field_errors }}
-<div class="weui_cells weui_cells_form">
-    <div class="weui_cell">
-        <div class="weui_cell_hd">
-            <label for="{{ form.event.id_for_label }}">{{ form.event.label }}: </label>
-        </div>
-        <div class="weui_cell_bd weui_cell_primary">
-            <input class="weui_input" id="{{ form.event.id_for_label }}" type="text" placeholder="请输入要提醒的事件" maxlength="120" name="{{ form.event.html_name }}" value="{{ remind.event }}">
-        </div>
-    </div>
-    <div class="weui_cell">
-        <div class="weui_cell_hd">
-            <label for="{{ form.time.id_for_label }}">{{ form.time.label }}: </label>
-        </div>
-        <div class="weui_cell_bd weui_cell_primary">
-            <input class="weui_input" id="{{ form.time.id_for_label }}" type="text" placeholder="请输入提醒时间" maxlength="120" name="{{ form.time.html_name }}" value="{{ remind.time|date:"Y/m/d H:i" }}">
-        </div>
-    </div>
-    <div class="weui_cell">
-        <div class="weui_cell_hd">
-            <label for="{{ form.desc.id_for_label }}">备注: </label>
-        </div>
-        <div class="weui_cell_bd weui_cell_primary">
-            <textarea class="weui_textarea" id="{{ form.desc.id_for_label }}" rows=1 placeholder="请输入备注" name="{{ form.desc.html_name }}">{{ remind.desc }}</textarea>
-{#            <input class="weui_input" id="{{ form.desc.id_for_label }}" type="text" placeholder="请输入备注" maxlength="500" name="{{ form.desc.html_name }}" value="{{ remind.desc }}">#}
-{#            <div class="weui_textarea_counter"><span>{{ remind.desc|length }}</span>/200</div>#}
-        </div>
-    </div>
-    <input type="submit" class="weui_btn weui_btn_primary" value="保存"/>
-</div>
-
-{#<div class="content native-scroll">#}
-{#  <div class="list-block">#}
-{#    <ul>#}
-{#      <!-- Text inputs -->#}
-{#      <li>#}
-{#        <div class="item-content">#}
-{#          <div class="item-media"><i class="icon icon-message"></i></div>#}
-{#          <div class="item-inner">#}
-{#            <div class="item-input">#}
-{#              <input type="text" placeholder="提醒事件" maxlength="120" name="{{ form.event.html_name }}" value="{{ remind.event }}">#}
-{#            </div>#}
-{#          </div>#}
-{#            {{ form.event.errors }}#}
-{#        </div>#}
-{#      </li>#}
-{#      <li>#}
-{#        <div class="item-content">#}
-{#          <div class="item-media"><i class="icon icon-clock"></i></div>#}
-{#          <div class="item-inner">#}
-{#            <div class="item-input">#}
-{#              <input type="text" placeholder="提醒时间" name="{{ form.time.html_name }}" id="datetime-picker"#}
-{#                     value="{{ remind.time|date:"Y-m-d H:i" }}">#}
-{#            </div>#}
-{#          </div>#}
-{#            {{ form.time.errors }}#}
-{#        </div>#}
-{#      </li>#}
-{#      <li>#}
-{#        <div class="item-content">#}
-{#          <div class="item-media"><i class="icon icon-menu"></i></div>#}
-{#          <div class="item-inner">#}
-{#            <div class="item-input">#}
-{#              <input type="text" placeholder="添加备注" name="{{ form.desc.html_name }}" value="{{ remind.desc }}">#}
-{#            </div>#}
-{#          </div>#}
-{#            {{ form.desc.errors }}#}
-{#        </div>#}
-{#      </li>#}
-{#    </ul>#}
-{#  </div>#}
-{##}
-{#    <div class="content-block">#}
-{#    <div class="row">#}
-{#      <input type="submit" class="weui_btn weui_btn_primary" value="保存"/>#}
-{#    </div>#}
-{#  </div>#}
-{##}
-{#</div>#}
-    </form>
-
-            </div>
-          </div>
-        </div>
-        <!-- Bottom Toolbar-->
-        <div class="toolbar">
-          <div class="toolbar-inner">
-            <!-- Toolbar links -->
-            <a href="#" class="link">Link 1</a>
-            <a href="#" class="link">Link 2</a>
-          </div>
-        </div>
+{% block navbar %}
+<!-- Top Navbar-->
+<div class="navbar">
+  <div class="navbar-inner">
+      <div class="left">
+        <a href="{% url "remind_list" %}" class="link icon-only back">
+            <i class="fa fa-arrow-left"></i>
+        </a>
       </div>
-    </div>
-{% endblock body %}
+    <div class="center sliding">修改提醒</div>
+  </div>
+</div>
+{% endblock navbar %}
 
-{% block footer %}
-    {{ block.super }}
-    <script>
-    </script>
-{% endblock footer %}
+{% block page %}
+<!-- Page, "data-page" contains page name -->
+<div data-page="update" class="page">
+    <!-- Scrollable page content -->
+    <div class="page-content">
+        <form method="post" id="remind-update" class="list-block">{% csrf_token %}
+            {{ form.non_field_errors }}
+            <ul>
+            <li class="item-content">
+                <div class="item-media"><i class="fa fa-calendar-check-o fa-lg color-gray"></i></div>
+                <div class="item-inner">
+                    <div class="item-input">
+                        <input id="{{ form.event.id_for_label }}" type="text" placeholder="请输入要提醒的事件" maxlength="120" name="{{ form.event.html_name }}" value="{{ remind.event }}">
+                    </div>
+                </div>
+            </li>
+            <li class="item-content">
+                <div class="item-media"><i class="fa fa-clock-o fa-lg color-gray"></i></div>
+                <div class="item-inner">
+                    <div class="item-input">
+                        <input id="{{ form.time.id_for_label }}" type="text" placeholder="请输入提醒时间" maxlength="120" name="{{ form.time.html_name }}" value="{{ remind.time|date:"Y/m/d H:i" }}">
+                    </div>
+                </div>
+            </li>
+            <li class="item-content">
+                <div class="item-media"><i class="fa fa-sticky-note-o fa-lg color-gray"></i></div>
+                <div class="item-inner">
+                    <div class="item-input">
+{#                    <input id="{{ form.desc.id_for_label }}" type="text" placeholder="请输入备注(可选)" name="{{ form.desc.html_name }}" value="{{ remind.desc }}">#}
+                        <textarea class="resizable" id="{{ form.desc.id_for_label }}" placeholder="请输入备注(可选)" name="{{ form.desc.html_name }}">{{ remind.desc }}</textarea>
+                    </div>
+                </div>
+            </li>
+            </ul>
+            <input type="submit" class="weui_btn weui_btn_primary" value="保存"/>
+        </form>
+
+    </div>
+</div>
+{% endblock page %}

@@ -10,22 +10,39 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     {% block css %}
+        <link href="https://res.wx.qq.com/open/libs/weui/0.3.0/weui.min.css" rel="stylesheet">
         <link rel="stylesheet" href="http://f7cn.com/dist/css/framework7.ios.min.css">
         <link rel="stylesheet" href="http://f7cn.com/dist/css/framework7.ios.colors.min.css">
-        <link href="https://res.wx.qq.com/open/libs/weui/0.3.0/weui.min.css" rel="stylesheet">
 {#        <link href="{% static "css/app.v2.css" %}" rel="stylesheet">#}
-        <link href="{% static "css/remind_list.css" %}" rel="stylesheet">
+        <link href="{% static "css/remind.css" %}" rel="stylesheet">
     {% endblock css %}
     </head>
-  <body>
+
+  <body class="theme-gray">
     {% block body %}
+    <!-- Status bar overlay for full screen mode (PhoneGap) -->
+        <div class="statusbar-overlay"></div>
+        <!-- Views -->
+        <div class="views">
+          <!-- Your main view, should have "view-main" class -->
+          <div class="view view-main">
+          {% block navbar %}
+          {% endblock navbar %}
+            <!-- Pages container, because we use fixed-through navbar and toolbar, it has additional appropriate classes-->
+            <div class="pages navbar-through toolbar-through">
+                {% block page %}
+                {% endblock page %}
+            </div>
+            <!-- Bottom Toolbar-->
+          </div>
+        </div>
     {% endblock body %}
 
     {% block footer %}
-    <script type='text/javascript' src='//g.alicdn.com/sj/lib/zepto/zepto.min.js' charset='utf-8'></script>
-{#    <script type='text/javascript' src='//g.alicdn.com/msui/sm/0.6.1/js/sm.min.js' charset='utf-8'></script>#}
+    <link rel="stylesheet" href="http://apps.bdimg.com/libs/fontawesome/4.4.0/css/font-awesome.min.css">
+{#    <script type='text/javascript' src='//g.alicdn.com/sj/lib/zepto/zepto.min.js' charset='utf-8'></script>#}
     <script type='text/javascript' src='http://f7cn.com/dist/js/framework7.min.js' charset='utf-8'></script>
-        <script type='text/javascript' src='{% static "js/remind.js" %}' charset='utf-8'></script>
+    <script type='text/javascript' src='{% static "js/remind.js" %}' charset='utf-8'></script>
     {% endblock footer %}
   </body>
 </html>

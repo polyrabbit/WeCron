@@ -93,7 +93,7 @@ class MessageHandlerTestCase(TestCase):
         """ % self.remind_desc
         wechat_msg = self.build_wechat_msg(req_text)
         resp_xml = handle_message(wechat_msg)
-        self.assertIn('提醒时间:', resp_xml)
+        self.assertIn('时间:', resp_xml)
 
     def test_image(self):
         req_text = """
@@ -126,7 +126,7 @@ class MessageHandlerTestCase(TestCase):
         """ % self.remind_desc
         wechat_msg = self.build_wechat_msg(req_text)
         resp_xml = handle_message(wechat_msg)
-        self.assertIn('提醒时间:', resp_xml)
+        self.assertIn('时间:', resp_xml)
 
     def test_video(self):
         req_text = """

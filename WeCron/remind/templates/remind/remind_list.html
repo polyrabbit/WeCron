@@ -2,39 +2,54 @@
 
 {% block title %}我的提醒{% endblock %}
 
-
 {% load humanize %}
-{% block body %}
-<div class="page page-current" id='remind_list'>
-<div class="content">
+
+
+{% block navbar %}
+<!-- Top Navbar-->
+<div class="navbar">
+  <div class="navbar-inner">
+    <div class="center sliding">我的提醒</div>
+  </div>
+</div>
+{% endblock navbar %}
+
+{% block page %}
+<div data-page="list" class="page">
+<div class="page-content">
+    <div class="list-block contacts-list media-list">
     {% regroup reminds by time|naturalday:"Y年n月j日 D" as reminds_by_day %}
     {% now "Y年" as current_year %}
 
     {% for day_remind_list in reminds_by_day %}
-        <section>
-            <header class="panel-heading">
+        <div class="list-group">
+        <ul>
+            <li class="list-group-title">
                {{ day_remind_list.grouper|cut:current_year }}
-            </header>
-            <div>
+            </li>
             {% for rem in day_remind_list.list %}
-                <a href="{{ rem.get_absolute_url }}" class="list-group-item weui_cells_access">
-                <div class="media">
-                    <span class="pull-left thumb-small">
-                        <img alt="{{ rem.owner.get_full_name }}" src="{{ rem.owner.headimgurl }}"  class="img-rounded">
-                    </span>
-                    <div class="media-body">
-                        <div><span class="h5">{{ rem.title }}</span></div>
-                        <small class="text-muted">{{ rem.time|date:"H:i" }}</small>
+                <li>
+                    <a href="{{ rem.get_absolute_url }}" class="item-link external">
+                    <div class="item-content">
+                        <div class="item-media">
+                            <img alt="{{ rem.owner.get_full_name }}" src="{{ rem.owner.headimgurl }}">
+                        </div>
+                        <div class="item-inner">
+                            <div class="item-title-row">
+                                <div class="item-title">{{ rem.title }}</div>
+                            </div>
+                            <div class="item-subtitle color-gray">{{ rem.time|date:"H:i" }}</div>
+                        </div>
                     </div>
-                </div>
-                </a>
+                    </a>
+                </li>
             {% endfor %}
-            </div>
-        </section>
+        </ul>
+        </div>
     {% empty %}
-        <p>暂无提醒</p>
+        <div class="list-block-label">暂无提醒</div>
     {% endfor %}
     </div>
 </div>
 </div>
-{% endblock body %}
+{% endblock page %}

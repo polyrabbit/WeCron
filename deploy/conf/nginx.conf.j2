@@ -23,7 +23,7 @@ server {
 
     location /static/ {
         alias {{ CODE_HOME }}/staticfiles/;
-        expires 1d;
+        expires max;
     }
 
     location /favicon.ico {
