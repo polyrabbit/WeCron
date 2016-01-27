@@ -10,9 +10,10 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     {% block css %}
-        <link rel="stylesheet" href="//g.alicdn.com/msui/sm/0.6.1/css/sm.min.css">
-        <link href="{% static "css/weui.min.css" %}" rel="stylesheet">
-        <link href="{% static "css/app.v2.css" %}" rel="stylesheet">
+        <link rel="stylesheet" href="http://f7cn.com/dist/css/framework7.ios.min.css">
+        <link rel="stylesheet" href="http://f7cn.com/dist/css/framework7.ios.colors.min.css">
+        <link href="https://res.wx.qq.com/open/libs/weui/0.3.0/weui.min.css" rel="stylesheet">
+{#        <link href="{% static "css/app.v2.css" %}" rel="stylesheet">#}
         <link href="{% static "css/remind_list.css" %}" rel="stylesheet">
     {% endblock css %}
     </head>
@@ -22,7 +23,9 @@
 
     {% block footer %}
     <script type='text/javascript' src='//g.alicdn.com/sj/lib/zepto/zepto.min.js' charset='utf-8'></script>
-    <script type='text/javascript' src='//g.alicdn.com/msui/sm/0.6.1/js/sm.min.js' charset='utf-8'></script>
+{#    <script type='text/javascript' src='//g.alicdn.com/msui/sm/0.6.1/js/sm.min.js' charset='utf-8'></script>#}
+    <script type='text/javascript' src='http://f7cn.com/dist/js/framework7.min.js' charset='utf-8'></script>
+        <script type='text/javascript' src='{% static "js/remind.js" %}' charset='utf-8'></script>
     {% endblock footer %}
   </body>
 </html>
