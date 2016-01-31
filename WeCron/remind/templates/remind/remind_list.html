@@ -1,21 +1,17 @@
 {% extends "remind/remind_base.html" %}
 
-{% block title %}我的提醒{% endblock %}
-
 {% load humanize %}
 
+{% block page %}
+<div data-page="list" class="page navbar-fixed toolbar-fixed">
 
-{% block navbar %}
 <!-- Top Navbar-->
 <div class="navbar">
   <div class="navbar-inner">
     <div class="center sliding">我的提醒</div>
   </div>
 </div>
-{% endblock navbar %}
 
-{% block page %}
-<div data-page="list" class="page">
 <div class="page-content">
     <div class="list-block contacts-list media-list">
     {% regroup reminds by time|naturalday:"Y年n月j日 D" as reminds_by_day %}
@@ -29,7 +25,7 @@
             </li>
             {% for rem in day_remind_list.list %}
                 <li>
-                    <a href="{{ rem.get_absolute_url }}" class="item-link external">
+                    <a href="{{ rem.get_absolute_url }}" class="item-link">
                     <div class="item-content">
                         <div class="item-media">
                             <img alt="{{ rem.owner.get_full_name }}" src="{{ rem.owner.headimgurl }}">

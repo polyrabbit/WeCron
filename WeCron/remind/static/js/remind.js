@@ -1,11 +1,16 @@
 var app = new Framework7({
+    dynamicNavbar: true,
     pushState: true,
-    cache: false,
-    router: false,
+    animateNavBackIcon: true,
+    //cache: false,
     onAjaxStart: function (xhr) {
-        app.showIndicator();
+        Dom7('#loadingToast').show();
     },
     onAjaxComplete: function (xhr) {
-        app.hideIndicator();
+        Dom7('#loadingToast').hide();
+    },
+    onAjaxError: function (xhr) {
+        Dom7('#loadingToast').hide();
     }
 });
+var mainView = app.addView('.view-main');
