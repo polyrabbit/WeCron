@@ -1,16 +1,16 @@
-var app = new Framework7({
-    dynamicNavbar: true,
-    pushState: true,
-    animateNavBackIcon: true,
-    //cache: false,
-    onAjaxStart: function (xhr) {
-        Dom7('#loadingToast').show();
-    },
-    onAjaxComplete: function (xhr) {
-        Dom7('#loadingToast').hide();
-    },
-    onAjaxError: function (xhr) {
-        Dom7('#loadingToast').hide();
-    }
+$(function () {
+    'use strict';
+
+    $.showIndicator = function() {
+        $('#loadingToast').show();
+    };
+    $.hideIndicator = function() {
+        $('#loadingToast').hide();
+    };
+
+    $('.swipeout').on('deleted', function (e) {
+        $.router.replacePage($('.swipeout-delete', this).data('delete-link'));
+    });
+
+    $.init();
 });
-var mainView = app.addView('.view-main');

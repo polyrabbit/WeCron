@@ -5,15 +5,12 @@
 {% block page %}
 <div data-page="list" class="page navbar-fixed toolbar-fixed">
 
-<!-- Top Navbar-->
-<div class="navbar">
-  <div class="navbar-inner">
-    <div class="center sliding">我的提醒</div>
-  </div>
-</div>
+<header class="bar bar-nav">
+  <h1 class="title">我的提醒</h1>
+</header>
 
-<div class="page-content">
-    <div class="list-block contacts-list media-list">
+<div class="content">
+    <div class="list-block media-list">
     {% regroup reminds by time|naturalday:"Y年n月j日 D" as reminds_by_day %}
     {% now "Y年" as current_year %}
 
@@ -21,23 +18,24 @@
         <div class="list-group">
         <ul>
             <li class="list-group-title">
-               {{ day_remind_list.grouper|cut:current_year }}
+               <small class="color-default">{{ day_remind_list.grouper|cut:current_year }}</small>
             </li>
             {% for rem in day_remind_list.list %}
-                <li>
-                    <a href="{{ rem.get_absolute_url }}" class="item-link">
-                    <div class="item-content">
+                <li class="swipeout">
+                    <a href="{{ rem.get_absolute_url }}" class="item-link swipeout-content item-content">
                         <div class="item-media">
                             <img alt="{{ rem.owner.get_full_name }}" src="{{ rem.owner.headimgurl }}">
                         </div>
                         <div class="item-inner">
-                            <div class="item-title-row">
-                                <div class="item-title">{{ rem.title }}</div>
-                            </div>
-                            <div class="item-subtitle color-gray">{{ rem.time|date:"H:i" }}</div>
+{#                                <div class="item-title-row">#}
+                                <div>{{ rem.title }}</div>
+                                <div class="item-subtitle color-gray">{{ rem.time|date:"H:i" }}</div>
+{#                                </div>#}
                         </div>
-                    </div>
                     </a>
+                    <div class="swipeout-actions-right">
+                        <a href="#" data-delete-link="{% url 'remind_delete' rem.pk.hex %}" class="swipeout-delete bg-orange" data-confirm="确认删除这条提醒？" data-confirm-title="WeCron" data-close-on-cancel="true">删除</a>
+                    </div>
                 </li>
             {% endfor %}
         </ul>

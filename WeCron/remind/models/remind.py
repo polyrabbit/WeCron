@@ -87,7 +87,6 @@ class Remind(models.Model):
     def get_absolute_url(self):
         # return urljoin('http://www.weixin.at', reverse('under_construction'))
         return urljoin('http://www.weixin.at', reverse('remind_update', kwargs={'pk': self.pk.hex}))
-        return urljoin('http://www.weixin.at', reverse('remind_detail', kwargs={'pk': self.pk.hex}))
 
     def __unicode__(self):
         return '%s: %s (%s)' % (self.owner.nickname, self.desc or self.event,
