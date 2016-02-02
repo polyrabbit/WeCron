@@ -1,11 +1,11 @@
 #coding: utf-8
 from __future__ import unicode_literals, absolute_import
 import logging
-from django.views.generic.edit import UpdateView
+from django.views.generic.edit import UpdateView, DeleteView
 from django.views.generic import ListView
 from django.utils import timezone
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.core.urlresolvers import reverse
+from django.core.urlresolvers import reverse, reverse_lazy
 from django.conf import settings
 from django.http import HttpResponseForbidden
 from wechatpy import WeChatOAuth
@@ -60,3 +60,10 @@ class RemindUpdateView(LoginRequiredMixin, UpdateView):
         self.object.done = False
         self.object.save()
         return super(RemindUpdateView, self).form_valid(form)
+
+
+class RemindDeleteView(LoginRequiredMixin, DeleteView):
+    success_url = reverse_lazy('remind_list')
+    model = Remind
+
+    get = DeleteView.delete
