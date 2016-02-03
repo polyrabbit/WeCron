@@ -3,13 +3,23 @@
 {% load humanize %}
 
 {% block page %}
-<div data-page="list" class="page navbar-fixed toolbar-fixed">
+<div data-page="list" class="page navbar-fixed toolbar-fixed" id="remind-list">
 
 <header class="bar bar-nav">
   <h1 class="title">我的提醒</h1>
 </header>
 
-<div class="content">
+<div class="content pull-to-refresh-content" data-ptr-distance="50">
+
+    <div class="pull-to-refresh-layer">
+        <div class="preloader"></div>
+        <div class="pull-to-refresh-arrow"></div>
+    </div>
+
+    {% if not reminds %}
+        <div class="content-block-title" id="no-remind">没有今后要提醒的内容了，下拉查看之前设置的提醒。</div>
+    {% endif %}
+
     <div class="list-block media-list">
     {% regroup reminds by time|naturalday:"Y年n月j日 D" as reminds_by_day %}
     {% now "Y年" as current_year %}
@@ -22,7 +32,7 @@
             </li>
             {% for rem in day_remind_list.list %}
                 <li class="swipeout">
-                    <a href="{{ rem.get_absolute_url }}" class="item-link swipeout-content item-content">
+                    <a href="{{ rem.get_absolute_url }}" class="item-link swipeout-content item-content" data-date="{{ rem.time|date:'Y-n-j H:i:s' }}">
                         <div class="item-media">
                             <img alt="{{ rem.owner.get_full_name }}" src="{{ rem.owner.headimgurl }}">
                         </div>
@@ -40,8 +50,6 @@
             {% endfor %}
         </ul>
         </div>
-    {% empty %}
-        <div class="list-block-label">暂无提醒</div>
     {% endfor %}
     </div>
 </div>

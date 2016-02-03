@@ -8,7 +8,7 @@
 
 <!-- Top Navbar-->
 <header class="bar bar-nav">
-    <a href="{% url "remind_list" %}" class="pull-left icon-only">
+    <a href="{% url "remind_list" %}" class="pull-left icon-only back">
         <i class="icon icon-left"></i>
     </a>
   {% if remind.owner == user %}
@@ -40,7 +40,7 @@
                 <div class="item-input">
                     <label for="{{ form.time.id_for_label }}" class="label"><i class="fa fa-clock-o color-gray"></i></label>
                     <input id="{{ form.time.id_for_label }}" type="datetime-local" placeholder="请输入提醒时间" maxlength="120" required name="{{ form.time.html_name }}"
-                           {% ifnotequal remind.owner user %}readonly{% endifnotequal %} value="{{ remind.time|date:"Y-m-d\TH:i:s" }}">
+                           {% ifnotequal remind.owner user %}readonly{% endifnotequal %} value="{{ remind.time|date:"Y-m-d\TH:i" }}">
                 </div>
                 {% if form.time.errors %}
                     <div class="item-after"><i data-popover=".popover-time" class="link open-popover weui_icon_cancel"></i></div>
