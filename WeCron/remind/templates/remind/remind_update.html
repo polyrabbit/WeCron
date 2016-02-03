@@ -7,65 +7,62 @@
 <form data-page="update" class="page navbar-fixed toolbar-fixed" method="post" id="remind-update" action="{{ remind.get_absolute_url }}">
 
 <!-- Top Navbar-->
-<div class="navbar">
-  <div class="navbar-inner">
-      <div class="left">
-        <a href="{% url "remind_list" %}" class="link icon-only">
-            <i class="fa fa-arrow-left"></i>
-        </a>
-      </div>
-      {% if remind.owner == user %}
-      <div class="right">
-        <button type="submit" class="button no-border"><i class="icon weui_icon_success_no_circle"></i></button>
-      </div>
-      {% endif %}
-  </div>
-</div>
+<header class="bar bar-nav">
+    <a href="{% url "remind_list" %}" class="pull-left icon-only back">
+        <i class="icon icon-left"></i>
+    </a>
+  {% if remind.owner == user %}
+    <button type="submit" class="button no-border pull-right">
+        <i class="icon icon-check"></i>
+    </button>
+  {% endif %}
+</header>
 
     <!-- Scrollable page content -->
-    <div class="page-content">
-        {% csrf_token %}
-        {{ form.non_field_errors }}
-        <ul class="list-block media-list">
-            <li class="item-content">
-                <div class="item-media"><i class="fa fa-calendar-check-o fa-lg color-gray"></i></div>
-                <div class="item-inner">
-                    <div class="item-input">
-                        <input id="{{ form.event.id_for_label }}" type="text" placeholder="请输入要提醒的事件" maxlength="120" required name="{{ form.event.html_name }}"
-                               {% ifnotequal remind.owner user %}readonly{% endifnotequal %} value="{{ remind.event }}">
-                    </div>
+<div class="content">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    <ul class="list-block">
+        <li class="item-content">
+            <div class="item-inner">
+                <div class="item-input">
+                    <label for="{{ form.event.id_for_label }}" class="label"><i class="fa fa-calendar-check-o color-gray"></i></label>
+                    <input id="{{ form.event.id_for_label }}" type="text" placeholder="请输入要提醒的事件" maxlength="120" required name="{{ form.event.html_name }}"
+                           {% ifnotequal remind.owner user %}readonly{% endifnotequal %} value="{{ remind.event }}">
                 </div>
                 {% if form.event.errors %}
-                <div class="item-after"><i data-popover=".popover-event" class="link open-popover weui_icon_warn"></i></div>
+                    <div class="item-after"><i data-popover=".popover-event" class="link open-popover weui_icon_cancel"></i></div>
                 {% endif %}
-            </li>
-            <li class="item-content">
-                <div class="item-media"><i class="fa fa-clock-o fa-lg color-gray"></i></div>
-                <div class="item-inner">
-                    <div class="item-input">
-                        <input id="{{ form.time.id_for_label }}" type="datetime-local" placeholder="请输入提醒时间" maxlength="120" required name="{{ form.time.html_name }}"
-                               {% ifnotequal remind.owner user %}readonly{% endifnotequal %} value="{{ remind.time|date:"Y-m-d\TH:i:s" }}">
-                    </div>
+            </div>
+        </li>
+        <li class="item-content">
+            <div class="item-inner">
+                <div class="item-input">
+                    <label for="{{ form.time.id_for_label }}" class="label"><i class="fa fa-clock-o color-gray"></i></label>
+                    <input id="{{ form.time.id_for_label }}" type="datetime-local" placeholder="请输入提醒时间" maxlength="120" required name="{{ form.time.html_name }}"
+                           {% ifnotequal remind.owner user %}readonly{% endifnotequal %} value="{{ remind.time|date:"Y-m-d\TH:i" }}">
                 </div>
                 {% if form.time.errors %}
-                <div class="item-after"><i data-popover=".popover-time" class="link open-popover weui_icon_warn"></i></div>
+                    <div class="item-after"><i data-popover=".popover-time" class="link open-popover weui_icon_cancel"></i></div>
                 {% endif %}
-            </li>
-            <li class="item-content">
-                <div class="item-media"><i class="fa fa-sticky-note-o fa-lg color-gray"></i></div>
-                <div class="item-inner">
-                    <div class="item-input">
+            </div>
+        </li>
+        <li class="item-content">
+            <div class="item-inner">
+                <div class="item-input">
+                    <label for="{{ form.desc.id_for_label }}" class="label"><i class="fa fa-sticky-note-o color-gray"></i></label>
 {#                    <input id="{{ form.desc.id_for_label }}" type="text" placeholder="请输入备注(可选)" name="{{ form.desc.html_name }}" value="{{ remind.desc }}">#}
-                        <textarea class="resizable" id="{{ form.desc.id_for_label }}" placeholder="请输入备注(可选)" rows="3"
-                                  {% ifnotequal remind.owner user %}readonly{% endifnotequal %} name="{{ form.desc.html_name }}">{{ remind.desc }}</textarea>
-                    </div>
+                    <textarea class="resizable" id="{{ form.desc.id_for_label }}" placeholder="请输入备注(可选)"
+                              {% ifnotequal remind.owner user %}readonly{% endifnotequal %} name="{{ form.desc.html_name }}">{{ remind.desc }}</textarea>
                 </div>
                 {% if form.desc.errors %}
-                <div class="item-after"><i data-popover=".popover-desc" class="link open-popover weui_icon_warn"></i></div>
+                    <div class="item-after"><i data-popover=".popover-desc" class="open-popover weui_icon_cancel"></i></div>
                 {% endif %}
-            </li>
-        </ul>
-    </div>
+            </div>
+        </li>
+    </ul>
+</div>
+
 </form>
 {% endblock page %}
 
@@ -75,10 +72,14 @@
             <!-- Popover's angle arrow -->
             <div class="popover-angle on-top"></div>
             <!-- Popover content -->
-            <div class="popover-inner content-block">
+            <div class="popover-inner">
+            <div class="list-block">
+                <ul>
                 {% for error in form.event.errors %}
-                    <p>{{ error|escape }}</p>
+                    <li class="item-content">{{ error|escape }}</li>
                 {% endfor %}
+                </ul>
+            </div>
             </div>
         </div>
     {% endif %}
@@ -87,10 +88,14 @@
             <!-- Popover's angle arrow -->
             <div class="popover-angle on-top"></div>
             <!-- Popover content -->
-            <div class="popover-inner content-block">
+            <div class="popover-inner">
+            <div class="list-block">
+                <ul>
                 {% for error in form.time.errors %}
-                    <p>{{ error|escape }}</p>
+                    <li class="item-content">{{ error|escape }}</li>
                 {% endfor %}
+                </ul>
+            </div>
             </div>
         </div>
     {% endif %}
@@ -99,10 +104,14 @@
             <!-- Popover's angle arrow -->
             <div class="popover-angle on-top"></div>
             <!-- Popover content -->
-            <div class="popover-inner content-block">
+            <div class="popover-inner">
+            <div class="list-block">
+                <ul>
                 {% for error in form.desc.errors %}
-                    <p>{{ error|escape }}</p>
+                    <li class="item-content">{{ error|escape }}</li>
                 {% endfor %}
+                </ul>
+            </div>
             </div>
         </div>
     {% endif %}
