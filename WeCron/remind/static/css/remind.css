@@ -6,3 +6,22 @@
 .no-border {
     border: none;
 }
+.item-input .fa {
+    position: absolute;
+    top: 1.1rem;
+    left: .3rem;
+    font-size: .9rem;
+    -webkit-transform: translate3D(0, -50%, 0);
+    -ms-transform: translate3D(0, -50%, 0);
+    -o-transform: translate3D(0, -50%, 0);
+    transform: translate3D(0, -50%, 0);
+}
+.item-input label + input, .item-input label + textarea {
+    padding-left: 1.4rem !important;
+}
+a.icon-only {
+  min-width: 2.2rem;
+}
+.text-right {
+  text-align: right;
+}

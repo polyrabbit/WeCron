@@ -37,7 +37,7 @@ class Remind(models.Model):
         ordering = ["-time"]
         db_table = 'time_remind'
 
-    def nature_time(self):
+    def time_until(self):
         return nature_time(self.time)
 
     def local_time_string(self, fmt='%Y/%m/%d %H:%M'):
@@ -83,6 +83,21 @@ class Remind(models.Model):
     def notify_users(self):
         for uid in [self.owner_id] + self.participants:
             self.notify_user_by_id(uid)
+
+    def add_participant(self, uid):
+        if uid in self.participants:
+            return
+        self.participants.append(uid)
+        self.save(update_fields=['participants'])
+
+    def remove_participant(self, uid):
+        if uid not in self.participants:
+            return
+        self.participants.remove(uid)
+        self.save(update_fields=['participants'])
+
+    def subscribed_by(self, user):
+        return self.owner_id == user.pk or user.pk in self.participants
 
     def get_absolute_url(self):
         # return urljoin('http://www.weixin.at', reverse('under_construction'))
