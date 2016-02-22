@@ -3,6 +3,7 @@ from __future__ import unicode_literals, absolute_import
 import logging
 import uuid
 from urlparse import urljoin
+from datetime import timedelta
 
 from tomorrow import threads
 from django.db import models
@@ -10,6 +11,8 @@ from django.core.urlresolvers import reverse
 from django.conf import settings
 from django.utils.timezone import localtime, now
 from django.contrib.postgres.fields import ArrayField
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
 from common import wechat_client
 from remind.utils import nature_time
 
@@ -18,7 +21,11 @@ logger = logging.getLogger(__name__)
 
 class Remind(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
-    time = models.DateTimeField('提醒时间', db_index=True)
+
+    time = models.DateTimeField('时间', db_index=True)
+    notify_time = models.DateTimeField('提醒时间', db_index=True, null=True)
+    defer = models.IntegerField('提前提醒分钟', blank=True, default=0)
+
     create_time = models.DateTimeField('设置时间', default=now)
     desc = models.TextField('原始描述', default='', blank=True, null=True)
     remark = models.TextField('备注', default='', blank=True, null=True)
@@ -60,7 +67,7 @@ class Remind(models.Model):
             res = wechat_client.message.send_template(
                         user_id=uid,
                         template_id='IxUSVxfmI85P3LJciVVcUZk24uK6zNvZXYkeJrCm_48',
-                        url=self.get_absolute_url(),
+                        url=self.get_absolute_url(full=True),
                         top_color='#459ae9',
                         data={
                                "first": {
@@ -99,11 +106,17 @@ class Remind(models.Model):
     def subscribed_by(self, user):
         return self.owner_id == user.pk or user.pk in self.participants
 
-    def get_absolute_url(self):
-        # return urljoin('http://www.weixin.at', reverse('under_construction'))
-        return urljoin('http://www.weixin.at', reverse('remind_update', kwargs={'pk': self.pk.hex}))
+    def get_absolute_url(self, full=False):
+        url = reverse('remind_update', kwargs={'pk': self.pk.hex})
+        if full:
+            return urljoin('http://www.weixin.at', url)
+        return url
 
     def __unicode__(self):
         return '%s: %s (%s)' % (self.owner.nickname, self.desc or self.event,
                                 self.local_time_string('%Y/%m/%d %H:%M:%S'))
 
+
+@receiver(pre_save, sender=Remind, dispatch_uid='update-notify-time')
+def update_notify_time(instance, **kwargs):
+    instance.notify_time = instance.time + timedelta(minutes=instance.defer)

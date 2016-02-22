@@ -45,15 +45,76 @@ $(function () {
         return false;
     });
 
-    $(document).on('change', '.remind-update input', function (e) {
+    $(document).on('focus change', '.remind-update input, .remind-update textarea', function (e) {
         $('#icon-submit').removeClass('icon-edit').addClass('icon-check');
     });
+
+    var minutes = {'周': 7*24*60, '天': 60*24, '小时': 60, '分钟': 1};
 
     $(document).on('submit', '.remind-update', function(e) {
         if($('#icon-submit').hasClass('icon-edit')) {
             $('.page-current input').eq(1).focus();
             return false;
         }
+        // Set human readable time back to time delta
+        //var time_human = $("input.deferred-time-picker").val();
+        //for(var unit in minutes) {
+        //    if (unit == time_human.split(' ')[1]) {
+        //        $("input.deferred-time-picker").val(time_human[0]*minutes[unit]);
+        //        break;
+        //    }
+        //}
+    });
+
+
+    $(document).on("pageInit", 'form', function (e) {
+        $("input.deferred-time-picker").picker({
+            toolbarTemplate: '<header class="bar bar-nav">\
+            <button class="button button-link pull-right close-picker">确定</button>\
+            <h1 class="title">设置提醒时间</h1>\
+            </header>',
+            //updateValuesOnTouchmove: false,
+            value: (function () {
+                function nomalize(defer) {
+                    if (defer === 0) {
+                        return ['准时'];
+                    }
+                    for (var k in minutes) {
+                        if (minutes.hasOwnProperty(k)) {
+                            var v = minutes[k];
+                            if (defer % v === 0) {
+                                return [defer<0?'提前':'延后', Math.abs(defer / v), k];
+                            }
+                        }
+                    }
+                }
+                var defer = parseInt($("input.deferred-time-picker").val());
+                $("input.deferred-time-picker").val(nomalize(defer).join(' '));
+                return nomalize(defer);
+            })(),
+            formatValue: function(p, value, displayValue) {
+                if(value[1] == '0') {
+                    return '准时';
+                }
+                return value.join(' ');
+            },
+            cols: [
+                {
+                    textAlign: 'center',
+                    values: ['提前', '延后']
+                },
+                {
+                    textAlign: 'center',
+                    values: Array.apply(null, {length: 61}).map(function (element, index) {
+                        return index;
+                    }),
+                },
+                {
+                    textAlign: 'center',
+                    values: ['分钟', '小时', '天', '周']
+                }
+            ]
+        });
     });
 
     var loadingBefore = false;

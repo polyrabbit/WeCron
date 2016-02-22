@@ -27,51 +27,19 @@ class RemindScheduler(BackgroundScheduler):
                 with transaction.atomic():
                     # Lock the row
                     for rem in Remind.objects.select_for_update().filter(
-                            done=False, time__range=(now-grace_time, now)).all():
+                            done=False, notify_time__range=(now-grace_time, now)).all():
                         rem.notify_users()
                         rem.done = True
                         rem.save()
                     next_remind = Remind.objects.filter(
-                        done=False, time__gt=now-grace_time).order_by('time').first()
+                        done=False, notify_time__gt=now-grace_time).order_by('notify_time').first()
                     wait_seconds = None
                     if next_remind:
-                        wait_seconds = max(timedelta_seconds(next_remind.time - timezone.now()), 0)
-                        logger.debug('Next wakeup is due at %s (in %f seconds)', next_remind.time.isoformat(), wait_seconds)
+                        wait_seconds = max(timedelta_seconds(next_remind.notify_time - timezone.now()), 0)
+                        logger.debug('Next wakeup is due at %s (in %f seconds)', next_remind.notify_time.isoformat(), wait_seconds)
                     else:
                         logger.debug('No jobs; waiting until a job is added')
                     return wait_seconds
         # This is a vital thread, DO NOT die
         except Exception as e:
             logger.exception('Error running scheduler job')
-
-
-# import sys, socket
-#
-# try:
-#     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-#     sock.bind(("127.0.0.1", 47200))
-# except socket.error:
-#     print "!!!scheduler already started, DO NOTHING"
-# else:
-#     from apscheduler.schedulers.background import BackgroundScheduler
-#     scheduler = BackgroundScheduler()
-#     scheduler.start()
-#     print "scheduler started"
-# http://stackoverflow.com/questions/16053364
-
-
-# @atexit.register
-# def shutdown_scheduler():
-#     logger.info('Shutting down scheduler')
-#     scheduler.shutdown()
-
-
-# @scheduler.scheduled_job('cron', hour=3, jobstore='default', timezone=settings.TIME_ZONE)
-# def update_user_info():
-#     print "+"*10, 'updating user info'
-#
-#
-# @scheduler.scheduled_job('cron', hour=4, jobstore='default', timezone=settings.TIME_ZONE)
-# def remove_outdated_reminds():
-#     print '-'*10, 'removing outdated reminds'
-

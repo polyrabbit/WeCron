@@ -13,6 +13,7 @@ from django.forms import DateTimeField
 from wechatpy import WeChatOAuth
 
 from remind.models import Remind
+from remind.forms import RemindForm
 
 logger = logging.getLogger(__name__)
 oauth_client = WeChatOAuth(
@@ -67,7 +68,7 @@ class RemindListView(WechatUserMixin, ListView):
 
 class RemindUpdateView(WechatUserMixin, UpdateView):
     model = Remind
-    fields = ['time', 'desc', 'event']
+    form_class = RemindForm
     template_name = 'remind/remind_update.html'
     context_object_name = 'remind'
 
@@ -79,11 +80,6 @@ class RemindUpdateView(WechatUserMixin, UpdateView):
         if rem.owner_id != request.user.pk:
             return HttpResponseForbidden()
         return super(RemindUpdateView, self).post(request, *args, **kwargs)
-
-    def form_valid(self, form):
-        self.object.done = False
-        self.object.save()
-        return super(RemindUpdateView, self).form_valid(form)
 
 
 class RemindDeleteView(WechatUserMixin, DeleteView):

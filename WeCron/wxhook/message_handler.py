@@ -45,10 +45,10 @@ class WechatMessage(object):
             reminder.owner = self.user
             reminder.save()
             return self.text_reply(
-                '/:ok将在%s提醒你%s\n\n备注: %s\n时间: %s\n\n<a href="%s">查看详情</a>' % (
+                '/:ok将在%s提醒你%s\n\n备注: %s\n时间: %s\n\n<a href="%s">修改</a>' % (
                     reminder.time_until(), reminder.event or '',
                     reminder.desc, reminder.local_time_string(),
-                    reminder.get_absolute_url())
+                    reminder.get_absolute_url(True))
             )
         except ValueError as e:
             return self.text_reply(unicode(e))
@@ -117,7 +117,7 @@ class WechatMessage(object):
                     emoji = '\U0001F51C'
 
                 remind_text_list.append('%s %s - <a href="%s">%s</a>' %
-                    (emoji, rem.local_time_string('%H:%M'), rem.get_absolute_url(), rem.title()))
+                    (emoji, rem.local_time_string('%H:%M'), rem.get_absolute_url(True), rem.title()))
 
             if remind_text_list:
                 return self.text_reply('/:sunHi %s, 你今天的提醒有:\n\n%s' % (self.user.get_full_name(),

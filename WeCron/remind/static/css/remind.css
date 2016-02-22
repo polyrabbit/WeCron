@@ -25,3 +25,7 @@ a.icon-only {
 .text-right {
   text-align: right;
 }
+
+.vertical-centre {
+    vertical-align: middle;
+}
