@@ -33,7 +33,7 @@
                 <div class="item-input">
                     <label for="{{ form.event.id_for_label }}" class="label"><i class="fa fa-calendar-check-o color-gray"></i></label>
                     <input id="{{ form.event.id_for_label }}" type="text" placeholder="请输入要提醒的事件" maxlength="120" required name="{{ form.event.html_name }}"
-                           {% ifnotequal remind.owner user %}readonly{% endifnotequal %} autocorrect="off" autocapitalize="off" value="{{ remind.event }}">
+                           {% ifnotequal remind.owner user %}readonly{% endifnotequal %} autocorrect="off" autocapitalize="off" value="{{ remind.title }}">
                 </div>
                 {% if form.event.errors %}
                     <div class="item-after"><i data-popover=".popover-event" class="link open-popover weui_icon_cancel"></i></div>
@@ -58,7 +58,7 @@
                     <label for="{{ form.defer.id_for_label }}" class="label"><i class="fa fa-bell-o color-gray"></i></label>
                     <input id="{{ form.defer.id_for_label }}" type="text" placeholder="请输入提醒时间" maxlength="120" required name="{{ form.defer.html_name }}"
                            class="deferred-time-picker"
-                           {% ifnotequal remind.owner user %}readonly{% endifnotequal %} autocorrect="off" autocapitalize="off" value="{{ remind.defer }}">
+                           {% ifnotequal remind.owner user %}readonly{% endifnotequal %} autocorrect="off" autocapitalize="off" value="{{ remind.nature_time_defer }}">
                 </div>
                 {% if form.defer.errors %}
                     <div class="item-after"><i data-popover=".popover-time" class="link open-popover weui_icon_cancel"></i></div>

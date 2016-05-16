@@ -25,3 +25,4 @@ class RemindModelTestCase(TestCase):
         r.defer = -10
         r.save()
         self.assertEqual(r.notify_time, n-timedelta(minutes=10))
+        self.assertEqual(r.nature_time_defer(), '提前 10 分钟')

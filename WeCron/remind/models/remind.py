@@ -45,7 +45,18 @@ class Remind(models.Model):
         db_table = 'time_remind'
 
     def time_until(self):
+        """Returns 11小时28分后"""
         return nature_time(self.time)
+
+    def nature_time_defer(self):
+        if not self.defer:
+            return '准时'
+        units = {'周': 7*24*60, '天': 60*24, '小时': 60, '分钟': 1}
+        for unit, minutes in units.items():
+            if self.defer % minutes == 0:
+                return '%s %s %s' %('提前' if self.defer < 0 else '延后',
+                                    abs(self.defer/minutes),
+                                    unit)
 
     def local_time_string(self, fmt='%Y/%m/%d %H:%M'):
         return localtime(self.time).strftime(fmt)
@@ -80,6 +91,9 @@ class Remind(models.Model):
                                "keyword2": {
                                    "value": self.local_time_string(),
                                },
+                               "remark": {
+                                   "value": "提醒时间：" + self.nature_time_defer(),
+                               }
                         },
                     )
             logger.info('Successfully send notification to user %s(%s)', name, uid)

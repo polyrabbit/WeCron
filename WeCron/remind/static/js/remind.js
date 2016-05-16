@@ -74,24 +74,6 @@ $(function () {
             <h1 class="title">设置提醒时间</h1>\
             </header>',
             //updateValuesOnTouchmove: false,
-            value: (function () {
-                function nomalize(defer) {
-                    if (defer === 0) {
-                        return ['准时'];
-                    }
-                    for (var k in minutes) {
-                        if (minutes.hasOwnProperty(k)) {
-                            var v = minutes[k];
-                            if (defer % v === 0) {
-                                return [defer<0?'提前':'延后', Math.abs(defer / v), k];
-                            }
-                        }
-                    }
-                }
-                var defer = parseInt($("input.deferred-time-picker").val());
-                $("input.deferred-time-picker").val(nomalize(defer).join(' '));
-                return nomalize(defer);
-            })(),
             formatValue: function(p, value, displayValue) {
                 if(value[1] == '0') {
                     return '准时';
@@ -105,7 +87,7 @@ $(function () {
                 },
                 {
                     textAlign: 'center',
-                    values: Array.apply(null, {length: 61}).map(function (element, index) {
+                    values: Array.apply(null, {length: 31}).map(function (element, index) {
                         return index;
                     }),
                 },
