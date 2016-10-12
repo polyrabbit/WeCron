@@ -1,17 +1,19 @@
 .PHONY: run clean test collectstatic run-in-prod run-uwsgi-test
 
+VCAP_APP_PORT ?= 8000
+
 run:
-	python WeCron/manage.py runserver 0.0.0.0:8000
+	python WeCron/manage.py runserver 0.0.0.0:$(VCAP_APP_PORT)
 
 run-in-prod: clean syncdb collectstatic
-	BLUEWARE_CONFIG_FILE=$(CURDIR)/blueware.ini blueware-admin run-program uwsgi --ini=uwsgi.ini
+	uwsgi --ini=deploy/conf/uwsgi.ini.j2 --http :$(VCAP_APP_PORT) 
 
 run-uwsgi-test:
 	uwsgi --chdir=WeCron \
 		--module=wecron.wsgi:application \
 		--env DJANGO_SETTINGS_MODULE=wecron.settings \
 		--strict \
-		--http :8000 \
+		--http :$(VCAP_APP_PORT) \
 		--worker-reload-mercy=5 \
 		--enable-threads \
 		--processes=4 \

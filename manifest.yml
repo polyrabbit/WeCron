@@ -1,0 +1,8 @@
+applications:
+- path: .
+  memory: 257M
+  instances: 1
+  domain: hackernews.im
+  name: wecron
+  host: wecron
+  disk_quota: 1024M

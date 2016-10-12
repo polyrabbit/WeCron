@@ -1,11 +1,11 @@
 [uwsgi]
-chdir = {{ PROJ_HOME }}/WeCron
+chdir = WeCron
 wsgi-file = wecron/wsgi.py
-virtualenv = {{ PROJ_VENV }}
+# virtualenv = {{ PROJ_VENV }}
 strict = True
 # http-socket = 0.0.0.0:9090
-socket = /tmp/wecron-uwsgi.sock
-chmod-socket = 666
+# socket = /tmp/wecron-uwsgi.sock
+# chmod-socket = 666
 log-format = %(addr) - worker:%(wid) - [%(ltime)] "%(method) %(uri) %(proto)" %(status) %(size) %(msecs)ms "%(referer)" "%(uagent)"
 
 uid = www-data
@@ -19,6 +19,13 @@ enable-threads = True
 single-interpreter = True
 lazy-apps = True  # This is important for apscheduler to work
 processes = 4
+
+# static files
+route = \.php$ break:403 Forbidden
+# route = ^/favicon\.ico$ static:staticfiles/favicon.ico
+# route = ^/robots\.txt$ static:staticfiles/robots.txt
+static-map = /static=./staticfiles
+check-static = ./staticfiles
 
 pidfile = /tmp/wecron-uwsgi.pid
 # daemonize = /var/log/wecron/app.log

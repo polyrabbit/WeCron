@@ -22,6 +22,10 @@ class UserManager(BaseUserManager):
             user_dict['subscribe_time'] = \
                 datetime.fromtimestamp(user_dict['subscribe_time'], pytz.utc)
         user_dict['subscribe'] = True
+        field_list = WechatUser._meta.get_all_field_names()
+        for field in user_dict.keys():
+            if field not in field_list:
+                user_dict.pop(field)
         return self.create(**user_dict)
 
     def create_superuser(self, openid, password, **extra_fields):
