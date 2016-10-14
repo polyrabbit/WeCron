@@ -2,7 +2,7 @@ applications:
 - path: .
   memory: 257M
   instances: 1
-  domain: hackernews.im
+  domain: weixin.at
   name: wecron
   host: wecron
   disk_quota: 1024M
