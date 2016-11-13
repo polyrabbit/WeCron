@@ -10,6 +10,7 @@ from django.db import models
 from django.core.urlresolvers import reverse
 from django.conf import settings
 from django.utils.timezone import localtime, now
+from django.utils.formats import date_format
 from django.contrib.postgres.fields import ArrayField
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
@@ -38,7 +39,7 @@ class Remind(models.Model):
     #                                       related_name='time_reminds_participate')
     participants = ArrayField(models.CharField(max_length=40), verbose_name='订阅者', default=list)
     done = models.NullBooleanField('状态', default=False,
-                                        choices=((False, '未发送'), (True, '已发送'),))
+                                   choices=((False, '未发送'), (True, '已发送'),))
 
     class Meta:
         ordering = ["-time"]
@@ -55,11 +56,19 @@ class Remind(models.Model):
         for unit, minutes in units.items():
             if self.defer % minutes == 0:
                 return '%s %s %s' %('提前' if self.defer < 0 else '延后',
-                                    abs(self.defer/minutes),
-                                    unit)
+                                    abs(self.defer/minutes), unit)
 
-    def local_time_string(self, fmt='%Y/%m/%d %H:%M'):
-        return localtime(self.time).strftime(fmt)
+    def local_time_string(self, fmt=None):
+        """
+        Take format from django
+        https://docs.djangoproject.com/en/dev/ref/templates/builtins/#date
+        """
+        dt = localtime(self.time)
+        if not fmt:
+            fmt = 'Y/n/j(D) G:i'  # '2016/11/21(周一) 12:20'
+            if dt.year == localtime(now()).year:
+                fmt = u'n月j日(D) G:i'  # '11月21日(周一) 12:20'
+        return date_format(dt, format=fmt, use_l10n=True)
 
     def title(self):
         if self.event:
@@ -89,7 +98,7 @@ class Remind(models.Model):
                                    "value": self.desc,
                                },
                                "keyword2": {
-                                   "value": self.local_time_string(),
+                                   "value": self.local_time_string('Y/n/d(D) G:i'),
                                },
                                "remark": {
                                    "value": "提醒时间：" + self.nature_time_defer(),
@@ -128,7 +137,7 @@ class Remind(models.Model):
 
     def __unicode__(self):
         return '%s: %s (%s)' % (self.owner.nickname, self.desc or self.event,
-                                self.local_time_string('%Y/%m/%d %H:%M:%S'))
+                                self.local_time_string('Y/n/j G:i:s'))
 
 
 @receiver(pre_save, sender=Remind, dispatch_uid='update-notify-time')

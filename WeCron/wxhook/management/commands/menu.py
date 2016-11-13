@@ -5,6 +5,7 @@ import json
 from django.core.management import BaseCommand
 from common import wechat_client
 
+
 class Command(BaseCommand):
 
     def add_arguments(self, parser):

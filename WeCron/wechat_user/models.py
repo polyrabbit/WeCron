@@ -5,7 +5,7 @@ import pytz
 
 from django.db import models
 from django.core.urlresolvers import reverse
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, update_last_login
 
 from common import wechat_client
 from remind.models import Remind
@@ -16,17 +16,24 @@ class UserManager(BaseUserManager):
     def get_or_fetch(self, pk):
         u = self.filter(pk=pk).first()
         if u:
+            # Set last_login field for the updating queue
+            update_last_login(None, u)
             return u
         user_dict = wechat_client.user.get(pk)
-        if 'subscribe_time' in user_dict:
-            user_dict['subscribe_time'] = \
-                datetime.fromtimestamp(user_dict['subscribe_time'], pytz.utc)
-        user_dict['subscribe'] = True
+        return self.create(**self.amend_model_params(**user_dict))
+
+    def amend_model_params(self, **kwargs):
+        params = kwargs.copy()
+        if 'subscribe_time' in params:
+            params['subscribe_time'] = \
+                datetime.fromtimestamp(params['subscribe_time'], pytz.utc)
+        params['subscribe'] = bool(params['subscribe'])
+        # TODO get_all_field_names is deprecated, need test case here
         field_list = WechatUser._meta.get_all_field_names()
-        for field in user_dict.keys():
+        for field in params.keys():
             if field not in field_list:
-                user_dict.pop(field)
-        return self.create(**user_dict)
+                params.pop(field)
+        return params
 
     def create_superuser(self, openid, password, **extra_fields):
         user = self.model(openid=openid, **extra_fields)

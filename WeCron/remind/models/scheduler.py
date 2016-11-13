@@ -30,16 +30,17 @@ class RemindScheduler(BackgroundScheduler):
                             done=False, notify_time__range=(now-grace_time, now)).all():
                         rem.notify_users()
                         rem.done = True
-                        rem.save()
+                        rem.save(update_fields=['done'])
                     next_remind = Remind.objects.filter(
                         done=False, notify_time__gt=now-grace_time).order_by('notify_time').first()
                     wait_seconds = None
                     if next_remind:
                         wait_seconds = max(timedelta_seconds(next_remind.notify_time - timezone.now()), 0)
-                        logger.debug('Next wakeup is due at %s (in %f seconds)', next_remind.notify_time.isoformat(), wait_seconds)
+                        logger.debug('Next wake up is due at %s (in %f seconds)', next_remind.notify_time.isoformat(), wait_seconds)
                     else:
-                        logger.debug('No jobs; waiting until a job is added')
+                        logger.debug('No jobs, waiting until a job is added')
                     return wait_seconds
         # This is a vital thread, DO NOT die
         except Exception as e:
             logger.exception('Error running scheduler job')
+

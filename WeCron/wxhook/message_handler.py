@@ -8,7 +8,7 @@ from wechatpy.replies import TextReply, TransferCustomerServiceReply
 
 from common import wechat_client
 from django.contrib.auth import get_user_model
-from .semantic_parser import parse
+from .todo_parser import parse
 
 logger = logging.getLogger(__name__)
 
@@ -59,22 +59,22 @@ class WechatMessage(object):
                 '或者您可以换个姿势告诉我该怎么定时，比如这样：\n\n' 
                 '“五分钟后提醒我该起锅了”。\n'
                 '“周五晚上提醒我打电话给老妈”。\n'
-                '“1月22号上午提醒我给女朋友买束花/:rose”。' % self.message.content
+                '“1月22号提醒我给老婆买束花/:rose”。' % self.message.content
             )
 
     def handle_subscribe_event(self):
         self.user.subscribe = True
-        self.user.save()
+        self.user.save(update_fields=['subscribe'])
         return self.text_reply(
             'Dear %s，这是我刚注册的微信号，功能还在开发中，使用过程中如有不便请及时向我反馈哦。\n\n'
-            '现在，直接输入文字或者语音就可以快速创建提醒啦！请点击“创建”查看如何创建提醒。\n\n'
+            '现在，直接输入文字或者语音就可以快速创建提醒啦！请点击下面的“使用方法”查看如何创建提醒。\n\n'
             'PS 这是一个开源项目，代码都在<a href="https://github.com/polyrabbit/WeCron">这里</a>\U0001F517，欢迎有开发技能的同学参与进来！'
             % self.user.get_full_name()
         )
 
     def handle_unsubscribe_event(self):
         self.user.subscribe = False
-        self.user.save()
+        self.user.save(update_fields=['subscribe'])
         return self.text_reply("Bye")
 
     def handle_unknown(self):
@@ -82,7 +82,7 @@ class WechatMessage(object):
             '/:jj如需设置提醒，只需用语音或文字告诉我就行了，比如这样：\n\n' 
             '“五分钟后提醒我该起锅了”。\n'
             '“周五晚上提醒我打电话给老妈”。\n'
-            '“1月22号上午提醒我给女朋友买束花/:rose”。'
+            '“1月22号提醒我给老婆买束花/:rose”。'
         )
 
     def handle_unknown_event(self):
@@ -93,7 +93,11 @@ class WechatMessage(object):
         # )
 
     def handle_voice(self):
-        self.message.content = getattr(self.message, 'recognition', '') or ''
+        self.message.content = getattr(self.message, 'recognition', '')
+        if not self.message.content:
+            return self.text_reply(
+                '\U0001F648哎呀，看起来微信的语音转文字功能又双叒叕罬蝃抽风了，请重试一遍，或者直接发文字给我~'
+            )
         return self.handle_text()
 
     def handle_location_event(self):
@@ -117,7 +121,7 @@ class WechatMessage(object):
                     emoji = '\U0001F51C'
 
                 remind_text_list.append('%s %s - <a href="%s">%s</a>' %
-                    (emoji, rem.local_time_string('%H:%M'), rem.get_absolute_url(True), rem.title()))
+                    (emoji, rem.local_time_string('G:i'), rem.get_absolute_url(True), rem.title()))
 
             if remind_text_list:
                 return self.text_reply('/:sunHi %s, 你今天的提醒有:\n\n%s' % (self.user.get_full_name(),

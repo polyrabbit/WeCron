@@ -1,8 +1,12 @@
 applications:
 - path: .
-  memory: 257M
-  instances: 1
-  domain: weixin.at
   name: wecron
-  host: wecron
+  memory: 1024M
+  instances: 1
+  domains:
+  - weixin.at
+  - hackernews.im
+  hosts:
+  - wecron
+  - www
   disk_quota: 1024M

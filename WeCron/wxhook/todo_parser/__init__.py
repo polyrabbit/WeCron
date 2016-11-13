@@ -6,15 +6,23 @@ import json
 from django.utils.dateparse import parse_datetime
 from django.utils import timezone
 from common import wechat_client
+from .local_parser import LocalParser
 from remind.models import Remind
 
 logger = logging.getLogger(__name__)
 
 
-# TODO, need to implement my own, wechat API is unstable and inaccurate.
 def parse(text, **kwargs):
     """Returns a Remind"""
-    return parse_by_wechat_api(text, **kwargs)
+    # Try to parse by rules and then turn to wechat API since wechat API is unstable and inaccurate.
+    reminder = LocalParser().parse_by_rules(text)
+    if not reminder:
+        logger.warning('Failed to parse time from "%s" using rules, try wechat api.', text)
+        reminder = parse_by_wechat_api(text, **kwargs)
+    if reminder.time <= timezone.now():  # GMT and UTC time can compare with each other
+        # TODO use a specified exception
+        raise ValueError('/:no%s已经过去了，请重设一个将来的提醒。' % reminder.time.strftime('%Y-%m-%d %H:%M:%S'))
+    return reminder
 
 
 def parse_by_wechat_api(text, **kwargs):
@@ -58,9 +66,6 @@ def parse_by_wechat_api(text, **kwargs):
         wechat_result['semantic']['details']['datetime']['time'],
     )  # there could be nothing in details
     dt = parse_datetime(dt_str)
-    if dt <= timezone.now():  # GMT and UTC time can compares
-        # TODO use a specified exception
-        raise ValueError('/:no%s已经过去了，请重设一个将来的提醒。' % dt.strftime('%Y-%m-%d %H:%M:%S'))
     return Remind(time=dt,
                   desc=wechat_result.get('query', ''),
                   event=wechat_result['semantic']['details'].get('event', ''))

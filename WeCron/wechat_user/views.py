@@ -33,4 +33,4 @@ def OAuthComplete(request, *args, **kwargs):
 
 @receiver(user_logged_in)
 def signals_receiver(sender, request, user, **kwargs):
-    logger.info('User %s successfully logged in', user.get_full_name())
+    logger.info('User %s successfully logged into web page', user.get_full_name())

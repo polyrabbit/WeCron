@@ -262,7 +262,7 @@ class MessageHandlerTestCase(TestCase):
         r.save()
         resp_xml = handle_message(wechat_msg)
         self.assertIn(r.title(), resp_xml)
-        self.assertIn(r.local_time_string('%H:%M'), resp_xml)
+        self.assertIn(r.local_time_string('G:i'), resp_xml)
 
         r = Remind(time=timezone.now(), owner_id=self.user.pk, event='吃饭', participants=['abc'])
         r.save()

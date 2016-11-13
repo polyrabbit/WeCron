@@ -28,7 +28,7 @@ SECRET_KEY = os.environ['DJ_SECRET_KEY']
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = 'DJ_DEBUG' not in os.environ
 
-ALLOWED_HOSTS = ['.weixin.at', 'localhost']
+ALLOWED_HOSTS = ['.weixin.at', 'localhost', '.hackernews.im']
 
 
 # Application definition
