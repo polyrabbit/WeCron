@@ -125,7 +125,7 @@ class WechatMessage(object):
 
             if remind_text_list:
                 return self.text_reply('/:sunHi %s, 你今天的提醒有:\n\n%s' % (self.user.get_full_name(),
-                                                                       '\n'.join(reversed(remind_text_list))))
+                                                                       '\n'.join(remind_text_list)))
             return self.text_reply('/:coffee今天没有提醒，休息一下吧！')
         return self.handle_unknown_event()
 

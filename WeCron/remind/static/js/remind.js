@@ -8,13 +8,13 @@ angular.module('remind', ['ionic'])
         $stateProvider
             .state('remind-list', {
                 url: '/',
-                templateUrl: '/static/tpls/remind_list.html',
+                templateUrl: remindListUrl,
                 controller: 'RemindListCtrl',
                 controllerAs: 'remindListCtrl'
             })
             .state('remind-detail', {
                 url: '/:id',
-                templateUrl: '/static/tpls/remind_detail.html',
+                templateUrl: remindDetailUrl,
                 controller: 'RemindDetailCtrl',
                 controllerAs: 'remindDetailCtrl'
             });
@@ -23,18 +23,13 @@ angular.module('remind', ['ionic'])
     //     delay: 1000,
     //     templateUrl: 'loading-toast'
     // })
-    .factory('indicator', function($ionicLoading) {
+    .factory('indicator', function($rootScope, $timeout) {
         return {
-            toast: function (title) {
-                var msg = '<div class="weui-mask_transparent"></div>' +
-                    '<div class="weui-toast">' +
-                    '<i class="weui-icon-success-no-circle weui-icon_toast"></i>' +
-                    '<p class="weui-toast__content">' + title + '</p></div>';
-                $ionicLoading.show({
-                    template: msg,
-                    duration: 3000,
-                    noBackdrop: true
-                });
+            show: function (msg, timeout) {
+                $rootScope.message = msg;
+                $timeout(function () {
+                    $rootScope.message = null;
+                }, timeout)
             }
         };
     })
@@ -94,7 +89,7 @@ angular.module('remind', ['ionic'])
                                 }
                             }
                         }
-                        weui.toast('删除成功', 2000);
+                        indicator.show('删除成功', 2000);
                         $state.go('remind-list');
                     });
                 }
@@ -109,7 +104,7 @@ angular.module('remind', ['ionic'])
             },
             update: function (id, payload, onSuccess) {
                 httpRequest('/reminds/api/'+id+'/', 'patch', function (resp) {
-                    weui.toast('更新成功', 2000);
+                    indicator.show('更新成功', 2000);
                     onSuccess && onSuccess(resp);
                 }, payload);
             }
@@ -165,6 +160,18 @@ angular.module('remind', ['ionic'])
             ctrl.modified = false;
             ctrl.model = remind;
         });
+
+        ctrl.update = function () {
+            wecronHttp.update($stateParams.id, {
+                time: ctrl.model.time.getTime(),
+                desc: ctrl.model.desc,
+                defer: ctrl.model.defer,
+                title: ctrl.model.title
+            }, function () {
+                ctrl.originModel = angular.copy(ctrl.model);
+                ctrl.modified = false;
+            });
+        };
         ctrl.canEdit = function () {
             return ctrl.model && ctrl.model.owner && ctrl.model.owner.id==userID;
         };
@@ -231,16 +238,6 @@ angular.module('remind', ['ionic'])
         };
         ctrl.setEdit = function () {
             document.getElementById('remind-title').focus();
-        };
-        ctrl.update = function () {
-            wecronHttp.update($stateParams.id, {
-                time: ctrl.model.time.getTime(),
-                desc: ctrl.model.desc,
-                defer: ctrl.model.defer,
-                title: ctrl.model.title
-            }, function () {
-                ctrl.modified = false;
-            });
         };
     }).directive('natureTimeDefer', function () {
         return {
