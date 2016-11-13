@@ -18,7 +18,7 @@ master = True
 enable-threads = True
 single-interpreter = True
 lazy-apps = True  # This is important for apscheduler to work
-processes = 4
+processes = 2
 
 # static files
 route = \.php$ break:403 Forbidden
@@ -29,6 +29,10 @@ check-static = ./staticfiles
 
 pidfile = /tmp/wecron-uwsgi.pid
 # daemonize = /var/log/wecron/app.log
+
+# every day at 1:00
+unique-cron = 0 1 -1 -1 -1 python ./manage.py update_user || echo 'ERRORRRRRRRRRRRRRRRRRRRRRRRRRRRRR'
+cron-harakiri = 3600
 
 # destroy workers blocked for more than 30 seconds
 harakiri = 30
