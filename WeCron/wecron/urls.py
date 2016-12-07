@@ -15,13 +15,12 @@ Including another URLconf
 """
 from django.conf.urls import include, url
 from django.views.generic import TemplateView, RedirectView
-from django.contrib import admin
 
 from wxhook.views import WeiXinHook
 from wechat_user.views import OAuthComplete
 
 urlpatterns = [
-     url(r'^$',
+    url(r'^$',
         RedirectView.as_view(url='https://github.com/polyrabbit/WeCron'), name='index'),
     url(r'^wxhook$', WeiXinHook.as_view(), name='weixin_callback'),
     url(r'^reminds/', include('remind.urls')),

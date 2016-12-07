@@ -1,0 +1,30 @@
+<ion-view hide-back-button="true" view-title="我的提醒">
+
+    <ion-content>
+        <ion-refresher
+                pulling-text="下拉查看之前的日程"
+                on-refresh="doRefresh()">
+        </ion-refresher>
+
+        <ion-list ng-repeat="group in remindListCtrl.remindGroupList">
+            <ion-item class="item-divider">
+                {{ group[0] }}
+            </ion-item>
+            <ion-item ng-href="#/{{ remind.id }}" class="item-avatar item-icon-right"
+                      ng-repeat="remind in group[1] track by remind.id" nav-direction="forward">
+                <img ng-src="{{ remind.owner.headimgurl }}" alt="{{ remind.owner.nickname }}">
+                <h2>{{ remind.title }}</h2>
+                <p>{{ remind.time | date:'HH:mm' }}</p>
+                <i class="item-note icon ion-ios-arrow-right"></i>
+                <ion-option-button class="button-assertive" ng-click="deleteRemind(remind.id, remindListCtrl.remindList)">删除</ion-option-button>
+            </ion-item>
+        </ion-list>
+
+        <ion-infinite-scroll
+                ng-if="remindListCtrl.next_page_url"
+                on-infinite="remindListCtrl.nextPage()"
+                distance="1%"
+                immediate-check="false">
+        </ion-infinite-scroll>
+    </ion-content>
+</ion-view>
