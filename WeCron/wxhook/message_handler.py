@@ -57,7 +57,7 @@ class WechatMessage(object):
             return self.text_reply(
                 '\U0001F648抱歉，我还只是一个比较初级的定时机器人，理解不了您刚才所说的话：\n\n“%s”\n\n'
                 '或者您可以换个姿势告诉我该怎么定时，比如这样：\n\n' 
-                '“五分钟后提醒我该起锅了”。\n'
+                '“两个星期后提醒我去复诊”。\n'
                 '“周五晚上提醒我打电话给老妈”。\n'
                 '“1月22号提醒我给老婆买束花/:rose”。' % self.message.content
             )
@@ -80,7 +80,7 @@ class WechatMessage(object):
     def handle_unknown(self):
         return self.text_reply(
             '/:jj如需设置提醒，只需用语音或文字告诉我就行了，比如这样：\n\n' 
-            '“五分钟后提醒我该起锅了”。\n'
+            '“两个星期后提醒我去复诊”。\n'
             '“周五晚上提醒我打电话给老妈”。\n'
             '“1月22号提醒我给老婆买束花/:rose”。'
         )
@@ -125,7 +125,7 @@ class WechatMessage(object):
 
             if remind_text_list:
                 return self.text_reply('/:sunHi %s, 你今天的提醒有:\n\n%s' % (self.user.get_full_name(),
-                                                                       '\n'.join(reversed(remind_text_list))))
+                                                                       '\n'.join(remind_text_list)))
             return self.text_reply('/:coffee今天没有提醒，休息一下吧！')
         return self.handle_unknown_event()
 
