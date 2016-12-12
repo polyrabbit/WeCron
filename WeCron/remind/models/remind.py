@@ -130,10 +130,14 @@ class Remind(models.Model):
         return self.owner_id == user.pk or user.pk in self.participants
 
     def get_absolute_url(self, full=False):
-        url = '#'+reverse('remind-detail', kwargs={'pk': self.pk.hex})
+        # url = reverse('remind-detail', kwargs={'pk': self.pk.hex})
+        url = '/reminds/#/' + self.pk.hex
         if full:
             return urljoin('http://www.weixin.at', url)
         return url
+
+    def get_api_endpoint(self):
+        return reverse('remind-detail', kwargs={'pk': self.pk.hex})
 
     def __unicode__(self):
         return '%s: %s (%s)' % (self.owner.nickname, self.desc or self.event,

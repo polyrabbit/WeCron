@@ -6,7 +6,9 @@ import uuid
 
 from django.utils.dateformat import format
 from django.contrib.auth import get_user_model
+from django.utils.timezone import utc
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError, PermissionDenied
 from remind.models import Remind
 
 # Convert uuid representation for a easier url catch
@@ -22,21 +24,30 @@ class TimestampField(serializers.DateTimeField):
             return None
 
     def to_internal_value(self, value):
-        return datetime.utcfromtimestamp(int(value)/1000.0)
+        try:
+            return datetime.fromtimestamp(int(value)/1000.0, utc)
+        except ValueError:
+            raise ValidationError('Invalid format')
 
 
 class UserSerializer(serializers.ModelSerializer):
+    id = serializers.CharField(source='openid', read_only=True)
 
     class Meta:
         model = get_user_model()
-        fields = ('nickname', 'headimgurl')
+        fields = ('nickname', 'headimgurl', 'id')
 
 
 class RemindSerializer(serializers.ModelSerializer):
-    # url = serializers.CharField(source='get_absolute_url', read_only=True)
+    # apiEndpoint = serializers.CharField(source='get_api_endpoint', read_only=True)
     owner = UserSerializer(read_only=True)
     time = TimestampField()
+    title = serializers.CharField(source='event', default=u'闹钟')
 
     class Meta:
         model = Remind
         fields = ('title', 'time', 'owner', 'id', 'defer', 'desc')
+        read_only_fields = ('owner', 'id')
+
+    def create(self, validated_data):
+        raise PermissionDenied()

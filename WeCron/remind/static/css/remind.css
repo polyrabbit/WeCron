@@ -15,14 +15,26 @@
     height: 40px;
     /*To be consistent with header*/
     transform: translate3d(0,0,0);
+    /*Fix the placeholder padding problem*/
+    line-height: normal;
+}
+/* FIX scroll issue */
+.overflow-scroll {
+  overflow-y: auto;
 }
 .content-input .item-input {
     padding: 16px;
 }
 .no-top-border {
-    border-top-width: 0px;
+    border-top-width: 0;
 }
 .no-border {
     border: none;
     background-image: none !important;
+}
+.item-input input[readonly], input[disabled], textarea[disabled] {
+    background-color: inherit;
+}
+#remind-title {
+    padding-right: 0;
 }

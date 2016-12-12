@@ -26,7 +26,7 @@ if 'DJ_SECRET_KEY' not in os.environ:
 SECRET_KEY = os.environ['DJ_SECRET_KEY']
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = 'DJ_DEBUG' not in os.environ
+DEBUG = 'DJ_DEBUG' in os.environ
 
 ALLOWED_HOSTS = ['.weixin.at', 'localhost', '.hackernews.im']
 

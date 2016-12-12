@@ -5,7 +5,6 @@ from datetime import timedelta
 from django.views.generic.edit import UpdateView
 from django.views.generic import TemplateView
 from rest_framework import viewsets, pagination
-from rest_framework.generics import get_object_or_404
 from rest_framework.exceptions import ValidationError
 from django.utils import timezone
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -41,7 +40,7 @@ class IndexView(WechatUserMixin, TemplateView):
 
 class RemindViewSet(WechatUserMixin, viewsets.ModelViewSet):
 
-    http_method_names = ['get', 'post', 'delete']
+    http_method_names = ['get', 'patch', 'delete']
     serializer_class = RemindSerializer
     pagination_class = pagination.PageNumberPagination
     page_size = 10
@@ -49,12 +48,15 @@ class RemindViewSet(WechatUserMixin, viewsets.ModelViewSet):
     dtparser = DateTimeField()
 
     def get_queryset(self):
-        if self.before:
-            query = self.request.user.get_time_reminds().filter(
+        query = self.request.user.get_time_reminds()
+        if 'pk' in self.kwargs:
+            pass
+        elif self.before:
+            query = query.filter(
                         time__date__lt=self.start_date()
                     ).reverse()
         else:
-            query = self.request.user.get_time_reminds().filter(
+            query = query.filter(
                         time__date__gt=self.start_date()
                     )
         return query.order_by(self.get_ordering())
@@ -75,56 +77,28 @@ class RemindViewSet(WechatUserMixin, viewsets.ModelViewSet):
         except:
             return timezone.now() - timedelta(days=1)
 
-    def get_object(self):
-        remind = get_object_or_404(self.request.user.get_time_reminds(), **self.kwargs)
-        if self.request.method == 'DELETE':
-            if remind.owner_id != self.request.user.pk:
-                self.permission_denied(self.request, message=u'Unauthorized!')
-        return remind
+    # def get_object(self):
+    #     remind = get_object_or_404(self.request.user.get_time_reminds(), **self.kwargs)
+    #     if self.request.method == 'DELETE':
+    #         if remind.owner_id != self.request.user.pk:
+    #             self.permission_denied(self.request, message=u'Unauthorized!')
+    #     return remind
 
     def perform_create(self, serializer):
         raise ValidationError('Not supported')
 
     def perform_update(self, serializer):
-        return super(RemindViewSet, self).perform_update(serializer)
+        if serializer.instance.owner_id == self.request.user.pk:
+            return super(RemindViewSet, self).perform_update(serializer)
+        self.permission_denied(self.request, message=u'Unauthorized!')
 
     def perform_destroy(self, instance):
-        super(RemindViewSet, self).perform_destroy(instance)
-        logger.info('User(%s) deleted a remind(%s)', self.request.user.nickname, unicode(instance))
-
-
-class RemindUpdateView(WechatUserMixin, UpdateView):
-    model = Remind
-    template_name = 'remind/remind_update.html'
-    context_object_name = 'remind'
-
-    def get_success_url(self):
-        return reverse('remind_update', kwargs={'pk': self.kwargs['pk']})
-
-    def post(self, request, *args, **kwargs):
-        rem = self.get_object()
-        if rem.owner_id != request.user.pk:
-            return HttpResponseForbidden()
-        return super(RemindUpdateView, self).post(request, *args, **kwargs)
-#
-#
-# class RemindDeleteView(WechatUserMixin, DeleteView):
-#     success_url = reverse_lazy('remind_list')
-#     model = Remind
-#
-#     def delete(self, request, *args, **kwargs):
-#         try:
-#             self.object = self.get_object()
-#         except Http404:
-#             return HttpResponseRedirect(self.success_url)
-#         if self.object.owner_id == request.user.pk:
-#             logger.info('User %s removed remind: %s', request.user.nickname, self.object.event)
-#             self.object.delete()
-#         elif request.user.pk in self.object.participants:
-#             logger.info('User %s quited remind: %s', request.user.nickname, self.object.event)
-#             self.object.remove_participant(request.user.pk)
-#         else:
-#             return HttpResponseForbidden()
-#         return HttpResponseRedirect(self.get_success_url())
-#
-#     get = delete
+        user = self.request.user
+        if instance.owner_id == user.pk:
+            instance.delete()
+            logger.info('User(%s) deleted a remind(%s)', user.nickname, unicode(instance))
+        elif user.pk in instance.participants:
+            instance.participants.remove(self.request.user.pk)
+            logger.info('User(%s) quited a remind(%s)', user.nickname, unicode(instance))
+        else:
+            self.permission_denied(self.request, message=u'Unauthorized!')

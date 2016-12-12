@@ -38,17 +38,37 @@ angular.module('remind', ['ionic'])
             }
         };
     })
-    .factory('wecronHttp', function($http, $ionicLoading, $ionicPopup, $rootScope, indicator, $state) {
-        function setErrorHandler(promise) {
-            promise.error(function (body, status, header, config) {
+    .factory('wecronHttp', function($http, $ionicLoading, $ionicPopup, $rootScope, indicator, $state, $location) {
+        function httpRequest(url, method, onSuccess, payload) {
+            method = method || 'get';
+            $ionicLoading.show({
+                delay: 500,
+                templateUrl: 'loading-toast'
+            });
+            return $http({
+                method: method,
+                url: url,
+                data: payload,
+                timeout: 50000,
+                headers: {
+                    "X-Referer": $location.absUrl()
+                }
+            }).success(function (resp) {
+                onSuccess && onSuccess(resp);
+            }).error(function (body, status, header, config) {
                 var msg = '请稍候再试~';
                 var okText = '好的';
+                var title = '哎呀，出错啦！！！';
                 if (status == 404) {
                     msg = '没找到这个提醒，你是不是进错地方了？';
                     okText = '关闭';
+                } else if (status == 404) {
+                    title = '没有权限';
+                    msg = '亲，你不能这样做哦';
+                    okText = '关闭';
                 }
                 $ionicPopup.alert({
-                    title: '哎呀，出错啦！！！',
+                    title: title,
                     template: msg,
                     okText: okText
                 });
@@ -65,46 +85,43 @@ angular.module('remind', ['ionic'])
                 okType: 'button-assertive'
             }).then(function (res) {
                 if (res) {
-                    $ionicLoading.show({
-                        delay: 1000,
-                        templateUrl: 'loading-toast'
-                    });
-                    var promise = $http.delete('/reminds/api/' + id + '/', {
-                        timeout: 50000
-                    }).success(function () {
-                        if(list != undefined) {
-                            for(var i=0; i<list.length; ++i) {
-                                if(list[i].id===id){
+                    httpRequest('/reminds/api/' + id + '/', 'delete', function () {
+                        if (list != undefined) {
+                            for (var i = 0; i < list.length; ++i) {
+                                if (list[i].id === id) {
                                     list.splice(i, 1);
                                     break;
                                 }
                             }
                         }
-                        indicator.toast('删除成功');
+                        weui.toast('删除成功', 2000);
                         $state.go('remind-list');
                     });
-                    setErrorHandler(promise);
-                    return promise;
                 }
             });
         };
         return {
-            get: function (url) {
-                $ionicLoading.show({
-                    delay: 1000,
-                    templateUrl: 'loading-toast'
-                });
-                var promise = $http.get(url, {
-                    timeout: 50000
-                });
-                setErrorHandler(promise);
-                return promise;
+            getList: function (onSuccess) {
+                httpRequest('/reminds/api/', 'get', onSuccess);
+            },
+            getObject: function (id, onSuccess) {
+                httpRequest('/reminds/api/'+id+'/', 'get', onSuccess);
+            },
+            update: function (id, payload, onSuccess) {
+                httpRequest('/reminds/api/'+id+'/', 'patch', function (resp) {
+                    weui.toast('更新成功', 2000);
+                    onSuccess && onSuccess(resp);
+                }, payload);
             }
         }
     })
     .controller('RemindListCtrl', function($scope, wecronHttp, $filter){
         var ctrl = this;
         ctrl.remindList = [];
+
+        wecronHttp.getList(function(remindList) {
+            ctrl.remindList = remindList;
+        });
 
         $scope.$watchCollection(function () {
             return ctrl.remindList;
@@ -140,23 +157,24 @@ angular.module('remind', ['ionic'])
             });
         }
 
-        wecronHttp.get('/reminds/api/').success(function(remindList) {
-            ctrl.remindList = remindList;
-        });
-
     })
-    .controller('RemindDetailCtrl', function($scope, $stateParams, wecronHttp, $ionicPopup, indicator, $state) {
+    .controller('RemindDetailCtrl', function($scope, $stateParams, wecronHttp, $ionicPopup) {
         var ctrl = this;
-        wecronHttp.get('/reminds/api/'+$stateParams.id+'/').success(function(remind){
+        wecronHttp.getObject($stateParams.id, function(remind) {
             remind.time = new Date(remind.time);
             ctrl.modified = false;
             ctrl.model = remind;
         });
+        ctrl.canEdit = function () {
+            return ctrl.model && ctrl.model.owner && ctrl.model.owner.id==userID;
+        };
         $scope.$watch(function () {
            return ctrl.model;
         }, function (newVal, oldVal) {
             if(oldVal) {
-                ctrl.modified = true;
+                ctrl.modified = !angular.equals(ctrl.originModel, ctrl.model);
+            } else {
+                ctrl.originModel = angular.copy(ctrl.model);
             }
         }, true);
         ctrl.showDeferPicker = function () {
@@ -196,9 +214,6 @@ angular.module('remind', ['ionic'])
                     children: minutesCol
                 }
             ], {
-                onChange: function (result) {
-                    console.log(result)
-                },
                 onConfirm: function (result) {
                     ctrl.model.defer = result.reduce(function(a, b){return a*b});
                     console.log(ctrl.model);
@@ -207,24 +222,45 @@ angular.module('remind', ['ionic'])
                 id: 'deferPicker'
             });
         };
+        ctrl.showRepeatPicker = function () {
+            $ionicPopup.alert({
+                title: '客官莫急',
+                template: '此功能正在开发',
+                okText: '好的'
+            });
+        };
         ctrl.setEdit = function () {
             document.getElementById('remind-title').focus();
         };
         ctrl.update = function () {
-            console.log(ctrl.model);
+            wecronHttp.update($stateParams.id, {
+                time: ctrl.model.time.getTime(),
+                desc: ctrl.model.desc,
+                defer: ctrl.model.defer,
+                title: ctrl.model.title
+            }, function () {
+                ctrl.modified = false;
+            });
         };
-    }).filter('natureTimeDefer', function () {
-        return function (defer) {
-            if (!defer) {
-                return '准时';
+    }).directive('natureTimeDefer', function () {
+        return {
+            require: '^ngModel',
+            restrict: 'A',
+            link: function (scope, elm, attrs, ctrl) {
+                ctrl.$formatters.unshift(function (modelValue) {
+                    modelValue = parseInt(modelValue);
+                    if (!modelValue) {
+                        return '准时';
+                    }
+                    var natualUnits = [['周', 10080], ['天', 1440], ['小时', 60], ['分钟', 1]];
+                    for (var idx in natualUnits) {
+                        var unit = natualUnits[idx][0];
+                        var minutes = natualUnits[idx][1];
+                        if (modelValue % minutes === 0)
+                            return (modelValue < 0 ? '提前' : '延后') + Math.abs(modelValue / minutes) + unit;
+                    }
+                    return (modelValue < 0 ? '提前' : '延后') + Math.abs(modelValue) + '分钟';
+                });
             }
-            var natualUnits = [['周', 10080], ['天', 1440], ['小时', 60], ['分钟', 1]];
-            for (var idx in natualUnits) {
-                var unit = natualUnits[idx][0];
-                var minutes = natualUnits[idx][1];
-                if (defer % minutes === 0)
-                    return (defer < 0 ? '提前' : '延后') + Math.abs(defer / minutes) + unit;
-            }
-            return (defer < 0 ? '提前' : '延后') + Math.abs(defer) + '分钟';
         };
     });
