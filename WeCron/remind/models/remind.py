@@ -52,8 +52,8 @@ class Remind(models.Model):
     def nature_time_defer(self):
         if not self.defer:
             return '准时'
-        units = {'周': 7*24*60, '天': 60*24, '小时': 60, '分钟': 1}
-        for unit, minutes in units.items():
+        units = [('周', 10080), ('天', 1440), ('小时', 60), ('分钟', 1)]
+        for unit, minutes in units:
             if self.defer % minutes == 0:
                 return '%s %s %s' %('提前' if self.defer < 0 else '延后',
                                     abs(self.defer/minutes), unit)
@@ -130,10 +130,14 @@ class Remind(models.Model):
         return self.owner_id == user.pk or user.pk in self.participants
 
     def get_absolute_url(self, full=False):
-        url = reverse('remind_update', kwargs={'pk': self.pk.hex})
+        # url = reverse('remind-detail', kwargs={'pk': self.pk.hex})
+        url = '/reminds/#/' + self.pk.hex
         if full:
             return urljoin('http://www.weixin.at', url)
         return url
+
+    def get_api_endpoint(self):
+        return reverse('remind-detail', kwargs={'pk': self.pk.hex})
 
     def __unicode__(self):
         return '%s: %s (%s)' % (self.owner.nickname, self.desc or self.event,

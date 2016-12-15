@@ -1,11 +1,15 @@
 # coding: utf-8
 from __future__ import unicode_literals, absolute_import
-from remind.views import RemindListView, RemindUpdateView, RemindDeleteView
-from django.conf.urls import url
+from django.conf.urls import url, include
+from django.views.generic import RedirectView
+from rest_framework import routers
+from remind.views import IndexView, RemindViewSet
+
+router = routers.SimpleRouter()
+router.register(r'', RemindViewSet, base_name='remind')
 
 urlpatterns = [
-    url(r'^$', RemindListView.as_view(), name='remind_list'),
-    # url(r'^(?P<pk>\w{32})$', RemindDetailView.as_view(), name='remind_detail'),
-    url(r'^(?P<pk>\w{32})$', RemindUpdateView.as_view(), name='remind_update'),
-    url(r'^(?P<pk>\w{32})/delete$', RemindDeleteView.as_view(), name='remind_delete'),
+    url(r'^$', IndexView.as_view(), name='index'),
+    url(r'^(?P<pk>\w{32})$', RedirectView.as_view(url='/reminds/#/%(pk)s', permanent=False)),
+    url(r'^api/', include(router.urls)),
 ]

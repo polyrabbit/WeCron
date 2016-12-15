@@ -1,0 +1,49 @@
+<ion-view>
+    <ion-nav-buttons side="left">
+        <button class="button back-button buttons button-clear" ui-sref="remind-list" nav-direction="back">
+            <i class="icon ion-ios-arrow-back"></i>
+        </button>
+    </ion-nav-buttons>
+    <ion-nav-buttons side="right">
+        <button class="button button-clear" ng-click="remindDetailCtrl.modified&&remindDetailCtrl.update()||remindDetailCtrl.setEdit()" ng-if="remindDetailCtrl.canEdit()">
+            <i class="icon" ng-class="{'ion-compose': !remindDetailCtrl.modified, 'ion-checkmark-round':remindDetailCtrl.modified}"></i>
+        </button>
+        &nbsp;
+        <button class="button button-clear" ng-click="deleteRemind(remindDetailCtrl.model.id)">
+            <i class="icon ion-trash-a"></i>
+        </button>
+        &nbsp;
+        <button class="button button-clear" ng-click="doSomething()">
+            <i class="icon ion-share"></i>
+        </button>
+    </ion-nav-buttons>
+    <ion-content>
+        <div class="list positive-bg content-input">
+            <div class="item item-input positive-bg no-border action-sheet-up"></div>
+            <label class="item item-input positive-bg no-border">
+                <input type="text" id="remind-title" ng-disabled="!remindDetailCtrl.canEdit()" ng-required placeholder="请输入提醒内容" ng-model="remindDetailCtrl.model.title">
+            </label>
+        </div>
+        <div class="list">
+            <label class="item item-input no-top-border">
+                <i class="icon ion-ios-clock-outline placeholder-icon"></i>
+                <input type="datetime-local" required ng-disabled="!remindDetailCtrl.canEdit()" placeholder="请输入事件时间" ng-model="remindDetailCtrl.model.time">
+            </label>
+            <label class="item item-input">
+                <i class="icon ion-ios-bell-outline placeholder-icon"></i>
+                <input type="text" placeholder="请输入提醒时间" readonly ng-disabled="!remindDetailCtrl.canEdit()" ng-model="remindDetailCtrl.model.defer" nature-time-defer ng-focus="remindDetailCtrl.showDeferPicker()">
+            </label>
+            <label class="item item-input">
+                <i class="icon ion-refresh placeholder-icon"></i>
+                <input type="text" placeholder="重复" readonly ng-disabled="!remindDetailCtrl.canEdit()" ng-focus="remindDetailCtrl.showRepeatPicker()">
+            </label>
+            <label class="item item-input">
+                <i class="icon ion-document placeholder-icon"></i>
+                <textarea placeholder="请输入备注(可选)" rows="3" ng-disabled="!remindDetailCtrl.canEdit()" ng-model="remindDetailCtrl.model.desc"></textarea>
+            </label>
+        </div>
+    </ion-content>
+    <ion-footer-bar align-title="center" class="bar-balanced item-remove-animate" ng-if="message">
+        <h1 class="title">{{ message }}</h1>
+    </ion-footer-bar>
+</ion-view>

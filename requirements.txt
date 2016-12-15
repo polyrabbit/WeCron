@@ -1,4 +1,5 @@
 Django==1.9.1
+djangorestframework==3.5.3
 uWSGI==2.0.11.2
 wechatpy==1.2.16
 requests==2.8.1

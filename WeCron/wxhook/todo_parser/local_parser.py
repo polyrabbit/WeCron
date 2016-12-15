@@ -96,7 +96,7 @@ DEFAULT_MINUTE = 0
 class LocalParser(object):
 
     year = month = day = hour = minute = second = afternoon = None
-    do_what = ''
+    do_what = None
     words = []
 
     def __init__(self):
@@ -385,7 +385,7 @@ class LocalParser(object):
         return 0
 
     def consume_to_end(self):
-        self.do_what = ''.join(map(lambda p: p.word, self.words[self.idx:]))
+        self.do_what = ''.join(map(lambda p: p.word, self.words[self.idx:])) or None
         return len(self.words) - self.idx
 
     def current_word(self):
