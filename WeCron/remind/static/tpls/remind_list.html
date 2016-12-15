@@ -1,0 +1,36 @@
+<ion-view hide-back-button="true">
+    <!-- view-title will also update browser title, so use ion-nav-title instead -->
+    <ion-nav-title>我的提醒</ion-nav-title>
+
+    <ion-content>
+        <ion-refresher
+                ng-if="remindListCtrl.previousPageUrl!==null"
+                pulling-text="下拉查看之前的日程"
+                on-refresh="remindListCtrl.loadPreviousPage()">
+        </ion-refresher>
+
+        <ion-list ng-repeat="group in remindListCtrl.remindGroupList">
+            <ion-item class="item-divider">
+                {{ group[0] }}
+            </ion-item>
+            <ion-item ng-href="#/{{ remind.id }}" class="item-avatar item-icon-right"
+                      ng-repeat="remind in group[1] track by remind.id" nav-direction="forward">
+                <img ng-src="{{ remind.owner.headimgurl }}" alt="{{ remind.owner.nickname }}">
+                <h2>{{ remind.title }}</h2>
+                <p>{{ remind.time | date:'HH:mm' }}</p>
+                <i class="item-note icon ion-ios-arrow-right"></i>
+                <ion-option-button class="button-assertive" ng-click="deleteRemind(remind.id, remindListCtrl.remindList)">删除</ion-option-button>
+            </ion-item>
+        </ion-list>
+
+        <div class="row" ng-if="!remindListCtrl.remindGroupList.length">
+            <div class="col col-33 col-offset-33">暂无提醒</div>
+        </div>
+
+        <ion-infinite-scroll
+                ng-if="remindListCtrl.nextPageUrl!==null"
+                on-infinite="remindListCtrl.loadNextPage()"
+                distance="1%">
+        </ion-infinite-scroll>
+    </ion-content>
+</ion-view>

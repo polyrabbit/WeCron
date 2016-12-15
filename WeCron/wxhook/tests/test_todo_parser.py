@@ -7,7 +7,7 @@ from django.test import TestCase
 from ..todo_parser.local_parser import LocalParser, parse_cn_number, DEFAULT_HOUR
 
 
-class ViewsTestCase(TestCase):
+class LocalParserTestCase(TestCase):
 
     def setUp(self):
         self.now = timezone.localtime(timezone.now())
@@ -89,6 +89,8 @@ class ViewsTestCase(TestCase):
         text = '一分钟后提醒我'
         reminder = self.parse(text)
         self.assertEqual(reminder.desc, text)
+        # None should be returned for the default to take effect
+        self.assertIsNone(reminder.event)
         self.assertEqual(reminder.title(), '闹钟')
         self.assertEqual(reminder.time_until(), '1分钟后')
         self.assertAlmostEqual((reminder.time - self.now).seconds, 60, delta=2)

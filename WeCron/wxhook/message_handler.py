@@ -3,6 +3,7 @@ from __future__ import unicode_literals, absolute_import
 import logging
 import json
 
+from datetime import timedelta
 from django.utils import timezone
 from wechatpy.replies import TextReply, TransferCustomerServiceReply
 
@@ -109,25 +110,35 @@ class WechatMessage(object):
         if self.message.key.lower() == 'time_remind_today':
             now = timezone.now()
             time_reminds = self.user.get_time_reminds().filter(time__date=now).order_by('time').all()
-            remind_text_list = []
-            next_run_found = False
-            for rem in time_reminds:
-                emoji = '\U0001F552'
-                # takewhile is too aggressive
-                if rem.time < now:
-                    emoji = '\U00002713 '
-                elif not next_run_found:
-                    next_run_found = True
-                    emoji = '\U0001F51C'
-
-                remind_text_list.append('%s %s - <a href="%s">%s</a>' %
-                    (emoji, rem.local_time_string('G:i'), rem.get_absolute_url(True), rem.title()))
-
+            remind_text_list = self.format_wechat_remind_list(time_reminds)
             if remind_text_list:
                 return self.text_reply('/:sunHi %s, 你今天的提醒有:\n\n%s' % (self.user.get_full_name(),
                                                                        '\n'.join(remind_text_list)))
             return self.text_reply('/:coffee今天没有提醒，休息一下吧！')
+        elif self.message.key.lower() == 'time_remind_tomorrow':
+            tomorrow = timezone.now()+timedelta(days=1)
+            time_reminds = self.user.get_time_reminds().filter(time__date=tomorrow).order_by('time').all()
+            remind_text_list = self.format_wechat_remind_list(time_reminds, True)
+            if remind_text_list:
+                return self.text_reply('/:sunHi %s, 你明天的提醒有:\n\n%s' % (self.user.get_full_name(),
+                                                                       '\n'.join(remind_text_list)))
+            return self.text_reply('/:coffee明天还没有提醒，休息一下吧！')
         return self.handle_unknown_event()
+
+    def format_wechat_remind_list(self, reminds, next_run_found=False):
+        now = timezone.now()
+        remind_text_list = []
+        for rem in reminds:
+            emoji = '\U0001F552'  # Clock
+            # takewhile is too aggressive
+            if rem.time < now:
+                emoji = '\U00002713 ' # Done
+            elif not next_run_found:
+                next_run_found = True
+                emoji = '\U0001F51C' # Soon
+            remind_text_list.append('%s %s - <a href="%s">%s</a>' %
+                                    (emoji, rem.local_time_string('G:i'), rem.get_absolute_url(True), rem.title()))
+        return remind_text_list
 
 
 def handle_message(msg):

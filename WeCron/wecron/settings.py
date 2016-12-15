@@ -26,7 +26,7 @@ if 'DJ_SECRET_KEY' not in os.environ:
 SECRET_KEY = os.environ['DJ_SECRET_KEY']
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = 'DJ_DEBUG' not in os.environ
+DEBUG = 'DJ_DEBUG' in os.environ
 
 ALLOWED_HOSTS = ['.weixin.at', 'localhost', '.hackernews.im']
 
@@ -41,6 +41,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
+    'rest_framework',
     'common',
     'wxhook',
     'wechat_user.apps.WechatUserConfig',
@@ -130,6 +131,7 @@ USE_TZ = True
 
 AUTH_USER_MODEL = 'wechat_user.WechatUser'
 
+SESSION_COOKIE_AGE = 30*24*60*60
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
@@ -181,4 +183,3 @@ LOGGING = {
 WX_APPID = os.environ.get('WX_APPID', 'xxx')
 WX_APPSECRET = os.environ.get('WX_APPSECRET', 'xxx')
 WX_SIGN_TOKEN = os.environ.get('WX_SIGN_TOKEN', 'xxx')
-
