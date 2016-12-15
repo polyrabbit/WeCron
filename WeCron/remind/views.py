@@ -2,10 +2,11 @@
 from __future__ import unicode_literals, absolute_import
 import logging
 from datetime import timedelta
-from django.views.generic import TemplateView
-from rest_framework import viewsets, pagination
+from urllib import quote_plus
+from rest_framework import viewsets, permissions, pagination
 from rest_framework.generics import get_object_or_404
 from rest_framework.exceptions import ValidationError
+from django.views.generic import TemplateView
 from django.utils import timezone
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.urlresolvers import reverse
@@ -17,13 +18,6 @@ from remind.models import Remind
 from remind.serializers import RemindSerializer
 
 logger = logging.getLogger(__name__)
-oauth_client = WeChatOAuth(
-    app_id=settings.WX_APPID,
-    secret=settings.WX_APPSECRET,
-    redirect_uri='abc',
-    scope='snsapi_base',
-    state='remind_list'
-)
 
 
 class WechatUserMixin(LoginRequiredMixin):
@@ -33,13 +27,14 @@ class WechatUserMixin(LoginRequiredMixin):
         return oauth_client.authorize_url
 
 
-class IndexView(WechatUserMixin, TemplateView):
+class IndexView(TemplateView):
     template_name = 'index.html'
 
 
-class RemindViewSet(WechatUserMixin, viewsets.ModelViewSet):
+class RemindViewSet(viewsets.ModelViewSet):
 
     http_method_names = ['get', 'patch', 'delete']
+    permission_classes = (permissions.IsAuthenticated,)
     serializer_class = RemindSerializer
     pagination_class = pagination.PageNumberPagination
     page_size = 10
@@ -79,6 +74,21 @@ class RemindViewSet(WechatUserMixin, viewsets.ModelViewSet):
     def get_object(self):
         # Don't check ownership hear for sharing
         return get_object_or_404(Remind.objects, **self.kwargs)
+
+    def get_authenticate_header(self, request):
+        """
+        If a request is unauthenticated, determine the WWW-Authenticate
+        header to use for 401 responses, if any.
+        """
+        current_state = request.META.get('HTTP_X_REFERER') or request.META.get('HTTP_REFERER', '/')
+        oauth_client = WeChatOAuth(
+            app_id=settings.WX_APPID,
+            secret=settings.WX_APPSECRET,
+            redirect_uri=self.request.build_absolute_uri(reverse('oauth_complete')),
+            scope='snsapi_base',
+            state=quote_plus(current_state)
+        )
+        return oauth_client.authorize_url
 
     def perform_create(self, serializer):
         raise ValidationError('Not supported')

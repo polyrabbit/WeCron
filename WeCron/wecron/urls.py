@@ -21,7 +21,7 @@ from wechat_user.views import OAuthComplete
 
 urlpatterns = [
     url(r'^$',
-        RedirectView.as_view(url='https://github.com/polyrabbit/WeCron'), name='index'),
+        RedirectView.as_view(url='https://github.com/polyrabbit/WeCron')),
     url(r'^wxhook$', WeiXinHook.as_view(), name='weixin_callback'),
     url(r'^reminds/', include('remind.urls')),
     url(r'^login/weixin/', OAuthComplete, name='oauth_complete'),

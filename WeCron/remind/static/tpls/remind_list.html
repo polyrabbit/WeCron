@@ -7,7 +7,6 @@
                 pulling-text="下拉查看之前的日程"
                 on-refresh="doRefresh()">
         </ion-refresher>
-
         <ion-list ng-repeat="group in remindListCtrl.remindGroupList">
             <ion-item class="item-divider">
                 {{ group[0] }}
@@ -21,6 +20,10 @@
                 <ion-option-button class="button-assertive" ng-click="deleteRemind(remind.id, remindListCtrl.remindList)">删除</ion-option-button>
             </ion-item>
         </ion-list>
+
+        <div class="row" ng-if="!remindListCtrl.remindGroupList.length">
+            <div class="col col-33 col-offset-33">暂无提醒</div>
+        </div>
 
         <ion-infinite-scroll
                 ng-if="remindListCtrl.next_page_url"

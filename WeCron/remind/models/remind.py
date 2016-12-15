@@ -41,6 +41,8 @@ class Remind(models.Model):
     done = models.NullBooleanField('状态', default=False,
                                    choices=((False, '未发送'), (True, '已发送'),))
 
+    default_title = u'闹钟'
+
     class Meta:
         ordering = ["-time"]
         db_table = 'time_remind'
@@ -73,7 +75,7 @@ class Remind(models.Model):
     def title(self):
         if self.event:
             return self.event
-        return '闹钟'
+        return self.default_title
 
     @threads(10, timeout=60)
     def notify_user_by_id(self, uid):
