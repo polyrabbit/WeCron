@@ -29,7 +29,7 @@ class TimestampField(serializers.DateTimeField):
 class TitleField(serializers.CharField):
 
     def to_representation(self, value):
-        return super(TitleField, self).to_representation(value) or u'闹钟'
+        return super(TitleField, self).to_representation(value) or Remind.default_title
 
 
 class UserSerializer(serializers.ModelSerializer):

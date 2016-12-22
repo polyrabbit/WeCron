@@ -8,7 +8,6 @@
                 pulling-text="下拉查看之前的日程"
                 on-refresh="remindListCtrl.loadPreviousPage()">
         </ion-refresher>
-
         <ion-list ng-repeat="group in remindListCtrl.remindGroupList">
             <ion-item class="item-divider">
                 {{ group[0] }}

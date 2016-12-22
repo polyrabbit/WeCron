@@ -6,10 +6,11 @@ from django.conf import settings
 from wechatpy import WeChatOAuth, WeChatOAuthException
 
 logger = logging.getLogger(__name__)
+UserModel = get_user_model()
 
 
 def make_guest(**kw):
-    u = get_user_model()(**kw)
+    u = UserModel(**kw)
     u.subscribe = False
     u.save = lambda **kw: 1
     return u
@@ -25,7 +26,7 @@ class WechatBackend(object):
             scope='snsapi_base',
             state=state
         )
-        UserModel = get_user_model()
+
         try:
             oauth_client.fetch_access_token(code)
             return UserModel.objects.get(pk=oauth_client.open_id)
@@ -36,7 +37,6 @@ class WechatBackend(object):
             return make_guest(pk=oauth_client.open_id, nickname=oauth_client.open_id)
 
     def get_user(self, open_id):
-        UserModel = get_user_model()
         try:
             return UserModel.objects.get(pk=open_id)
         except UserModel.DoesNotExist:

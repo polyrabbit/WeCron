@@ -1,23 +1,18 @@
-#coding: utf-8
+# coding: utf-8
 from __future__ import unicode_literals, absolute_import
 import logging
 
 from django.contrib.auth import authenticate
 from django.contrib.auth import login
 from django.http import HttpResponseRedirect, HttpResponseForbidden
-from django.core.urlresolvers import reverse, NoReverseMatch
 from django.contrib.auth.signals import user_logged_in
 from django.dispatch import receiver
-from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
 
 def OAuthComplete(request, *args, **kwargs):
-    try:
-        redirect_to = reverse(request.GET['state'])
-    except (NoReverseMatch, KeyError):
-        redirect_to = reverse('index')
+    redirect_to = request.GET.get('state', '/')
     if request.user.is_authenticated():
         return HttpResponseRedirect(redirect_to)
     if 'code' in request.GET:

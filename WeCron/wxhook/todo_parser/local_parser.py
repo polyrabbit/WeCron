@@ -1,12 +1,13 @@
-#coding: utf-8
+# coding: utf-8
 from __future__ import unicode_literals, absolute_import
+import os
 import logging
-import string
 import jieba
 import jieba.posseg as pseg
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
 from remind.models import Remind
+from .exceptions import ParseError
 
 jieba.initialize()
 logger = logging.getLogger(__name__)
@@ -79,14 +80,10 @@ def parse_cn_number(cn_sentence):
             words_with_digit2.append(word)
     return ''.join(map(unicode, words_with_digit2[1:]))
 
-jieba.add_word(u'号叫', 1e-9) # Wait until #350 of jieba is fixed
-jieba.add_word(u'星期日', 1e-9)
-jieba.add_word(u'星期天', 1e-9)
-jieba.add_word(u'周日', 1e-9)
-jieba.add_word(u'周天', 1e-9)
-jieba.add_word(u'礼拜日', 1e-9)
-jieba.add_word(u'礼拜天', 1e-9)
-jieba.add_word(u'今天下午', 1e-9)
+for word in open(os.path.join(os.path.dirname(__file__), 'ignore_words.txt')):
+    if word.strip():
+        # Wait until #350 of jieba is fixed
+        jieba.add_word(word.strip(), 1e-9)
 jieba.add_word(u'下月', 9999)
 
 DEFAULT_HOUR = 8
@@ -95,18 +92,21 @@ DEFAULT_MINUTE = 0
 
 class LocalParser(object):
 
-    year = month = day = hour = minute = second = afternoon = None
-    do_what = ''
+    year = month = day = hour = minute = second = afternoon = has_day = None
+    do_what = None
     words = []
 
     def __init__(self):
         self.idx = 0
         self.now = timezone.localtime(timezone.now())
+        self.repeat = [0]*Remind._meta.get_field('repeat').size
 
     def parse_by_rules(self, text):
         self.words = pseg.lcut(parse_cn_number(text), HMM=False)
         while self.has_next():
             beginning = self.get_index()
+
+            # self.consume_repeat()
 
             self.consume_year_period() \
                 or self.consume_month_period() \
@@ -114,7 +114,8 @@ class LocalParser(object):
 
             self.consume_weekday_period() \
                 or self.consume_hour_period() \
-                or self.consume_minute_period()
+                or self.consume_minute_period() \
+                or self.consume_second_period()
 
             self.consume_year() \
                 or self.consume_month() \
@@ -130,7 +131,9 @@ class LocalParser(object):
                 if self.current_tag() == 'v' and self.peek_next_word() == u'我':
                     self.advance(2)
                 self.consume_to_end()
-                return Remind(time=self.now, desc=text, event=self.do_what)
+                remind = Remind(time=self.now, repeat=self.repeat, desc=text, event=self.do_what)
+                remind.reschedule()
+                return remind
             else:
                 self.advance()
         return None
@@ -157,6 +160,43 @@ class LocalParser(object):
             return digit
         return None
 
+    def consume_repeat(self):
+        beginning = self.get_index()
+        if self.consume_word(u'每', u'每隔'):
+            repeat_count = self.consume_digit()
+            if repeat_count is None:
+                repeat_count = 1
+            self.consume_word(u'个')
+            if self.consume_word(u'年') and self.consume_month():
+                self.repeat[0] = repeat_count
+                return self.get_index() - beginning
+            elif self.consume_word(u'月') and self.consume_day():
+                self.repeat[1] = repeat_count
+                return self.get_index() - beginning
+            elif self.consume_word(u'天'):
+                if not self.consume_hour():
+                    self.now = self.now.replace(hour=DEFAULT_HOUR, minute=DEFAULT_MINUTE)
+                self.repeat[2] = repeat_count
+                return self.get_index() - beginning
+            elif self.consume_word(u'周', u'星期'):
+                if not self.consume_hour():
+                    self.now = self.now.replace(hour=DEFAULT_HOUR, minute=DEFAULT_MINUTE)
+                self.repeat[3] = repeat_count
+                return self.get_index() - beginning
+            elif self.consume_word(u'小时'):
+                if not self.consume_minute():
+                    self.now = self.now.replace(minute=DEFAULT_MINUTE)
+                self.repeat[4] = repeat_count
+                return self.get_index() - beginning
+            elif self.consume_word(u'分', u'分钟'):
+                if repeat_count < 3:
+                    raise ParseError('/:no重复间隔不能低于30分钟哦~')
+                self.consume_second()
+                self.repeat[5] = repeat_count
+                return self.get_index() - beginning
+        self.set_index(beginning)
+        return 0
+
     def consume_year(self):
         beginning = self.get_index()
         year = self.consume_digit()
@@ -177,6 +217,7 @@ class LocalParser(object):
         if self.consume_day():
             self.now = self.now.replace(month=month)
             return self.get_index() - beginning
+        self.set_index(beginning)
         return 0
 
     def consume_day(self):
@@ -185,7 +226,9 @@ class LocalParser(object):
         if day is None or not self.consume_word(u'日', '号'):
             self.set_index(beginning)
             return 0
+        self.has_day = True
         self.now = self.now.replace(day=day)
+        # set default time
         if not self.consume_hour():
             self.now = self.now.replace(hour=DEFAULT_HOUR, minute=DEFAULT_MINUTE)
         return self.get_index() - beginning
@@ -213,8 +256,9 @@ class LocalParser(object):
         if hour is None or not self.consume_word(u'点', u'点钟', ':', u':'):
             self.set_index(beginning2)
         else:
-            if self.afternoon and hour < 13:
-                hour += 12
+            if hour < 13:
+                if self.afternoon or (not self.has_day and self.now.hour > 12):
+                    hour += 12
             if hour > 24:
                 self.set_index(beginning2)
             else:
@@ -232,6 +276,7 @@ class LocalParser(object):
         if minute is not None:
             self.now = self.now.replace(minute=minute)
             self.consume_word(u'分', u'分钟', ':')
+            self.consume_second()
         elif self.consume_word('半'):
             self.now = self.now.replace(minute=30)
         elif self.current_word() == '1' and self.peek_next_word() == '刻':
@@ -241,6 +286,16 @@ class LocalParser(object):
             self.advance(2)
             self.now = self.now.replace(minute=45)
         return self.get_index() - beginning
+
+    def consume_second(self):
+        beginning = self.get_index()
+        second = self.consume_digit()
+        if second is not None:
+            if self.consume_word(u'秒', u'秒钟'):
+                self.now = self.now.replace(second=second)
+                return self.get_index() - beginning
+        self.set_index(beginning)
+        return 0
 
     def consume_year_period(self):
         beginning = self.get_index()
@@ -317,6 +372,7 @@ class LocalParser(object):
             self.set_index(beginning)
             return 0
         self.now += relativedelta(days=day_delta)
+        self.has_day = True
         # 两天后下午三点
         if not has_hour and not self.consume_hour():
             self.now = self.now.replace(hour=DEFAULT_HOUR, minute=DEFAULT_MINUTE)
@@ -343,6 +399,7 @@ class LocalParser(object):
 
         if weekday is not None or week_delta != 0:
             self.now += relativedelta(weekday=weekday, weeks=week_delta)
+            self.has_day = True
             if not self.consume_hour():
                 self.now = self.now.replace(hour=DEFAULT_HOUR, minute=DEFAULT_MINUTE)
             return self.get_index() - beginning
@@ -378,14 +435,25 @@ class LocalParser(object):
         minute_delta = self.consume_digit()
         if minute_delta is not None:
             if self.consume_word(u'分', u'分钟'):
+                self.consume_second_period()
                 self.consume_word(u'后', u'以后')
                 self.now += relativedelta(minutes=minute_delta)
                 return self.get_index() - beginning
         self.set_index(beginning)
         return 0
 
+    def consume_second_period(self):
+        beginning = self.get_index()
+        second_delta = self.consume_digit()
+        if second_delta is not None:
+            if self.consume_word(u'秒', u'秒钟') and self.consume_word(u'后', u'以后'):
+                self.now += relativedelta(seconds=second_delta)
+                return self.get_index() - beginning
+        self.set_index(beginning)
+        return 0
+
     def consume_to_end(self):
-        self.do_what = ''.join(map(lambda p: p.word, self.words[self.idx:]))
+        self.do_what = ''.join(map(lambda p: p.word, self.words[self.idx:])) or None
         return len(self.words) - self.idx
 
     def current_word(self):

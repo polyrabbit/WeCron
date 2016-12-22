@@ -7,9 +7,8 @@ from datetime import timedelta
 from django.utils import timezone
 from wechatpy.replies import TextReply, TransferCustomerServiceReply
 
-from common import wechat_client
 from django.contrib.auth import get_user_model
-from .todo_parser import parse
+from .todo_parser import parse, ParseError
 
 logger = logging.getLogger(__name__)
 
@@ -45,13 +44,20 @@ class WechatMessage(object):
             reminder = parse(self.message.content, uid=self.message.source)
             reminder.owner = self.user
             reminder.save()
-            return self.text_reply(
-                '/:ok将在%s提醒你%s\n\n备注: %s\n时间: %s\n\n<a href="%s">修改</a>' % (
-                    reminder.time_until(), reminder.event or '',
-                    reminder.desc, reminder.local_time_string(),
-                    reminder.get_absolute_url(True))
-            )
-        except ValueError as e:
+            reply_lines = [
+                '/:ok将在%s提醒你%s' % (reminder.time_until(), reminder.event or ''),
+                '\n备注: %s' % reminder.desc,
+                '时间: %s' % reminder.local_time_string()
+            ]
+            if reminder.has_repeat():
+                for idx, repeat_count in enumerate(reminder.repeat):
+                    if repeat_count:
+                        reply_lines.append('重复: 每%s%s' % (
+                            '' if repeat_count==1 else repeat_count, reminder.repeat_names[idx]))
+                        break
+            reply_lines.append('\n<a href="%s">\U0001F449修改</a>' % reminder.get_absolute_url(True))
+            return self.text_reply('\n'.join(reply_lines))
+        except ParseError as e:
             return self.text_reply(unicode(e))
         except Exception as e:  # Catch all kinds of wired errors
             logger.exception('Semantic parse error')

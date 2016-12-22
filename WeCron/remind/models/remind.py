@@ -6,6 +6,7 @@ from urlparse import urljoin
 from datetime import timedelta
 
 from tomorrow import threads
+from dateutil.relativedelta import relativedelta
 from django.db import models
 from django.core.urlresolvers import reverse
 from django.conf import settings
@@ -32,7 +33,9 @@ class Remind(models.Model):
     remark = models.TextField('备注', default='', blank=True, null=True)
     event = models.TextField('提醒事件', default='', blank=True, null=True)
     media_url = models.URLField('语音', max_length=320, blank=True, null=True)
-    repeat = models.CharField('重复', max_length=128, blank=True, null=True)
+    # year, month, day, week, hour, minute
+    repeat = ArrayField(models.IntegerField(), size=6, verbose_name='重复', default=list)
+    repeat_names = ('年', '月', '天', '周', '小时', '分钟')
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name='创建者',
                               related_name='time_reminds_created', on_delete=models.DO_NOTHING)
     # participants = models.ManyToManyField('wechat_user.WechatUser', verbose_name='订阅者',
@@ -40,6 +43,8 @@ class Remind(models.Model):
     participants = ArrayField(models.CharField(max_length=40), verbose_name='订阅者', default=list)
     done = models.NullBooleanField('状态', default=False,
                                    choices=((False, '未发送'), (True, '已发送'),))
+
+    default_title = u'闹钟'
 
     class Meta:
         ordering = ["-time"]
@@ -73,7 +78,7 @@ class Remind(models.Model):
     def title(self):
         if self.event:
             return self.event
-        return '闹钟'
+        return self.default_title
 
     @threads(10, timeout=60)
     def notify_user_by_id(self, uid):
@@ -126,6 +131,24 @@ class Remind(models.Model):
         self.participants.remove(uid)
         self.save(update_fields=['participants'])
 
+    def has_repeat(self):
+        return self.repeat and len(self.repeat) == 6 and self.repeat != [0]*6
+
+    def reschedule(self):
+        if not self.has_repeat():
+            return False
+        _now = now()
+        if _now <= self.time:
+            return False
+        while self.time < _now:
+            self.time += relativedelta(years=self.repeat[0],
+                                       months=self.repeat[1],
+                                       days=self.repeat[2],
+                                       weeks=self.repeat[3],
+                                       hours=self.repeat[4],
+                                       minutes=self.repeat[5])
+        return True
+
     def subscribed_by(self, user):
         return self.owner_id == user.pk or user.pk in self.participants
 
@@ -146,4 +169,6 @@ class Remind(models.Model):
 
 @receiver(pre_save, sender=Remind, dispatch_uid='update-notify-time')
 def update_notify_time(instance, **kwargs):
+    if instance.reschedule():
+        instance.done = False
     instance.notify_time = instance.time + timedelta(minutes=instance.defer)

@@ -16,9 +16,9 @@ class LoginTestCase(TestCase):
         # Disable scheduler
 
     def test_unlogged_in_user(self):
-        resp = self.client.get(reverse('remind_list'))
-        self.assertEqual(resp.status_code, 302)
-        self.assertIn('open.weixin.qq.com/connect/oauth2/authorize', resp.url)
+        resp = self.client.get(reverse('remind-list'))
+        self.assertEqual(resp.status_code, 401)
+        self.assertIn('//open.weixin.qq.com/connect/oauth2/authorize', resp.get('WWW-Authenticate', ''))
         resp = self.client.get(reverse('oauth_complete'))
         self.assertEqual(resp.status_code, 403)
 
@@ -40,10 +40,10 @@ class LoginTestCase(TestCase):
         with HTTMock(web_access_token_mock):
             resp = self.client.get(reverse('oauth_complete'),
                                    data={'code': 123,
-                                         'state': 'remind_list'})
+                                         'state': 'remind-list-blah'})
             self.assertEqual(self.client.session['_auth_user_id'], self.user.pk)
             self.assertEqual(resp.status_code, 302)
-            self.assertEqual(reverse('remind_list'), resp.url)
+            self.assertEqual('remind-list-blah', resp.url)
 
     def test_guest(self):
         guest_id = 'fake_user1xxx'
@@ -64,9 +64,9 @@ class LoginTestCase(TestCase):
         with HTTMock(web_access_token_mock):
             resp = self.client.get(reverse('oauth_complete'),
                                    data={'code': 123,
-                                         'state': 'remind_list'})
+                                         'state': 'remind-list-blah'})
             self.assertEqual(self.client.session['_auth_user_id'], guest_id)
             self.assertEqual(resp.status_code, 302)
-            self.assertEqual(reverse('remind_list'), resp.url)
+            self.assertEqual('remind-list-blah', resp.url)
             self.assertFalse(WechatUser.objects.filter(pk=guest_id).exists())
 

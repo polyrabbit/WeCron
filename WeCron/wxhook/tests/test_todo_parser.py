@@ -4,14 +4,16 @@ from dateutil.relativedelta import relativedelta
 from django.utils import timezone
 from django.test import TestCase
 
-from ..todo_parser.local_parser import LocalParser, parse_cn_number, DEFAULT_HOUR
+from ..todo_parser.local_parser import LocalParser, parse_cn_number, DEFAULT_HOUR, ParseError
+from remind.models import remind
 
 
 class LocalParserTestCase(TestCase):
 
     def setUp(self):
         self.now = timezone.localtime(timezone.now())
-        self.parse = LocalParser().parse_by_rules
+        self.parser = LocalParser()
+        self.parse = self.parser.parse_by_rules
 
     def test_cn_parser(self):
         test_dig = [u'九',
@@ -33,6 +35,7 @@ class LocalParserTestCase(TestCase):
         self.assertIsNone(reminder)
 
     def test_parse_year(self):
+        # Unknown starting should be ignored
         text = '吃吃吃2016年三月十五号下午三点四十提醒我睡觉'
         reminder = self.parse(text)
         self.assertEqual(reminder.desc, text)
@@ -43,12 +46,22 @@ class LocalParserTestCase(TestCase):
         self.assertEquals(reminder.time.hour, 15)
         self.assertEquals(reminder.time.minute, 40)
 
-    def test_parse_hour(self):
+    def test_parse_hour_with_implicit_morning(self):
         text = '三点四十五分钟提醒我还二百三十四块钱'
+        self.parser.now = self.parser.now.replace(hour=2)
         reminder = self.parse(text)
         self.assertEqual(reminder.desc, text)
         self.assertEqual(reminder.title(), '还234块钱')
         self.assertEquals(reminder.time.hour, 3)
+        self.assertEquals(reminder.time.minute, 45)
+
+    def test_parse_hour_with_implicit_afternoon(self):
+        text = '三点四十五分钟提醒我还二百三十四块钱'
+        self.parser.now = self.parser.now.replace(hour=20)
+        reminder = self.parse(text)
+        self.assertEqual(reminder.desc, text)
+        self.assertEqual(reminder.title(), '还234块钱')
+        self.assertEquals(reminder.time.hour, 15)
         self.assertEquals(reminder.time.minute, 45)
 
     def test_parse_hour_with_morning(self):
@@ -94,6 +107,14 @@ class LocalParserTestCase(TestCase):
         self.assertEqual(reminder.title(), '闹钟')
         self.assertEqual(reminder.time_until(), '1分钟后')
         self.assertAlmostEqual((reminder.time - self.now).seconds, 60, delta=2)
+
+    def test_parse_second_period(self):
+        text = '一分五十九秒后提醒我'
+        reminder = self.parse(text)
+        self.assertEqual(reminder.desc, text)
+        self.assertIsNone(reminder.event)
+        self.assertEqual(reminder.title(), '闹钟')
+        self.assertAlmostEqual((reminder.time - self.now).seconds, 60+59, delta=2)
 
     def test_parse_hour_period_with_minute(self):
         # 分后 is required here, for when HMM is True, "分后" will become a word
@@ -243,3 +264,28 @@ class LocalParserTestCase(TestCase):
         self.assertEqual(reminder.time.day, 19)
         self.assertEquals(reminder.time.hour, 8)
         self.assertEquals(reminder.time.minute, 0)
+
+    def test_parse_repeat_no_need_reschedule(self):
+        text = '每月20号提醒我还信用卡'
+        _now = remind.now()
+        remind.now = lambda: _now.replace(day=1)
+        reminder = self.parse(text)
+        self.assertEqual(reminder.desc, text)
+        self.assertEqual(reminder.title(), '还信用卡')
+        self.assertEqual(reminder.repeat, [0, 1, 0, 0, 0, 0])
+        self.assertEqual(self.now.month, reminder.time.month)
+        self.assertEquals(reminder.time.day, 20)
+        self.assertEquals(reminder.time.hour, DEFAULT_HOUR)
+        self.assertEquals(reminder.time.minute, 0)
+
+    def test_parse_repeat_with_reschedule(self):
+        text = '每月20号提醒我还信用卡'
+        _now = remind.now()
+        remind.now = lambda: _now.replace(day=21)
+        reminder = self.parse(text)
+        self.assertEqual(reminder.repeat, [0, 1, 0, 0, 0, 0])
+        self.assertEqual((self.now + relativedelta(months=1)).month, reminder.time.month)
+
+    def test_parse_repeat_with_throttle(self):
+        text = '每分钟提醒我一次'
+        self.assertRaises(ParseError, self.parse, text)

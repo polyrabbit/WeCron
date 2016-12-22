@@ -95,6 +95,23 @@ class MessageHandlerTestCase(TestCase):
         resp_xml = handle_message(wechat_msg)
         self.assertIn('时间:', resp_xml)
 
+    def test_repeat_text(self):
+        req_text = """
+        <xml>
+        <ToUserName><![CDATA[toUser]]></ToUserName>
+        <FromUserName><![CDATA[FromUser]]></FromUserName>
+        <CreateTime>1348831860</CreateTime>
+        <MsgType><![CDATA[text]]></MsgType>
+        <Content><![CDATA[%s]]></Content>
+        <MsgId>1234567890123456</MsgId>
+        </xml>
+        """ % '每月20号提醒我还信用卡'
+        wechat_msg = self.build_wechat_msg(req_text)
+        resp_xml = handle_message(wechat_msg)
+        self.assertIn('时间:', resp_xml)
+        self.assertIn('重复:', resp_xml)
+        self.assertIn('每月', resp_xml)
+
     def test_image(self):
         req_text = """
         <xml>

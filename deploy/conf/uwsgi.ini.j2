@@ -26,6 +26,14 @@ route = \.php$ break:403 Forbidden
 # route = ^/robots\.txt$ static:staticfiles/robots.txt
 static-map = /static=./staticfiles
 check-static = ./staticfiles
+# cache all static files for a year
+route = ^/static/ addheader:Cache-control: max-age=31536000
+
+add-header = uWSGI-Encoding: gzip
+http-keepalive = True
+http-auto-gzip = True
+http-auto-chunked = True
+http-auto-chunked = True
 
 pidfile = /tmp/wecron-uwsgi.pid
 # daemonize = /var/log/wecron/app.log

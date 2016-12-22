@@ -3,6 +3,7 @@
 }
 .item.item-input {
     align-items: baseline;
+    font-size: large;
 }
 .item-divider {
     color: inherit;

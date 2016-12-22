@@ -46,15 +46,22 @@ angular.module('remind', ['ionic'])
                 data: payload,
                 timeout: 50000,
                 headers: {
+                    // Pass current url back, so authentication knows where to redirect to after login successfully
                     "X-Referer": $location.absUrl()
                 }
             });
             promise.success(function (resp) {
                 onSuccess && onSuccess(resp);
-            }).error(function (body, status, header, config) {
+            }).error(function (body, status, headerGetter, config) {
                 var msg = '请稍候再试~';
                 var title = '哎呀，出错啦！！！';
-                if (status == 404) {
+                if(status == 401) {
+                    document.title = '微信登录中...';
+                    if(headerGetter('WWW-Authenticate')) {
+                        location.href = headerGetter('WWW-Authenticate');
+                        return;
+                    }
+                } else if (status == 404) {
                     msg = '没找到这个提醒，你是不是进错地方了？';
                 } else if (status == 404) {
                     title = '没有权限';
