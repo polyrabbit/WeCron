@@ -276,10 +276,52 @@ angular.module('remind', ['ionic'])
             });
         };
         ctrl.showRepeatPicker = function () {
-            $ionicPopup.alert({
-                title: '客官莫急',
-                template: '此功能正在开发',
-                okText: '好的'
+            var countCol = Array.apply(null, {length: 100}).map(function (element, index) {
+                return {
+                    label: index,
+                    value: index,
+                    children: [
+                        {
+                            label: '年',
+                            value: 0
+                        },
+                        {
+                            label: '月',
+                            value: 1
+                        },
+                        {
+                            label: '天',
+                            value: 2
+                        },
+                        {
+                            label: '周',
+                            value: 3
+                        }
+                    ]
+                };
+            });
+            weui.picker([
+                {
+                    label: '每',
+                    value: 0,
+                    children: countCol
+                }
+            ], {
+                defaultValue: (function(){
+                    var repeat = ctrl.model.repeat || [0, 0, 0, 0];
+                    for(var i=0; i<repeat.length; ++i) {
+                        if(repeat[i] != 0) {
+                            return [0, repeat[i], i];
+                        }
+                    }
+                    return [0, 0, 0];
+                })(),
+                onConfirm: function (result) {
+                    ctrl.model.repeat = [0, 0, 0, 0];
+                    ctrl.model.repeat[result[2]] = result[1];
+                    $scope.$apply();
+                },
+                id: 'repeatPicker'+ctrl.model.id
             });
         };
         // ctrl.setEdit = function () {

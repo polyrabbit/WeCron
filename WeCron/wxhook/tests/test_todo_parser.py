@@ -150,7 +150,7 @@ class LocalParserTestCase(TestCase):
         reminder = self.parse(text)
         self.assertEqual(reminder.desc, text)
         self.assertEqual(reminder.title(), '秒杀流量')
-        self.assertEqual(reminder.time.day-self.now.day, 1)
+        self.assertEqual((self.now + relativedelta(days=1)).day, reminder.time.day)
         self.assertEquals(reminder.time.hour, 9)
         self.assertEquals(reminder.time.minute, 58)
 
@@ -159,7 +159,7 @@ class LocalParserTestCase(TestCase):
         reminder = self.parse(text)
         self.assertEqual(reminder.desc, text)
         self.assertEqual(reminder.title(), '去看电影')
-        self.assertEqual(reminder.time.day-self.now.day, 1)
+        self.assertEqual((self.now + relativedelta(days=1)).day, reminder.time.day)
         self.assertEquals(reminder.time.hour, 20)
         self.assertEquals(reminder.time.minute, 0)
         self.setUp()
@@ -173,7 +173,7 @@ class LocalParserTestCase(TestCase):
         reminder = self.parse(text)
         self.assertEqual(reminder.desc, text)
         self.assertEqual(reminder.title(), '把门的报告递交上去')
-        self.assertEqual(reminder.time.day - self.now.day, 1)
+        self.assertEqual((self.now + relativedelta(days=1)).day, reminder.time.day)
         self.assertEquals(reminder.time.hour, 9)
         self.assertEquals(reminder.time.minute, 30)
 

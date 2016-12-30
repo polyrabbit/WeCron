@@ -167,6 +167,8 @@ class LocalParser(object):
             repeat_count = self.consume_digit()
             if repeat_count is None:
                 repeat_count = 1
+            if repeat_count > 100:
+                raise ParseError(u'/:no亲，时间跨度太大哦~')
             self.consume_word(u'个')
             if self.consume_word(u'年') and self.consume_month():
                 self.repeat[0] = repeat_count
@@ -187,10 +189,10 @@ class LocalParser(object):
                     return self.get_index() - beginning
             elif self.consume_word(u'小时'):
                 self.consume_minute()
-                raise ParseError('/:no暂不支持小时级别的提醒哦~')
+                raise ParseError(u'/:no亲，暂不支持小时级别的提醒哦~')
             elif self.consume_word(u'分', u'分钟'):
                 # self.consume_minute()
-                raise ParseError('/:no暂不支持分钟级别的提醒哦~')
+                raise ParseError(u'/:no亲，暂不支持分钟级别的提醒哦~')
         self.set_index(beginning)
         return 0
 
@@ -201,6 +203,8 @@ class LocalParser(object):
             self.set_index(beginning)
             return 0
         if self.consume_month():
+            if year > 3000:
+                raise ParseError(u'/:no亲，%s年的提醒还不能设哦~' % year)
             self.now = self.now.replace(year=year)
             return self.get_index() - beginning
         return 0
@@ -212,6 +216,8 @@ class LocalParser(object):
             self.set_index(beginning)
             return 0
         if self.consume_day():
+            if month > 12:
+                raise ParseError(u'/:no亲，一年哪有%s个月！' % month)
             self.now = self.now.replace(month=month)
             return self.get_index() - beginning
         self.set_index(beginning)
@@ -224,6 +230,8 @@ class LocalParser(object):
             self.set_index(beginning)
             return 0
         self.has_day = True
+        if day > 31:
+            raise ParseError(u'/:no亲，一个月哪有%s天！' % day)
         self.now = self.now.replace(day=day)
         # set default time
         if not self.consume_hour():
@@ -254,16 +262,14 @@ class LocalParser(object):
             self.set_index(beginning2)
         else:
             if hour < 13:
-                if self.afternoon or (not self.has_day and self.now.hour > 12):
+                if self.afternoon or (not self.has_day and self.repeat != [0]*len(self.repeat) and self.now.hour > 12):
                     hour += 12
-            if hour > 24:
-                self.set_index(beginning2)
-            else:
-                self.now = self.now.replace(hour=hour)
-                if not self.consume_minute():
-                    self.now = self.now.replace(minute=DEFAULT_MINUTE)
-                return self.get_index() - beginning1
-
+            if not (0 <= hour <= 24):
+                raise ParseError(u'/:no亲，一天哪有%s小时！' % hour)
+            self.now = self.now.replace(hour=hour)
+            if not self.consume_minute():
+                self.now = self.now.replace(minute=DEFAULT_MINUTE)
+            return self.get_index() - beginning1
         return self.get_index() - beginning1
 
     # minute should only be called from hour
@@ -271,6 +277,8 @@ class LocalParser(object):
         beginning = self.get_index()
         minute = self.consume_digit()
         if minute is not None:
+            if not (0 <= minute <= 60):
+                raise ParseError(u'/:no亲，一小时哪有%s分钟！' % minute)
             self.now = self.now.replace(minute=minute)
             self.consume_word(u'分', u'分钟', ':')
             self.consume_second()
@@ -289,6 +297,8 @@ class LocalParser(object):
         second = self.consume_digit()
         if second is not None:
             if self.consume_word(u'秒', u'秒钟'):
+                if not (0 <= second <= 60):
+                    raise ParseError(u'/:no亲，一分钟哪有%s秒！' % second)
                 self.now = self.now.replace(second=second)
                 return self.get_index() - beginning
         self.set_index(beginning)
@@ -310,6 +320,8 @@ class LocalParser(object):
             self.set_index(beginning)
             return 0
         self.consume_word(u'的')
+        if year_delta > 100:
+            raise ParseError(u'/:no亲，%s年跨度太大哦~' % year_delta)
         self.now += relativedelta(years=year_delta)
         self.consume_month()
         return self.get_index() - beginning
@@ -329,6 +341,8 @@ class LocalParser(object):
             self.set_index(beginning)
             return 0
         self.consume_word(u'的')
+        if month_delta > 100:
+            raise ParseError(u'/:no亲，%s个月跨度太大哦~' % month_delta)
         self.now += relativedelta(months=month_delta)
         self.consume_day()  # 下个月五号
         return self.get_index() - beginning
@@ -368,6 +382,8 @@ class LocalParser(object):
         if day_delta is None:
             self.set_index(beginning)
             return 0
+        if day_delta > 1000:
+            raise ParseError(u'/:no亲，%s天跨度太大哦~' % day_delta)
         self.now += relativedelta(days=day_delta)
         self.has_day = True
         # 两天后下午三点
@@ -386,7 +402,7 @@ class LocalParser(object):
             elif self.consume_digit(False):
                 weekday = self.consume_digit() - 1
                 if not (0 <= weekday <= 5):
-                    weekday = None
+                    raise ParseError(u'/:no亲，一周哪有%s天！' % (weekday+1))
         elif self.current_word().isdigit():
             tmp = self.consume_digit()
             self.consume_word(u'个')
@@ -395,6 +411,8 @@ class LocalParser(object):
                 self.advance(2)
 
         if weekday is not None or week_delta != 0:
+            if week_delta > 100:
+                raise ParseError(u'/:no亲，%s星期跨度太大哦~' % week_delta)
             self.now += relativedelta(weekday=weekday, weeks=week_delta)
             self.has_day = True
             if not self.consume_hour():
@@ -424,6 +442,8 @@ class LocalParser(object):
         if hour_delta is None:
             self.set_index(beginning)
             return 0
+        if hour_delta > 100:
+            raise ParseError(u'/:no亲，%s小时跨度太大哦~' % hour_delta)
         self.now += relativedelta(hours=hour_delta, minutes=minutes_delta)
         return self.get_index() - beginning
 
@@ -434,6 +454,8 @@ class LocalParser(object):
             if self.consume_word(u'分', u'分钟'):
                 self.consume_second_period()
                 self.consume_word(u'后', u'以后')
+                if minute_delta > 1000:
+                    raise ParseError(u'/:no亲，%s分钟跨度太大哦~' % minute_delta)
                 self.now += relativedelta(minutes=minute_delta)
                 return self.get_index() - beginning
         self.set_index(beginning)
@@ -444,6 +466,8 @@ class LocalParser(object):
         second_delta = self.consume_digit()
         if second_delta is not None:
             if self.consume_word(u'秒', u'秒钟') and self.consume_word(u'后', u'以后'):
+                if second_delta > 10000:
+                    raise ParseError(u'/:no亲，%s秒跨度太大哦~' % second_delta)
                 self.now += relativedelta(seconds=second_delta)
                 return self.get_index() - beginning
         self.set_index(beginning)
