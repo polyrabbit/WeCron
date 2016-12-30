@@ -94,6 +94,7 @@ class MessageHandlerTestCase(TestCase):
         wechat_msg = self.build_wechat_msg(req_text)
         resp_xml = handle_message(wechat_msg)
         self.assertIn('时间:', resp_xml)
+        self.assertNotIn('重复:', resp_xml)
 
     def test_repeat_text(self):
         req_text = """

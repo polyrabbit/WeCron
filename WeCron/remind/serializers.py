@@ -49,7 +49,7 @@ class RemindSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Remind
-        fields = ('title', 'time', 'owner', 'id', 'defer', 'desc')
+        fields = ('title', 'time', 'owner', 'id', 'defer', 'desc', 'repeat')
         read_only_fields = ('owner', 'id')
 
     def create(self, validated_data):

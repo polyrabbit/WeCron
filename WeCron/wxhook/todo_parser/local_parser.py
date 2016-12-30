@@ -93,7 +93,7 @@ DEFAULT_MINUTE = 0
 class LocalParser(object):
 
     year = month = day = hour = minute = second = afternoon = has_day = None
-    do_what = None
+    do_what = ''
     words = []
 
     def __init__(self):
@@ -106,7 +106,7 @@ class LocalParser(object):
         while self.has_next():
             beginning = self.get_index()
 
-            # self.consume_repeat()
+            self.consume_repeat()
 
             self.consume_year_period() \
                 or self.consume_month_period() \
@@ -131,6 +131,7 @@ class LocalParser(object):
                 if self.current_tag() == 'v' and self.peek_next_word() == u'我':
                     self.advance(2)
                 self.consume_to_end()
+                # Donot set event to None,since serializer will just skip None and we will have no chance to modify it
                 remind = Remind(time=self.now, repeat=self.repeat, desc=text, event=self.do_what)
                 remind.reschedule()
                 return remind
@@ -178,22 +179,18 @@ class LocalParser(object):
                     self.now = self.now.replace(hour=DEFAULT_HOUR, minute=DEFAULT_MINUTE)
                 self.repeat[2] = repeat_count
                 return self.get_index() - beginning
-            elif self.consume_word(u'周', u'星期'):
-                if not self.consume_hour():
-                    self.now = self.now.replace(hour=DEFAULT_HOUR, minute=DEFAULT_MINUTE)
-                self.repeat[3] = repeat_count
-                return self.get_index() - beginning
+            elif self.current_word() in (u'周', u'星期'):
+                if self.peek_next_word() in (u'周', u'星期'):
+                    self.consume_word(u'周', u'星期')
+                if self.consume_weekday_period():
+                    self.repeat[3] = repeat_count
+                    return self.get_index() - beginning
             elif self.consume_word(u'小时'):
-                if not self.consume_minute():
-                    self.now = self.now.replace(minute=DEFAULT_MINUTE)
-                self.repeat[4] = repeat_count
-                return self.get_index() - beginning
+                self.consume_minute()
+                raise ParseError('/:no暂不支持小时级别的提醒哦~')
             elif self.consume_word(u'分', u'分钟'):
-                if repeat_count < 3:
-                    raise ParseError('/:no重复间隔不能低于30分钟哦~')
-                self.consume_second()
-                self.repeat[5] = repeat_count
-                return self.get_index() - beginning
+                # self.consume_minute()
+                raise ParseError('/:no暂不支持分钟级别的提醒哦~')
         self.set_index(beginning)
         return 0
 
@@ -453,7 +450,7 @@ class LocalParser(object):
         return 0
 
     def consume_to_end(self):
-        self.do_what = ''.join(map(lambda p: p.word, self.words[self.idx:])) or None
+        self.do_what = ''.join(map(lambda p: p.word, self.words[self.idx:]))
         return len(self.words) - self.idx
 
     def current_word(self):

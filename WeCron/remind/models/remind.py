@@ -34,8 +34,7 @@ class Remind(models.Model):
     event = models.TextField('提醒事件', default='', blank=True, null=True)
     media_url = models.URLField('语音', max_length=320, blank=True, null=True)
     # year, month, day, week, hour, minute
-    repeat = ArrayField(models.IntegerField(), size=6, verbose_name='重复', default=list)
-    repeat_names = ('年', '月', '天', '周', '小时', '分钟')
+    repeat = ArrayField(models.IntegerField(), size=4, verbose_name='重复', default=list)
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name='创建者',
                               related_name='time_reminds_created', on_delete=models.DO_NOTHING)
     # participants = models.ManyToManyField('wechat_user.WechatUser', verbose_name='订阅者',
@@ -80,10 +79,15 @@ class Remind(models.Model):
             return self.event
         return self.default_title
 
-    @threads(10, timeout=60)
+    # TODO: not suitable using async here, for reschedule may already have modified self.time
+    # @threads(10, timeout=60)
     def notify_user_by_id(self, uid):
-        # TODO wechatpy is not thread-safe
-        user = self.owner._default_manager.get(pk=uid)
+        # TODO: wechatpy is not thread-safe
+        try:
+            user = self.owner._default_manager.get(pk=uid)
+        except self.owner.DoesNotExist:
+            logger.info('User %s is not found, skip sending notification' % uid)
+            return
         name = user.get_full_name()
         if not user.subscribe:
             logger.info('User %s has unsubscribed, skip sending notification' % name)
@@ -106,7 +110,8 @@ class Remind(models.Model):
                                    "value": self.local_time_string('Y/n/d(D) G:i'),
                                },
                                "remark": {
-                                   "value": "提醒时间：" + self.nature_time_defer(),
+                                   "value": "提醒时间：" + self.nature_time_defer()
+                                            + ('\n重复周期：' + self.get_repeat_text()) if self.has_repeat() else '',
                                }
                         },
                     )
@@ -132,21 +137,30 @@ class Remind(models.Model):
         self.save(update_fields=['participants'])
 
     def has_repeat(self):
-        return self.repeat and len(self.repeat) == 6 and self.repeat != [0]*6
+        return self.repeat and len(self.repeat) >= 4 and self.repeat != [0]*len(self.repeat)
+
+    def get_repeat_text(self):
+        if self.has_repeat():
+            # TODO: we don't support hour and minute now
+            repeat_names = ('年', '月', '天', '周', '小时', '分钟')
+            for idx, repeat_count in enumerate(self.repeat):
+                if repeat_count:
+                    return '每%s%s' % (
+                        '' if repeat_count == 1 else repeat_count, repeat_names[idx])
+        return
 
     def reschedule(self):
         if not self.has_repeat():
             return False
         _now = now()
-        if _now <= self.time:
+        if _now < self.time:
             return False
-        while self.time < _now:
-            self.time += relativedelta(years=self.repeat[0],
-                                       months=self.repeat[1],
-                                       days=self.repeat[2],
-                                       weeks=self.repeat[3],
-                                       hours=self.repeat[4],
-                                       minutes=self.repeat[5])
+        delta_keys = ['years', 'months', 'days', 'weeks', 'hours', 'minutes']
+        delta = {}
+        for idx, repeat_count in enumerate(self.repeat):
+            delta[delta_keys[idx]] = repeat_count
+        while self.time <= _now:
+            self.time += relativedelta(**delta)
         return True
 
     def subscribed_by(self, user):

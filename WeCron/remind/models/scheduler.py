@@ -25,12 +25,15 @@ class RemindScheduler(BackgroundScheduler):
 
             with self._jobstores_lock:
                 with transaction.atomic():
-                    # Lock the row
-                    for rem in Remind.objects.select_for_update().filter(
-                            done=False, notify_time__range=(now-grace_time, now)).all():
+                    # Use select_for_update inside a transaction to lock the row
+                    # Statically store the select result, in case of modifying the result in selection,
+                    # which will results in a infinite selection.
+                    remind_list = list(Remind.objects.select_for_update().filter(
+                        done=False, notify_time__range=(now - grace_time, now)).all())
+                    for rem in remind_list:
                         rem.notify_users()
                         rem.done = True
-                        rem.save(update_fields=['done'])
+                        rem.save()
                     next_remind = Remind.objects.filter(
                         done=False, notify_time__gt=now-grace_time).order_by('notify_time').first()
                     wait_seconds = None

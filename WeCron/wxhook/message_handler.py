@@ -50,11 +50,7 @@ class WechatMessage(object):
                 '时间: %s' % reminder.local_time_string()
             ]
             if reminder.has_repeat():
-                for idx, repeat_count in enumerate(reminder.repeat):
-                    if repeat_count:
-                        reply_lines.append('重复: 每%s%s' % (
-                            '' if repeat_count==1 else repeat_count, reminder.repeat_names[idx]))
-                        break
+                reply_lines.append('重复: %s' % reminder.get_repeat_text())
             reply_lines.append('\n<a href="%s">\U0001F449修改</a>' % reminder.get_absolute_url(True))
             return self.text_reply('\n'.join(reply_lines))
         except ParseError as e:
