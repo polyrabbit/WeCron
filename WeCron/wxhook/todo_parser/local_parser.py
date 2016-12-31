@@ -258,7 +258,7 @@ class LocalParser(object):
 
         beginning2 = self.get_index()
         hour = self.consume_digit()
-        if hour is None or not self.consume_word(u'点', u'点钟', ':', u':'):
+        if hour is None or not self.consume_word(u'点', u'点钟', ':', u'：'):
             self.set_index(beginning2)
         else:
             if hour < 13:

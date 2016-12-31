@@ -51,7 +51,8 @@ class WechatMessage(object):
             ]
             if reminder.has_repeat():
                 reply_lines.append('重复: %s' % reminder.get_repeat_text())
-            reply_lines.append('\n<a href="%s">\U0001F449修改</a>' % reminder.get_absolute_url(True))
+            # TODO: add \U0001F449 to the left of 修改
+            reply_lines.append('\n<a href="%s">修改</a>' % reminder.get_absolute_url(True))
             return self.text_reply('\n'.join(reply_lines))
         except ParseError as e:
             return self.text_reply(unicode(e))
@@ -62,7 +63,7 @@ class WechatMessage(object):
                 '或者您可以换个姿势告诉我该怎么定时，比如这样：\n\n' 
                 '“两个星期后提醒我去复诊”。\n'
                 '“周五晚上提醒我打电话给老妈”。\n'
-                '“1月22号提醒我给老婆买束花/:rose”。' % self.message.content
+                '“每月20号提醒我还信用卡[捂脸]”。' % self.message.content
             )
 
     def handle_subscribe_event(self):
@@ -71,7 +72,7 @@ class WechatMessage(object):
         return self.text_reply(
             'Dear %s，这是我刚注册的微信号，功能还在开发中，使用过程中如有不便请及时向我反馈哦。\n\n'
             '现在，直接输入文字或者语音就可以快速创建提醒啦！请点击下面的“使用方法”查看如何创建提醒。\n\n'
-            'PS 这是一个开源项目，代码都在<a href="https://github.com/polyrabbit/WeCron">这里</a>\U0001F517，欢迎有开发技能的同学参与进来！'
+            'PS 这是一个开源项目，代码都在<a href="https://github.com/polyrabbit/WeCron">\U0001F449这里</a>，欢迎有开发技能的同学参与进来！'
             % self.user.get_full_name()
         )
 
@@ -85,7 +86,7 @@ class WechatMessage(object):
             '/:jj如需设置提醒，只需用语音或文字告诉我就行了，比如这样：\n\n' 
             '“两个星期后提醒我去复诊”。\n'
             '“周五晚上提醒我打电话给老妈”。\n'
-            '“1月22号提醒我给老婆买束花/:rose”。'
+            '“每月20号提醒我还信用卡[捂脸]”。'
         )
 
     def handle_unknown_event(self):

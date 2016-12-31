@@ -169,13 +169,14 @@ class LocalParserTestCase(TestCase):
         self.assertEquals(reminder.time.minute, 0)
 
     def test_parse_with_punctuation_in_time(self):
-        text = '明天09:30提醒我把门的报告递交上去'
-        reminder = self.parse(text)
-        self.assertEqual(reminder.desc, text)
-        self.assertEqual(reminder.title(), '把门的报告递交上去')
-        self.assertEqual((self.now + relativedelta(days=1)).day, reminder.time.day)
-        self.assertEquals(reminder.time.hour, 9)
-        self.assertEquals(reminder.time.minute, 30)
+        for text in ('明天09:30提醒我把门的报告递交上去', '明天09：30提醒我把门的报告递交上去'):
+            self.setUp()
+            reminder = self.parse(text)
+            self.assertEqual(reminder.desc, text)
+            self.assertEqual(reminder.title(), '把门的报告递交上去')
+            self.assertEqual((self.now + relativedelta(days=1)).day, reminder.time.day)
+            self.assertEquals(reminder.time.hour, 9)
+            self.assertEquals(reminder.time.minute, 30)
 
     def test_parse_day_period_without_hour(self):
         text = '九十九天后秒杀流量'

@@ -13,7 +13,7 @@
             <i class="icon ion-trash-a"></i>
         </button>
         &nbsp;
-        <button class="button button-clear" ng-click="remindDetailCtrl.showRepeatPicker()">
+        <button class="button button-clear" ng-click="remindDetailCtrl.promptShare()">
             <i class="icon ion-share"></i>
         </button>
     </ion-nav-buttons>
@@ -35,7 +35,7 @@
             </label>
             <label class="item item-input">
                 <i class="icon ion-refresh placeholder-icon"></i>
-                <input type="text" placeholder="重复" readonly ng-disabled="!remindDetailCtrl.canEdit()" ng-focus="remindDetailCtrl.showRepeatPicker()">
+                <input type="text" placeholder="重复周期" readonly ng-disabled="!remindDetailCtrl.canEdit()" ng-model="remindDetailCtrl.model.repeat" nature-repeat ng-focus="remindDetailCtrl.showRepeatPicker()">
             </label>
             <label class="item item-input">
                 <i class="icon ion-document placeholder-icon"></i>

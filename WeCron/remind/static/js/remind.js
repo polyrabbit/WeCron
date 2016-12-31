@@ -324,6 +324,13 @@ angular.module('remind', ['ionic'])
                 id: 'repeatPicker'+ctrl.model.id
             });
         };
+        ctrl.promptShare = function () {
+            $ionicPopup.alert({
+                title: '客官莫急',
+                template: '此功能正在开发',
+                okText: '好的'
+            });
+        };
         // ctrl.setEdit = function () {
         //     // For iOS
         //     document.getElementById('remind-title').focus();
@@ -346,6 +353,28 @@ angular.module('remind', ['ionic'])
                         return '准时'
                     }
                     return (modelValue < 0 ? '提前' : '延后') + Math.abs(modelValue / unit[1]) + unit[0];
+                });
+            }
+        };
+    }).directive('natureRepeat', function () {
+        return {
+            require: '^ngModel',
+            restrict: 'A',
+            link: function (scope, elm, attrs, ctrl) {
+                ctrl.$formatters.unshift(function (modelValue) {
+                    if (modelValue === undefined) {
+                        return null;
+                    }
+                    if (angular.isString(modelValue)) {
+                        modelValue = JSON.parse("[" + modelValue + "]");
+                    }
+                    var repeat = modelValue || [0, 0, 0, 0];
+                    for(var i=0; i<repeat.length; ++i) {
+                        if(repeat[i] != 0) {
+                            return '每'+repeat[i]+(['年', '月', '天', '周'][i]);
+                        }
+                    }
+                    return '不重复';
                 });
             }
         };
