@@ -193,6 +193,8 @@ class LocalParser(object):
             elif self.consume_word(u'分', u'分钟'):
                 # self.consume_minute()
                 raise ParseError(u'/:no亲，暂不支持分钟级别的提醒哦~')
+            elif self.consume_word(u'工作日'):
+                raise ParseError(u'/:no亲，暂不支持工作日提醒哦，请换成每天试试~')
         self.set_index(beginning)
         return 0
 
@@ -262,7 +264,7 @@ class LocalParser(object):
             self.set_index(beginning2)
         else:
             if hour < 13:
-                if self.afternoon or (not self.has_day and self.repeat != [0]*len(self.repeat) and self.now.hour > 12):
+                if self.afternoon or (not self.has_day and self.now.hour > 12 and self.repeat == [0]*len(self.repeat)):
                     hour += 12
             if not (0 <= hour <= 24):
                 raise ParseError(u'/:no亲，一天哪有%s小时！' % hour)
@@ -403,6 +405,8 @@ class LocalParser(object):
                 weekday = self.consume_digit() - 1
                 if not (0 <= weekday <= 5):
                     raise ParseError(u'/:no亲，一周哪有%s天！' % (weekday+1))
+                if self.now.weekday() == weekday:
+                    week_delta = 1
         elif self.current_word().isdigit():
             tmp = self.consume_digit()
             self.consume_word(u'个')

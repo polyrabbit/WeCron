@@ -39,3 +39,7 @@ test:
 		python -Wall manage.py test && \
 		python manage.py check
 
+test-coverage:
+	cd WeCron && \
+		coverage run manage.py test && \
+		python manage.py check
