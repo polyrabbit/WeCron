@@ -1,19 +1,20 @@
 .PHONY: run clean test collectstatic run-in-prod run-uwsgi-test
 
 VCAP_APP_PORT ?= 8000
+PORT ?= $(VCAP_APP_PORT)
 
 run:
-	python WeCron/manage.py runserver 0.0.0.0:$(VCAP_APP_PORT)
+	python WeCron/manage.py runserver 0.0.0.0:$(PORT)
 
 run-in-prod: clean syncdb collectstatic
-	uwsgi --ini=deploy/conf/uwsgi.ini.j2 --http :$(VCAP_APP_PORT) 
+	uwsgi --ini=deploy/conf/uwsgi.ini.j2 --http :$(PORT) 
 
 run-uwsgi-test:
 	uwsgi --chdir=WeCron \
 		--module=wecron.wsgi:application \
 		--env DJANGO_SETTINGS_MODULE=wecron.settings \
 		--strict \
-		--http :$(VCAP_APP_PORT) \
+		--http :$(PORT) \
 		--worker-reload-mercy=5 \
 		--enable-threads \
 		--processes=4 \

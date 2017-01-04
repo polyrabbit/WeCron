@@ -8,6 +8,23 @@ from httmock import urlmatch, response, HTTMock
 from wechat_user.models import WechatUser
 
 
+def oauth_access_token_mock(openid='fake_user'):
+    @urlmatch(netloc=r'(.*\.)?api\.weixin\.qq\.com$', path='/sns/oauth2/access_token')
+    def _access_token_mock(url, request):
+        content = {
+            'access_token': 'ACCESS_TOKEN',
+            'expires_in': 7200,
+            'refresh_token': 'REFRESH_TOKEN',
+            'openid': openid,
+            'scope': 'SCOPE'
+        }
+        headers = {
+            'Content-Type': 'application/json'
+        }
+        return response(200, content, headers, request=request)
+    return _access_token_mock
+
+
 class LoginTestCase(TestCase):
     def setUp(self):
         post_save.disconnect(dispatch_uid='update-scheduler')
@@ -23,21 +40,8 @@ class LoginTestCase(TestCase):
         self.assertEqual(resp.status_code, 403)
 
     def test_log_in_existing_user(self):
-        @urlmatch(netloc=r'(.*\.)?api\.weixin\.qq\.com$', path='/sns/oauth2/access_token')
-        def web_access_token_mock(url, request):
-            content = {
-                   "access_token": "ACCESS_TOKEN",
-                   "expires_in": 7200,
-                   "refresh_token": "REFRESH_TOKEN",
-                   "openid": "fake_user",
-                   "scope": "SCOPE"
-                }
-            headers = {
-                'Content-Type': 'application/json'
-            }
-            return response(200, content, headers, request=request)
 
-        with HTTMock(web_access_token_mock):
+        with HTTMock(oauth_access_token_mock()):
             resp = self.client.get(reverse('oauth_complete'),
                                    data={'code': 123,
                                          'state': 'remind-list-blah'})
@@ -47,21 +51,7 @@ class LoginTestCase(TestCase):
 
     def test_guest(self):
         guest_id = 'fake_user1xxx'
-        @urlmatch(netloc=r'(.*\.)?api\.weixin\.qq\.com$', path='/sns/oauth2/access_token')
-        def web_access_token_mock(url, request):
-            content = {
-                   "access_token": "ACCESS_TOKEN",
-                   "expires_in": 7200,
-                   "refresh_token": "REFRESH_TOKEN",
-                   "openid": guest_id,
-                   "scope": "SCOPE"
-                }
-            headers = {
-                'Content-Type': 'application/json'
-            }
-            return response(200, content, headers, request=request)
-
-        with HTTMock(web_access_token_mock):
+        with HTTMock(oauth_access_token_mock(guest_id)):
             resp = self.client.get(reverse('oauth_complete'),
                                    data={'code': 123,
                                          'state': 'remind-list-blah'})

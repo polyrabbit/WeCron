@@ -1,7 +1,6 @@
 #coding: utf-8
 from __future__ import unicode_literals, absolute_import
 import logging
-from datetime import timedelta
 from urllib import quote_plus
 from rest_framework import viewsets, permissions, pagination
 from rest_framework.generics import get_object_or_404
@@ -31,7 +30,9 @@ class DefaultCursorPagination(pagination.CursorPagination):
             # Remove immutability
             request.query_params._mutable = True
             # Set default cursor to yesterday, copied from encode_cursor
-            querystring = pagination.urlparse.urlencode({'p': timezone.now() - timedelta(days=1)}, doseq=True)
+            querystring = pagination.urlparse.urlencode(
+                {'p': timezone.localtime(timezone.now()).replace(hour=0, minute=0, second=0, microsecond=0)},
+                                                        doseq=True)
             encoded = pagination.b64encode(querystring.encode('ascii')).decode('ascii')
             request.query_params[self.cursor_query_param] = encoded
         return super(DefaultCursorPagination, self).decode_cursor(request)
@@ -69,7 +70,9 @@ class RemindViewSet(viewsets.ModelViewSet):
         raise ValidationError('Not supported')
 
     def perform_update(self, serializer):
-        if serializer.instance.owner_id == self.request.user.pk:
+        # TODO: refine me
+        # Check permission in serializer, for 'participants' needs no authorization
+        if serializer.instance.owner_id == self.request.user.pk or serializer.initial_data.keys() == ['participants']:
             return super(RemindViewSet, self).perform_update(serializer)
         self.permission_denied(self.request, message=u'Unauthorized!')
 
@@ -77,9 +80,10 @@ class RemindViewSet(viewsets.ModelViewSet):
         user = self.request.user
         if instance.owner_id == user.pk:
             instance.delete()
-            logger.info('User(%s) deleted a remind(%s)', user.nickname, unicode(instance))
+            logger.info('User(%s) deletes a remind(%s)', user.nickname, unicode(instance))
         elif user.pk in instance.participants:
             instance.participants.remove(self.request.user.pk)
-            logger.info('User(%s) quited a remind(%s)', user.nickname, unicode(instance))
+            instance.save(update_fields=['participants'])
+            logger.info('User(%s) quites a remind(%s)', user.nickname, unicode(instance))
         else:
             self.permission_denied(self.request, message=u'Unauthorized!')

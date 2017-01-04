@@ -5,6 +5,7 @@ angular.module('remind', ['ionic'])
         $httpProvider.defaults.xsrfHeaderName = 'X-CSRFToken';
         $urlRouterProvider.otherwise('/');
         $ionicConfigProvider.templates.maxPrefetch(0);
+        $ionicConfigProvider.views.maxCache(0);
         $stateProvider
             .state('remind-list', {
                 url: '/',
@@ -62,8 +63,9 @@ angular.module('remind', ['ionic'])
                         return;
                     }
                 } else if (status == 404) {
-                    msg = '没找到这个提醒，你是不是进错地方了？';
-                } else if (status == 404) {
+                    title = '没找到这个提醒';
+                    msg = '它是不是被删了，或者你进错了地方？';
+                } else if (status == 403) {
                     title = '没有权限';
                     msg = '亲，你不能这样做哦';
                 }
@@ -114,9 +116,9 @@ angular.module('remind', ['ionic'])
             get: function (id, onSuccess) {
                 return httpRequest('/reminds/api/'+id+'/', 'get', onSuccess);
             },
-            update: function (id, payload, onSuccess) {
+            update: function (id, payload, onSuccess, msg) {
                 return httpRequest('/reminds/api/'+id+'/', 'patch', function (resp) {
-                    indicator.show('更新成功', 2000);
+                    indicator.show(msg || '更新成功', 2000);
                     onSuccess && onSuccess(resp);
                 }, payload);
             }
@@ -125,6 +127,7 @@ angular.module('remind', ['ionic'])
     .controller('RemindListCtrl', function($scope, remindManager, $filter){
         var ctrl = this;
         ctrl.remindList = [];
+        document.title = '微定时 — 我的提醒';
 
         ctrl.loadPreviousPage = function () {
             if(!ctrl.previousPageUrl) {
@@ -198,6 +201,37 @@ angular.module('remind', ['ionic'])
             remind.time = new Date(remind.time);
             ctrl.modified = false;
             ctrl.model = remind;
+            if (remind.participate_qrcode) {
+                $ionicPopup.show({
+                    title: '长按扫码，关注公众号后接受邀请',
+                    subTitle: remind.desc,
+                    template: '<img class="qrcode" src="'+ remind.participate_qrcode + '" />'
+                });
+            } else {
+                var pidList = remind.participants.map(function (p) {
+                    return p.id;
+                });
+                if (pidList.concat(remind.owner.id).indexOf(userID) == -1) {
+                    weui.confirm(remind.desc, {
+                        title: '是否订阅此提醒？',
+                        buttons: [{
+                            label: '取消',
+                            type: 'default'
+                        }, {
+                            label: '确认',
+                            type: 'primary',
+                            onClick: function () {
+                                remindManager.update($stateParams.id, {
+                                    participants: remind.participants.concat([{id: userID}])
+                                }, function (newRemind) {
+                                    newRemind.time = new Date(newRemind.time);
+                                    ctrl.model = newRemind;
+                                }, '订阅成功');
+                            }
+                        }]
+                    });
+                }
+            }
         });
 
         ctrl.update = function () {
@@ -221,6 +255,9 @@ angular.module('remind', ['ionic'])
                 ctrl.modified = !angular.equals(ctrl.originModel, ctrl.model);
             } else {
                 ctrl.originModel = angular.copy(ctrl.model);
+            }
+            if(newVal && newVal.desc) {
+                document.title = '微定时 — ' + newVal.desc;
             }
         }, true);
         ctrl.showDeferPicker = function () {
@@ -325,11 +362,7 @@ angular.module('remind', ['ionic'])
             });
         };
         ctrl.promptShare = function () {
-            $ionicPopup.alert({
-                title: '客官莫急',
-                template: '此功能正在开发',
-                okText: '好的'
-            });
+            document.getElementById('weixinTip').style.display="block";
         };
         // ctrl.setEdit = function () {
         //     // For iOS

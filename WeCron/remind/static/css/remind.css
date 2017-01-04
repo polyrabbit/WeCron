@@ -1,10 +1,6 @@
 .loading-container .loading {
     background-color: transparent;
 }
-.item.item-input {
-    align-items: baseline;
-    font-size: large;
-}
 .item-divider {
     color: inherit;
     font-weight: normal;
@@ -33,9 +29,55 @@
     border: none;
     background-image: none !important;
 }
-.item-input input[readonly], input[disabled], textarea[disabled] {
+
+.item.item-input {
+    align-items: baseline;
+    font-size: large;
+}
+.item.item-input input[readonly], .item-input input[disabled], .item-input textarea[disabled] {
     background-color: inherit;
+}
+.item.item-input input, .item.item-input textarea {
+    font-size: 16px;
+}
+.item-participant .item-image {
+    float: right;
+    margin-top: auto;
+    margin-right: 5px;
+    max-width: 30px;
+    max-height: 30px;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
 }
 #remind-title {
     padding-right: 0;
+}
+/* Wait until #21 is fixed: https://github.com/weui/weui.js/issues/21#issuecomment-274002940 */
+.weui-picker__item {
+    padding: 0;
+    height: 34px;
+    line-height: 34px;
+}
+
+.qrcode {
+    max-width: 100%;
+    max-height: 100%;
+}
+
+#weixinTip {
+    background: rgba(0, 0, 0, 0.7);
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 11;
+    display: none;
+}
+
+#weixinTip img {
+    position: absolute;
+    right: 0;
+    top: 5px;
 }

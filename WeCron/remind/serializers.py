@@ -8,10 +8,24 @@ from django.contrib.auth import get_user_model
 from django.utils.timezone import utc
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError, PermissionDenied
+from common import wechat_client
 from remind.models import Remind
+
+logger = logging.getLogger(__name__)
+UserModel = get_user_model()
+
+
+# class AuthorizationMixin(object):
+#
+#     def run_validation(self, *args, **kwargs):
+#         ctx = self.context
+#         if self.parent.instance.owner_id != ctx['request'].user.pk:
+#             return ctx['view'].permission_denied(ctx['request'], message=u'Unauthorized!')
+#         return super(AuthorizationMixin, self).run_validation(*args, **kwargs)
 
 
 class TimestampField(serializers.DateTimeField):
+
     def to_representation(self, value):
         """ Return epoch time for a datetime object or ``None``"""
         try:
@@ -36,8 +50,25 @@ class UserSerializer(serializers.ModelSerializer):
     id = serializers.CharField(source='openid', read_only=True)
 
     class Meta:
-        model = get_user_model()
+        model = UserModel
         fields = ('nickname', 'headimgurl', 'id')
+
+
+class ParticipantSerializer(serializers.Field):
+
+    def to_internal_value(self, participants):
+        logger.info('User(%s) subscribes a remind(%s)',
+                    self.parent.context['request'].user.nickname, unicode(self.parent.instance))
+        return list(set(p['id'] for p in participants if UserModel.objects.filter(pk=p['id'], subscribe=True).first()))
+
+    def to_representation(self, participant_id_list):
+        active_participants = []
+        for uid in participant_id_list:
+            user = UserModel.objects.filter(pk=uid, subscribe=True).first()
+            if user:
+                active_participants.append(user)
+        serializer = UserSerializer(instance=active_participants, many=True)
+        return serializer.data
 
 
 class RemindSerializer(serializers.ModelSerializer):
@@ -46,11 +77,27 @@ class RemindSerializer(serializers.ModelSerializer):
     owner = UserSerializer(read_only=True)
     time = TimestampField()
     title = TitleField(source='event')
+    participants = ParticipantSerializer()
+    participate_qrcode = serializers.SerializerMethodField()
 
     class Meta:
         model = Remind
-        fields = ('title', 'time', 'owner', 'id', 'defer', 'desc', 'repeat')
+        fields = ('title', 'time', 'owner', 'id', 'defer', 'desc', 'repeat', 'participants', 'participate_qrcode')
         read_only_fields = ('owner', 'id')
+
+    def get_participate_qrcode(self, remind):
+        user = self.context['request'].user
+        if user.subscribe:
+            return None
+        logger.info('Creating QR code for %s', user.nickname)
+        ticket = wechat_client.qrcode.create({
+                'expire_seconds': 2592000,
+                'action_name': 'QR_SCENE',
+                'action_info': {
+                    'scene': {'scene_id': remind.id.fields[0]}, # TODO: fix me, find a way(only integer) to identify remind
+                }
+            })
+        return wechat_client.qrcode.get_url(ticket)
 
     def create(self, validated_data):
         raise PermissionDenied()

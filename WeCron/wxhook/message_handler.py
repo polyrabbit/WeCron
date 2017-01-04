@@ -5,9 +5,11 @@ import json
 
 from datetime import timedelta
 from django.utils import timezone
-from wechatpy.replies import TextReply, TransferCustomerServiceReply
-
 from django.contrib.auth import get_user_model
+from wechatpy.replies import TextReply, TransferCustomerServiceReply, ImageReply
+
+from common import wechat_client
+from remind.models import Remind
 from .todo_parser import parse, ParseError
 
 logger = logging.getLogger(__name__)
@@ -39,11 +41,12 @@ class WechatMessage(object):
         handler = getattr(self, 'handle_%s_event' % self.message.event.lower(), self.handle_unknown_event)
         return handler()
 
-    def handle_text(self):
+    def handle_text(self, reminder=None):
         try:
-            reminder = parse(self.message.content, uid=self.message.source)
-            reminder.owner = self.user
-            reminder.save()
+            if not reminder:
+                reminder = parse(self.message.content, uid=self.message.source)
+                reminder.owner = self.user
+                reminder.save()
             reply_lines = [
                 '/:ok将在%s提醒你%s' % (reminder.time_until(), reminder.event or ''),
                 '\n备注: %s' % reminder.desc,
@@ -52,7 +55,7 @@ class WechatMessage(object):
             if reminder.has_repeat():
                 reply_lines.append('重复: %s' % reminder.get_repeat_text())
             # TODO: add \U0001F449 to the left of 修改
-            reply_lines.append('\n<a href="%s">修改</a>' % reminder.get_absolute_url(True))
+            reply_lines.append('\n<a href="%s">修改/分享</a>' % reminder.get_absolute_url(True))
             return self.text_reply('\n'.join(reply_lines))
         except ParseError as e:
             return self.text_reply(unicode(e))
@@ -66,15 +69,35 @@ class WechatMessage(object):
                 '“每月20号提醒我还信用卡[捂脸]”。' % self.message.content
             )
 
-    def handle_subscribe_event(self):
-        self.user.subscribe = True
-        self.user.save(update_fields=['subscribe'])
-        return self.text_reply(
+    def welcome_text(self):
+        return (
             'Dear %s，这是我刚注册的微信号，功能还在开发中，使用过程中如有不便请及时向我反馈哦。\n\n'
             '现在，直接输入文字或者语音就可以快速创建提醒啦！请点击下面的“使用方法”查看如何创建提醒。\n\n'
             'PS 这是一个开源项目，代码都在<a href="https://github.com/polyrabbit/WeCron">\U0001F449这里</a>，欢迎有开发技能的同学参与进来！'
             % self.user.get_full_name()
         )
+
+    def handle_subscribe_event(self):
+        self.user.subscribe = True
+        self.user.save(update_fields=['subscribe'])
+        return self.text_reply(self.welcome_text())
+
+    def handle_subscribe_scan_event(self):
+        if not self.user.subscribe:
+            self.user.subscribe = True
+            self.user.save(update_fields=['subscribe'])
+            wechat_client.message.send_text(self.user.openid, self.welcome_text())
+        # TODO: fix me, find a way(only integer) to identify remind
+        subscribe_remind = Remind.objects.filter(
+            id__gt='%s-0000-0000-0000-000000000000' % (hex(int(self.message.scene_id)).replace('0x', ''))
+        ).order_by('id').first()
+        if subscribe_remind:
+            if subscribe_remind.add_participant(self.user.openid):
+                logger.info('User(%s) participants a remind(%s)', self.user.nickname, unicode(subscribe_remind))
+            return self.handle_text(subscribe_remind)
+        return self.text_reply('')
+
+    handle_scan_event = handle_subscribe_scan_event
 
     def handle_unsubscribe_event(self):
         self.user.subscribe = False
@@ -126,6 +149,13 @@ class WechatMessage(object):
                 return self.text_reply('/:sunHi %s, 你明天的提醒有:\n\n%s' % (self.user.get_full_name(),
                                                                        '\n'.join(remind_text_list)))
             return self.text_reply('/:coffee明天还没有提醒，休息一下吧！')
+        elif self.message.key.lower() == 'customer_service':
+            logger.info('Transfer to customer service')
+            return TransferCustomerServiceReply(message=self.message).render()
+        elif self.message.key.lower() == 'join_family':
+            logger.info('Sending QR code')
+            # http://mmbiz.qpic.cn/mmbiz_jpg/U4AEiaplkjQ3olQ6WLhRNIsLxb2LD4kdQSWN6PxulSiaY0dhwrY4HUVBBYFC8xawEd6Sf4ErGLk7EZTeD094ozxw/0?wx_fmt=jpeg
+            return ImageReply(message=self.message, media_id='S8Jjk9aHXZ7wXSwK1qqu2UnkQSAHid-VQv_kxNUZnMI').render()
         return self.handle_unknown_event()
 
     def format_wechat_remind_list(self, reminds, next_run_found=False):

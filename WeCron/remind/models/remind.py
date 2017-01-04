@@ -115,20 +115,21 @@ class Remind(models.Model):
                                }
                         },
                     )
-            logger.info('Successfully send notification to user %s(%s)', name, uid)
+            logger.info('Successfully send notification(%s) to user %s', self.desc, name)
             return res
         except:
-            logger.exception('Failed to send notification to user %s(%s)', name, uid)
+            logger.exception('Failed to send notification(%s) to user %s', self.desc, name)
 
     def notify_users(self):
         for uid in [self.owner_id] + self.participants:
             self.notify_user_by_id(uid)
 
     def add_participant(self, uid):
-        if uid in self.participants:
-            return
+        if uid == self.owner_id or uid in self.participants:
+            return False
         self.participants.append(uid)
         self.save(update_fields=['participants'])
+        return True
 
     def remove_participant(self, uid):
         if uid not in self.participants:

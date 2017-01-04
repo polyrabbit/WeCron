@@ -58,7 +58,7 @@ class LocalParserTestCase(TestCase):
 
     def test_parse_hour_with_implicit_afternoon(self):
         text = '三点四十五分钟提醒我还二百三十四块钱'
-        self.parser.now = self.parser.now.replace(hour=20)
+        self.parser.now = self.parser.now.replace(hour=12)
         reminder = self.parse(text)
         self.assertEqual(reminder.desc, text)
         self.assertEqual(reminder.title(), '还234块钱')
@@ -87,6 +87,14 @@ class LocalParserTestCase(TestCase):
         reminder = self.parse(text)
         self.assertEqual(reminder.desc, text)
         self.assertEqual(reminder.title(), '半导体制冷片')
+        self.assertEquals(reminder.time.hour, 20)
+        self.assertEquals(reminder.time.minute, 0)
+
+    def test_parse_hour_with_night_and_no_explicit_time(self):
+        text = '今晚提醒我去拿合同'
+        reminder = self.parse(text)
+        self.assertEqual(reminder.desc, text)
+        self.assertEqual(reminder.title(), '去拿合同')
         self.assertEquals(reminder.time.hour, 20)
         self.assertEquals(reminder.time.minute, 0)
 
@@ -222,7 +230,7 @@ class LocalParserTestCase(TestCase):
         self.assertEqual(reminder.desc, text)
         self.assertEqual(reminder.title(), '写代码')
         self.assertAlmostEqual((reminder.time - self.now).days, 90, delta=2)
-        self.assertEqual(reminder.time.day, self.now.day)
+        self.assertAlmostEqual(reminder.time.day, self.now.day, delta=3)
         self.assertEquals(reminder.time.hour, DEFAULT_HOUR)
         self.assertEquals(reminder.time.minute, 0)
 

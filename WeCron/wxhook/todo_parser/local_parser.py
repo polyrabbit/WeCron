@@ -235,6 +235,9 @@ class LocalParser(object):
         if day > 31:
             raise ParseError(u'/:no亲，一个月哪有%s天！' % day)
         self.now = self.now.replace(day=day)
+        # 2016年12月14日周三在上海举办的2016 Google 开发者大会
+        if self.consume_word(u'周', u'星期'):
+            self.consume_word(u'日', u'天') or self.consume_digit()
         # set default time
         if not self.consume_hour():
             self.now = self.now.replace(hour=DEFAULT_HOUR, minute=DEFAULT_MINUTE)
@@ -264,7 +267,7 @@ class LocalParser(object):
             self.set_index(beginning2)
         else:
             if hour < 13:
-                if self.afternoon or (not self.has_day and self.now.hour > 12 and self.repeat == [0]*len(self.repeat)):
+                if self.afternoon or (not self.has_day and self.now.hour >= 12 and self.repeat == [0]*len(self.repeat)):
                     hour += 12
             if not (0 <= hour <= 24):
                 raise ParseError(u'/:no亲，一天哪有%s小时！' % hour)
@@ -353,6 +356,7 @@ class LocalParser(object):
         beginning = self.get_index()
         day_delta = None
         has_hour = False
+        hour = DEFAULT_HOUR
         if self.consume_word(u'今天'):
             day_delta = 0
         elif self.consume_word(u'今早'):
@@ -361,6 +365,7 @@ class LocalParser(object):
         elif self.consume_word(u'今晚'):
             day_delta = 0
             self.afternoon = True
+            hour = 20
         elif self.consume_word(u'明天'):
             day_delta = 1
         elif self.consume_word(u'明早'):
@@ -369,6 +374,7 @@ class LocalParser(object):
         elif self.consume_word(u'明晚'):
             day_delta = 1
             self.afternoon = True
+            hour = 20
         elif self.consume_word(u'后天'):
             day_delta = 2
         elif self.consume_word(u'大后天'):
@@ -390,7 +396,7 @@ class LocalParser(object):
         self.has_day = True
         # 两天后下午三点
         if not has_hour and not self.consume_hour():
-            self.now = self.now.replace(hour=DEFAULT_HOUR, minute=DEFAULT_MINUTE)
+            self.now = self.now.replace(hour=hour, minute=DEFAULT_MINUTE)
         return self.get_index() - beginning
 
     def consume_weekday_period(self):

@@ -8,21 +8,10 @@ from wechatpy import parse_message
 from httmock import urlmatch, response, HTTMock
 
 from common import wechat_client
+from common.tests import access_token_mock
 from ..message_handler import handle_message
 from wechat_user.models import WechatUser
 from remind.models import Remind
-
-
-@urlmatch(netloc=r'(.*\.)?api\.weixin\.qq\.com$', path='.*token')
-def access_token_mock(url, request):
-    content = {
-        "access_token": "1234567890",
-        "expires_in": 7200
-    }
-    headers = {
-        'Content-Type': 'application/json'
-    }
-    return response(200, content, headers, request=request)
 
 
 @urlmatch(netloc=r'(.*\.)?api\.weixin\.qq\.com$', path='.*semantic')
@@ -56,6 +45,15 @@ def semantic_parser_mock(url, request):
     return response(200, content, headers, request=request)
 
 
+@urlmatch(netloc=r'(.*\.)?api\.weixin\.qq\.com$', path='/cgi-bin/message/custom/send')
+def send_message_mock(url, request):
+    content = {}
+    headers = {
+        'Content-Type': 'application/json'
+    }
+    return response(200, content, headers, request=request)
+
+
 class MessageHandlerTestCase(TestCase):
 
     # Common strings
@@ -63,7 +61,7 @@ class MessageHandlerTestCase(TestCase):
     instructions_to_use = '如需设置提醒'
     remind_base_on_location = '基于地理位置的提醒'
 
-    mock = HTTMock(access_token_mock, semantic_parser_mock)
+    mock = HTTMock(access_token_mock, semantic_parser_mock, send_message_mock)
 
     @classmethod
     def setUpTestData(cls):
@@ -226,6 +224,24 @@ class MessageHandlerTestCase(TestCase):
         wechat_msg = self.build_wechat_msg(req_text)
         resp_xml = handle_message(wechat_msg)
         self.assertIn('直接输入文字或者语音就可以快速创建提醒', resp_xml)
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.subscribe)
+
+    def test_subscribe_scan_event(self):
+        req_text = """
+        <xml>
+        <ToUserName><![CDATA[toUser]]></ToUserName>
+        <FromUserName><![CDATA[FromUser]]></FromUserName>
+        <CreateTime>123456789</CreateTime>
+        <MsgType><![CDATA[event]]></MsgType>
+        <Event><![CDATA[subscribe]]></Event>
+        <EventKey><![CDATA[qrscene_1832456703]]></EventKey>
+        <Ticket><![CDATA[TICKET]]></Ticket>
+        </xml>
+        """
+        wechat_msg = self.build_wechat_msg(req_text)
+        resp_xml = handle_message(wechat_msg)
+        self.assertNotIn('直接输入文字或者语音就可以快速创建提醒', resp_xml)
         self.user.refresh_from_db()
         self.assertTrue(self.user.subscribe)
 
