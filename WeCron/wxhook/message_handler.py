@@ -154,6 +154,7 @@ class WechatMessage(object):
             return TransferCustomerServiceReply(message=self.message).render()
         elif self.message.key.lower() == 'join_family':
             logger.info('Sending QR code')
+            wechat_client.message.send_text(self.user.openid, u'喜欢微定时？请加入微定时亲友团，也欢迎各种反馈和建议~')
             # http://mmbiz.qpic.cn/mmbiz_jpg/U4AEiaplkjQ3olQ6WLhRNIsLxb2LD4kdQSWN6PxulSiaY0dhwrY4HUVBBYFC8xawEd6Sf4ErGLk7EZTeD094ozxw/0?wx_fmt=jpeg
             return ImageReply(message=self.message, media_id='S8Jjk9aHXZ7wXSwK1qqu2UnkQSAHid-VQv_kxNUZnMI').render()
         return self.handle_unknown_event()

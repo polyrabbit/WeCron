@@ -7,7 +7,8 @@ run:
 	python WeCron/manage.py runserver 0.0.0.0:$(PORT)
 
 run-in-prod: clean syncdb collectstatic
-	uwsgi --ini=deploy/conf/uwsgi.ini.j2 --http :$(PORT) 
+	# uwsgi --ini=deploy/conf/uwsgi.ini.j2 --http :$(PORT) 
+	uwsgi --ini=uwsgi.ini
 
 run-uwsgi-test:
 	uwsgi --chdir=WeCron \

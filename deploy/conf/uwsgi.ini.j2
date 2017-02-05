@@ -1,11 +1,12 @@
 [uwsgi]
-chdir = WeCron
+chdir = {{ PROJ_HOME }}/WeCron
+# chdir = WeCron
 wsgi-file = wecron/wsgi.py
-# virtualenv = {{ PROJ_VENV }}
-strict = True
+virtualenv = {{ PROJ_VENV }}
+# strict = True
 # http-socket = 0.0.0.0:9090
-# socket = /tmp/wecron-uwsgi.sock
-# chmod-socket = 666
+socket = /tmp/wecron-uwsgi.sock
+chmod-socket = 666
 log-format = %(addr) - worker:%(wid) - [%(ltime)] "%(method) %(uri) %(proto)" %(status) %(size) %(msecs)ms "%(referer)" "%(uagent)"
 
 uid = www-data

@@ -63,3 +63,5 @@ target/
 .DS_Store
 
 staticfiles/
+
+playbook.retry
