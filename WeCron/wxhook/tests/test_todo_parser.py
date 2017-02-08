@@ -186,6 +186,10 @@ class LocalParserTestCase(TestCase):
             self.assertEquals(reminder.time.hour, 9)
             self.assertEquals(reminder.time.minute, 30)
 
+    def test_parse_date_out_of_range(self):
+        text = '六月三十一号'
+        self.assertRaises(ParseError, self.parse, text)
+
     def test_parse_day_period_without_hour(self):
         text = '九十九天后秒杀流量'
         reminder = self.parse(text)
@@ -317,7 +321,7 @@ class LocalParserTestCase(TestCase):
 
     def test_parse_repeat_week(self):
         self.parser.now = self.parser.now.replace(hour=20)
-        for text in ('每两周一 10点', '每两周周一上午10点'):
+        for text in ('每两周一10点', '每两周周一上午10点', '每两周的周一上午10点'):
             self.setUp()
             reminder = self.parse(text)
             self.assertEqual(reminder.desc, text)

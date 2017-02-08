@@ -154,15 +154,20 @@ class Remind(models.Model):
         if not self.has_repeat():
             return False
         _now = now()
-        if _now < self.time:
+        self.update_notify_time()
+        if _now < self.notify_time:
             return False
         delta_keys = ['years', 'months', 'days', 'weeks', 'hours', 'minutes']
         delta = {}
         for idx, repeat_count in enumerate(self.repeat):
             delta[delta_keys[idx]] = repeat_count
-        while self.time <= _now:
+        while self.notify_time <= _now:
             self.time += relativedelta(**delta)
+            self.update_notify_time()
         return True
+
+    def update_notify_time(self):
+        self.notify_time = self.time + timedelta(minutes=self.defer)
 
     def subscribed_by(self, user):
         return self.owner_id == user.pk or user.pk in self.participants
@@ -186,4 +191,4 @@ class Remind(models.Model):
 def update_notify_time(instance, **kwargs):
     if instance.reschedule():
         instance.done = False
-    instance.notify_time = instance.time + timedelta(minutes=instance.defer)
+    instance.update_notify_time()

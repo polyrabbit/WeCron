@@ -40,6 +40,9 @@
 .item.item-input input, .item.item-input textarea {
     font-size: 16px;
 }
+.item.item-input .placeholder-icon {
+    min-width: 21px;
+}
 .item-participant .item-image {
     float: right;
     margin-top: auto;

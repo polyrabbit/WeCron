@@ -5,7 +5,7 @@
     <ion-content>
         <ion-refresher
                 ng-if="remindListCtrl.previousPageUrl!==null"
-                pulling-text="下拉查看之前的日程"
+                pulling-text="下拉查看之前的提醒"
                 on-refresh="remindListCtrl.loadPreviousPage()">
         </ion-refresher>
         <ion-list ng-repeat="group in remindListCtrl.remindGroupList">
@@ -22,8 +22,8 @@
             </ion-item>
         </ion-list>
 
-        <div class="row" ng-if="!remindListCtrl.remindGroupList.length">
-            <div class="col col-33 col-offset-33">暂无提醒，下拉查看更早数据</div>
+        <div class="padding text-center" ng-hide="remindListCtrl.remindGroupList.length">
+            还没有设置今后的提醒，下拉查看之前的提醒~
         </div>
 
         <ion-infinite-scroll
