@@ -21,7 +21,7 @@ def parse(text, **kwargs):
         logger.warning('Failed to parse time from "%s" using rules, try wechat api.', text)
         reminder = parse_by_wechat_api(text, **kwargs)
     if reminder.time <= timezone.now():  # GMT and UTC time can compare with each other
-        raise ParseError('/:no%s已经过去了，请重设一个将来的提醒。' % reminder.time.strftime('%Y-%m-%d %H:%M:%S'))
+        raise ParseError('/:no%s已经过去了，请重设一个将来的提醒。' % reminder.time.strftime('%Y-%m-%d %H:%M'))
     return reminder
 
 

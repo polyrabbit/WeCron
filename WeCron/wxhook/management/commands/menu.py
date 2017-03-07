@@ -12,14 +12,16 @@ class Command(BaseCommand):
         parser.add_argument('new_menu', nargs='*')
 
     def handle(self, *args, **options):
-        if not options.get('new_menu'):
-            self.stdout.write(
-                    json.dumps(
-                        wechat_client.menu.get(),
-                        ensure_ascii=False))
-        else:
-            new_menu = json.loads(options['new_menu'][0])
-            self.stdout.write(
-                    json.dumps(wechat_client.menu.create(new_menu),
-                    indent=2,
-                    ensure_ascii=False))
+        new_menu = {"button": [
+            {"name": "我的提醒", "sub_button": [
+                {"url": "http://www.weixin.at/reminds/", "type": "view", "name": "所有提醒", "sub_button": []}, {"type": "click", "name": "明天", "key": "time_remind_tomorrow", "sub_button": []}, {"type": "click", "name": "今天", "key": "time_remind_today", "sub_button": []}]},
+            {"type": "click", "name": "使用方法", "key": "time_remind_create", "sub_button": []},
+            {"name": "亲友团",   "sub_button": [
+                {"type": "click", "name": "小密圈", "key": "join_group"},
+                {"type": "click", "name": "赞赏", "key": "donate"}]
+             }
+        ]}
+        self.stdout.write(
+                json.dumps(wechat_client.menu.create(new_menu),
+                indent=2,
+                ensure_ascii=False))

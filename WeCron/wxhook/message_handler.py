@@ -152,11 +152,16 @@ class WechatMessage(object):
         elif self.message.key.lower() == 'customer_service':
             logger.info('Transfer to customer service')
             return TransferCustomerServiceReply(message=self.message).render()
-        elif self.message.key.lower() == 'join_family':
-            logger.info('Sending QR code')
-            wechat_client.message.send_text(self.user.openid, u'喜欢微定时？请加入微定时亲友团，也欢迎各种反馈和建议~')
+        elif self.message.key.lower() == 'join_group':
+            logger.info('Sending group QR code')
+            wechat_client.message.send_text(self.user.openid, u'喜欢微定时？请加入微定时小密圈，欢迎各种反馈和建议~')
             # http://mmbiz.qpic.cn/mmbiz_jpg/U4AEiaplkjQ3olQ6WLhRNIsLxb2LD4kdQSWN6PxulSiaY0dhwrY4HUVBBYFC8xawEd6Sf4ErGLk7EZTeD094ozxw/0?wx_fmt=jpeg
             return ImageReply(message=self.message, media_id='S8Jjk9aHXZ7wXSwK1qqu2UnkQSAHid-VQv_kxNUZnMI').render()
+        elif self.message.key.lower() == 'donate':
+            logger.info('Sending donation QR code')
+            wechat_client.message.send_text(self.user.openid, u'好的服务离不开大家的鼓励和支持，如果觉得微定时给你的生活带来了一丝便利，请用赞赏来支持。')
+            # http://mmbiz.qpic.cn/mmbiz_jpg/U4AEiaplkjQ3olQ6WLhRNIsLxb2LD4kdQSWN6PxulSiaY0dhwrY4HUVBBYFC8xawEd6Sf4ErGLk7EZTeD094ozxw/0?wx_fmt=jpeg
+            return ImageReply(message=self.message, media_id='S8Jjk9aHXZ7wXSwK1qqu2b6yDboZT6UIvYWF4dKLyQs').render()
         return self.handle_unknown_event()
 
     def format_wechat_remind_list(self, reminds, next_run_found=False):
