@@ -159,9 +159,14 @@ class WechatMessage(object):
             return ImageReply(message=self.message, media_id='S8Jjk9aHXZ7wXSwK1qqu2UnkQSAHid-VQv_kxNUZnMI').render()
         elif self.message.key.lower() == 'donate':
             logger.info('Sending donation QR code')
-            wechat_client.message.send_text(self.user.openid, u'好的服务离不开大家的鼓励和支持，如果觉得微定时给你的生活带来了一丝便利，请用赞赏来支持。')
-            # http://mmbiz.qpic.cn/mmbiz_jpg/U4AEiaplkjQ3olQ6WLhRNIsLxb2LD4kdQSWN6PxulSiaY0dhwrY4HUVBBYFC8xawEd6Sf4ErGLk7EZTeD094ozxw/0?wx_fmt=jpeg
+            wechat_client.message.send_text(self.user.openid, u'好的服务离不开大家的鼓励和支持，如果觉得微定时给你的生活带来了一丝便利，请使劲用赞赏来支持。')
+            # http://mmbiz.qpic.cn/mmbiz_png/U4AEiaplkjQ26gI5kMFhaBda9CAcI5uxE4FDwWp8pOduoyBDDuWXtdgxx9UMH3GxUgrRoqibsqDHtwMMNjHJkjVg/0?wx_fmt=png
             return ImageReply(message=self.message, media_id='S8Jjk9aHXZ7wXSwK1qqu2b6yDboZT6UIvYWF4dKLyQs').render()
+        elif self.message.key.lower() == 'add_friend':
+            logger.info('Sending personal QR code')
+            wechat_client.message.send_text(self.user.openid, u'长按下面的二维码，添加作者个人微信，等你来撩~')
+            # http://mmbiz.qpic.cn/mmbiz_jpg/U4AEiaplkjQ1x2YoD9GRticXvMk5iaWJCtEVuChsHecnwdfHFbiafJarWXyiaABTu4pPUKibvnJ1ZGwUF7arzCaFkArw/0?wx_fmt=jpeg
+            return ImageReply(message=self.message, media_id='S8Jjk9aHXZ7wXSwK1qqu2SXTItktLfgk4Cv9bod5l8k').render()
         return self.handle_unknown_event()
 
     def format_wechat_remind_list(self, reminds, next_run_found=False):

@@ -18,8 +18,9 @@ class Command(BaseCommand):
             {"type": "click", "name": "使用方法", "key": "time_remind_create", "sub_button": []},
             {"name": "亲友团",   "sub_button": [
                 {"type": "click", "name": "小密圈", "key": "join_group"},
-                {"type": "click", "name": "赞赏", "key": "donate"}]
-             }
+                {"type": "click", "name": "作者微信", "key": "add_friend"},
+                {"type": "click", "name": "赞赏", "key": "donate"}
+            ]}
         ]}
         self.stdout.write(
                 json.dumps(wechat_client.menu.create(new_menu),
