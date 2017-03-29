@@ -239,6 +239,7 @@ angular.module('remind', ['ionic'])
                 time: ctrl.model.time.getTime(),
                 desc: ctrl.model.desc,
                 defer: ctrl.model.defer,
+                repeat: ctrl.model.repeat,
                 title: ctrl.model.title
             }, function () {
                 ctrl.originModel = angular.copy(ctrl.model);
