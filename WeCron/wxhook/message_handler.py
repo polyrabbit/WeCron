@@ -71,7 +71,7 @@ class WechatMessage(object):
 
     def welcome_text(self):
         return (
-            'Dear %s，这是我刚注册的微信号，功能还在开发中，使用过程中如有不便请及时向我反馈哦。\n\n'
+            '亲爱的 %s，这是我刚注册的微信号，功能还在开发中，使用过程中如有不便请及时向我反馈哦。\n\n'
             '现在，直接输入文字或者语音就可以快速创建提醒啦！请点击下面的“使用方法”查看如何创建提醒。\n\n'
             'PS 这是一个开源项目，代码都在<a href="https://github.com/polyrabbit/WeCron">\U0001F449这里</a>，欢迎有开发技能的同学参与进来！'
             % self.user.get_full_name()
