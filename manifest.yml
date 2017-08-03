@@ -6,6 +6,7 @@ applications:
   domains:
   - weixin.at
   - hackernews.im
+  - betacat.io
   hosts:
   - wecron
   - www
