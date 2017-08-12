@@ -95,15 +95,15 @@
     - name: Update nginx config
       become: yes
       become_method: sudo
-      template: src=conf/nginx.conf.j2 dest="/etc/nginx/sites-available/weixin.at"
+      template: src=conf/nginx.conf.j2 dest="/etc/nginx/sites-available/wecron.betacat.io"
       notify:
         # Handlers only run once after all tasks complete
         - Reload nginx
 
-    - name: Link weixin.at config to site-available
+    - name: Link wecron.betacat.io config to site-available
       become: yes
       become_method: sudo
-      file: src="/etc/nginx/sites-available/weixin.at" dest="/etc/nginx/sites-enabled/weixin.at" state=link
+      file: src="/etc/nginx/sites-available/wecron.betacat.io" dest="/etc/nginx/sites-enabled/wecron.betacat.io" state=link
 
 #### Supervisor
     - name: Update supervisor config

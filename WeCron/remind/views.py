@@ -1,7 +1,9 @@
 #coding: utf-8
 from __future__ import unicode_literals, absolute_import
 import logging
+import time
 from urllib import quote_plus
+
 from rest_framework import viewsets, permissions, pagination
 from rest_framework.generics import get_object_or_404
 from rest_framework.exceptions import ValidationError
@@ -10,15 +12,30 @@ from django.utils import timezone
 from django.core.urlresolvers import reverse
 from django.conf import settings
 from wechatpy import WeChatOAuth
+from wechatpy.utils import random_string
 
 from remind.models import Remind
 from remind.serializers import RemindSerializer
+from common import wechat_client
 
 logger = logging.getLogger(__name__)
 
 
 class IndexView(TemplateView):
     template_name = 'index.html'
+    
+    def get_context_data(self, **kwargs):
+        ctx = super(IndexView, self).get_context_data(**kwargs)
+        timestamp = time.time()
+        nonce_str = random_string(32)
+        ticket = wechat_client.jsapi.get_jsapi_ticket()
+
+        ctx['appId'] = settings.WX_APPID
+        ctx['nonce_str'] = nonce_str
+        ctx['timestamp'] = timestamp
+        ctx['signature'] = wechat_client.jsapi.get_jsapi_signature(
+            nonce_str, ticket, timestamp, self.request.build_absolute_uri())
+        return ctx
 
 
 class DefaultCursorPagination(pagination.CursorPagination):

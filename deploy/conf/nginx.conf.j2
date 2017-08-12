@@ -1,12 +1,12 @@
 server {
     listen 80;
-    server_name weixin.at;
-    rewrite  ^/(.*)$ http://www.weixin.at/$1 permanent;
+    server_name betacat.io;
+    rewrite  ^/(.*)$ http://wecron.betacat.io/$1 permanent;
 }
 
 server {
     listen 80;
-    server_name www.weixin.at;
+    server_name wecron.betacat.io;
 
     charset     utf-8;
     client_max_body_size 50M;

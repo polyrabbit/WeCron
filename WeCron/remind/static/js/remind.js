@@ -195,8 +195,12 @@ angular.module('remind', ['ionic'])
             });
         }
     })
-    .controller('RemindDetailCtrl', function($scope, $stateParams, remindManager, $ionicPopup) {
+    .controller('RemindDetailCtrl', function($scope, $stateParams, $filter, $ionicPopup, $location, remindManager) {
         var ctrl = this;
+        wx.error(function(res){
+           // alert(res);
+        });
+
         remindManager.get($stateParams.id, function(remind) {
             remind.time = new Date(remind.time);
             ctrl.modified = false;
@@ -247,8 +251,9 @@ angular.module('remind', ['ionic'])
             });
         };
         ctrl.canEdit = function () {
-            return ctrl.model && ctrl.model.owner && ctrl.model.owner.id==userID;
+            return ctrl.model && ctrl.model.owner && ctrl.model.owner.id === userID;
         };
+        var dateFormatter = $filter('date');
         $scope.$watch(function () {
            return ctrl.model;
         }, function (newVal, oldVal) {
@@ -259,6 +264,24 @@ angular.module('remind', ['ionic'])
             }
             if(newVal && newVal.desc) {
                 document.title = '微定时 — ' + newVal.desc;
+
+            var shareCfg = {
+                title: '[微定时] ' + newVal.title,
+                desc: '来自：' + newVal.owner.nickname +
+                    '\n时间：' + dateFormatter(newVal.time, 'yyyy/M/d(EEE) HH:mm') +
+                    '\n描述：' + newVal.desc +
+                    (formatTimeRepeat(newVal.repeat) ? '\n重复：' + formatTimeRepeat(newVal.repeat) : ''),
+                link: $location.absUrl(),
+                imgUrl: newVal.owner.headimgurl
+            };
+            wx.ready(function() {
+                wx.onMenuShareAppMessage(shareCfg);
+                wx.onMenuShareQQ(shareCfg);
+                wx.onMenuShareWeibo(shareCfg);
+                wx.onMenuShareQZone(shareCfg);
+                shareCfg.title = '[微定时] ' + newVal.desc; // 分享到朋友圈没有desc字段，取title
+                wx.onMenuShareTimeline(shareCfg);
+            });
             }
         }, true);
         ctrl.showDeferPicker = function () {
@@ -402,17 +425,21 @@ angular.module('remind', ['ionic'])
                     if (angular.isString(modelValue)) {
                         modelValue = JSON.parse("[" + modelValue + "]");
                     }
-                    var repeat = modelValue || [0, 0, 0, 0];
-                    for(var i=0; i<repeat.length; ++i) {
-                        if(repeat[i] != 0) {
-                            return '每'+repeat[i]+(['年', '月', '天', '周'][i]);
-                        }
-                    }
-                    return '不重复';
+                    return formatTimeRepeat(modelValue) || '不重复';
                 });
             }
         };
     });
+
+function formatTimeRepeat(repeat) {
+    repeat = repeat || [0, 0, 0, 0];
+    for(var i=0; i<repeat.length; ++i) {
+        if(repeat[i] != 0) {
+            return '每'+repeat[i]+(['年', '月', '天', '周'][i]);
+        }
+    }
+    return null;
+}
 
 function getNaturalUnit(defer) {
     defer = parseInt(defer);

@@ -9,7 +9,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <title>微定时 — 我的提醒</title>
-    <link rel="canonical" href="http://www.weixin.at/"/>
+    <link rel="canonical" href="http://wecron.betacat.io/"/>
     <link href="https://res.wx.qq.com/open/libs/weui/1.1.0/weui.min.css" rel="stylesheet">
     <link href="//cdn.bootcss.com/ionic/1.3.2/css/ionic.min.css" rel="stylesheet">
     <link href="{% static "css/remind.css" %}" rel="stylesheet">
@@ -40,6 +40,17 @@
             <i class="weui-loading weui-icon_toast"></i>
             <p class="weui-toast__content">数据加载中</p>
         </div>
+    </script>
+    <script src="https://res.wx.qq.com/open/js/jweixin-1.2.0.js"></script>
+    <script>
+        wx.config({
+            debug: false,
+            appId: '{{ appId }}',
+            timestamp: {{ timestamp }},
+            nonceStr: '{{ nonce_str }}',
+            signature: '{{ signature }}',
+            jsApiList: ['onMenuShareTimeline', 'onMenuShareAppMessage', 'onMenuShareQQ', 'onMenuShareWeibo', 'onMenuShareQZone']
+        });
     </script>
 </body>
 </html>
