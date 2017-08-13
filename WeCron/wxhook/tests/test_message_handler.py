@@ -144,6 +144,26 @@ class MessageHandlerTestCase(TestCase):
         resp_xml = handle_message(wechat_msg)
         self.assertIn('时间:', resp_xml)
 
+    def test_voice_with_media_id(self):
+        media_id = '1sew2_7_hbIOymbtyeZEoxaAnR83Hff0PM9b8ChEUmt5FRVA6-fHrmHdGre6iKGN'
+        req_text = """
+        <xml>
+        <ToUserName><![CDATA[toUser]]></ToUserName>
+        <FromUserName><![CDATA[FromUser]]></FromUserName>
+        <CreateTime>1357290913</CreateTime>
+        <MsgType><![CDATA[voice]]></MsgType>
+        <MediaId><![CDATA[%s]]></MediaId>
+        <Format><![CDATA[Format]]></Format>
+        <Recognition><![CDATA[%s]]></Recognition>
+        <MsgId>1234567890123456</MsgId>
+        </xml>
+        """ % (media_id, self.remind_desc)
+        wechat_msg = self.build_wechat_msg(req_text)
+        resp_xml = handle_message(wechat_msg)
+        r = self.user.get_time_reminds().first()
+        self.assertEqual(media_id, r.media_id)
+        r.delete()
+
     def test_video(self):
         req_text = """
         <xml>

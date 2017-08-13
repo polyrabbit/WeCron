@@ -253,6 +253,7 @@ angular.module('remind', ['ionic'])
         ctrl.canEdit = function () {
             return ctrl.model && ctrl.model.owner && ctrl.model.owner.id === userID;
         };
+
         var dateFormatter = $filter('date');
         $scope.$watch(function () {
            return ctrl.model;
@@ -279,11 +280,12 @@ angular.module('remind', ['ionic'])
                 wx.onMenuShareQQ(shareCfg);
                 wx.onMenuShareWeibo(shareCfg);
                 wx.onMenuShareQZone(shareCfg);
-                shareCfg.title = '[微定时] ' + newVal.desc; // 分享到朋友圈没有desc字段，取title
-                wx.onMenuShareTimeline(shareCfg);
+                // 分享到朋友圈没有desc字段，取title
+                wx.onMenuShareTimeline(angular.extend({}, shareCfg, {title: '[微定时] ' + newVal.desc}));
             });
             }
         }, true);
+
         ctrl.showDeferPicker = function () {
             var minutesCol = Array.apply(null, {length: 31}).map(function (element, index) {
                 return {
@@ -336,6 +338,7 @@ angular.module('remind', ['ionic'])
                 id: 'deferPicker'+ctrl.model.id
             });
         };
+
         ctrl.showRepeatPicker = function () {
             var countCol = Array.apply(null, {length: 100}).map(function (element, index) {
                 return {
@@ -385,8 +388,20 @@ angular.module('remind', ['ionic'])
                 id: 'repeatPicker'+ctrl.model.id
             });
         };
+
         ctrl.promptShare = function () {
             document.getElementById('weixinTip').style.display="block";
+        };
+        ctrl.playMedia = function () {
+            if(!ctrl.model.media_id) {
+                return;
+            }
+            var media = document.getElementById("mediaBox");
+            media.src = '/reminds/media/' + ctrl.model.media_id;
+            // media.src = 'http://www.w3school.com.cn/i/song.mp3';
+            media.play().catch(function (e) {
+                console.log(e);
+            });
         };
         // ctrl.setEdit = function () {
         //     // For iOS

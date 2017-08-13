@@ -44,10 +44,12 @@
                 <input type="text" readonly ng-disabled="!remindDetailCtrl.canEdit()" value="{{ remindDetailCtrl.model.participants.length+1 }}人参与" />
                 <img class="item-image" ng-src="{{ p.headimgurl }}" alt="{{ p.nickname }}" ng-repeat="p in [remindDetailCtrl.model.owner].concat(remindDetailCtrl.model.participants||[]) | limitTo: 6" />
             </label>
-            <label class="item item-input">
-                <i class="icon ion-document placeholder-icon"></i>
+            <div class="item item-input">
+                <!--<i class="icon placeholder-icon" ng-class="remindDetailCtrl.model.media_id ? 'ion-android-volume-up positive' : 'ion-document'" ng-click="remindDetailCtrl.playMedia()"></i> -->
+                <i class="icon placeholder-icon ion-document"></i>
                 <textarea placeholder="请输入备注(可选)" rows="3" ng-disabled="!remindDetailCtrl.canEdit()" ng-model="remindDetailCtrl.model.desc"></textarea>
-            </label>
+            </div>
+            <audio style="display:none" id="mediaBox"></audio>
         </div>
     </ion-content>
 

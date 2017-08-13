@@ -179,10 +179,10 @@ class LocalParser(object):
                     return self.get_index() - beginning
             elif self.consume_word(u'小时'):
                 self.consume_minute()
-                raise ParseError(u'/:no亲，暂不支持小时级别的提醒哦~')
+                raise ParseError(u'/:no亲，暂不支持小时级别的重复提醒哦~')
             elif self.consume_word(u'分', u'分钟'):
                 # self.consume_minute()
-                raise ParseError(u'/:no亲，暂不支持分钟级别的提醒哦~')
+                raise ParseError(u'/:no亲，暂不支持分钟级别的重复提醒哦~')
             elif self.consume_word(u'工作日'):
                 raise ParseError(u'/:no亲，暂不支持工作日提醒哦，请换成每天试试~')
         self.set_index(beginning)

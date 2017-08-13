@@ -46,6 +46,9 @@ class WechatMessage(object):
             if not reminder:
                 reminder = parse(self.message.content, uid=self.message.source)
                 reminder.owner = self.user
+                if hasattr(self.message, 'media_id'):
+                    # This is a voice message
+                    reminder.media_id = self.message.media_id
                 reminder.save()
             reply_lines = [
                 '/:ok将在%s提醒你%s' % (reminder.time_until(), reminder.event or ''),

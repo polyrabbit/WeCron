@@ -82,8 +82,8 @@ class RemindSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Remind
-        fields = ('title', 'time', 'owner', 'id', 'defer', 'desc', 'repeat', 'participants', 'participate_qrcode')
-        read_only_fields = ('owner', 'id')
+        fields = ('title', 'time', 'owner', 'id', 'defer', 'desc', 'repeat', 'participants', 'participate_qrcode', 'media_id')
+        read_only_fields = ('owner', 'id', 'media_id')
 
     def get_participate_qrcode(self, remind):
         user = self.context['request'].user

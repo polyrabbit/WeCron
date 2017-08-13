@@ -32,7 +32,7 @@ class Remind(models.Model):
     desc = models.TextField('原始描述', default='', blank=True, null=True)
     remark = models.TextField('备注', default='', blank=True, null=True)
     event = models.TextField('提醒事件', default='', blank=True, null=True)
-    media_url = models.URLField('语音', max_length=320, blank=True, null=True)
+    media_id = models.URLField('语音消息媒体id', max_length=120, blank=True, null=True)
     # year, month, day, week, hour, minute
     repeat = ArrayField(models.IntegerField(), size=4, verbose_name='重复', default=list)
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name='创建者',

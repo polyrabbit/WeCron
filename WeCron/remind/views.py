@@ -8,10 +8,11 @@ from rest_framework import viewsets, permissions, pagination
 from rest_framework.generics import get_object_or_404
 from rest_framework.exceptions import ValidationError
 from django.views.generic import TemplateView
+from django.http import Http404, StreamingHttpResponse
 from django.utils import timezone
 from django.core.urlresolvers import reverse
 from django.conf import settings
-from wechatpy import WeChatOAuth
+from wechatpy import WeChatOAuth, WeChatClientException
 from wechatpy.utils import random_string
 
 from remind.models import Remind
@@ -104,3 +105,18 @@ class RemindViewSet(viewsets.ModelViewSet):
             logger.info('User(%s) quites a remind(%s)', user.nickname, unicode(instance))
         else:
             self.permission_denied(self.request, message=u'Unauthorized!')
+
+
+def media_proxy(request, media_id):
+    try:
+        resp = wechat_client.media.download(media_id)
+        # import requests
+        # resp = requests.get('http://b.hackernews.im/dl/song.mp3')
+    except WeChatClientException as e:
+        raise Http404(e)
+
+    response = StreamingHttpResponse(
+        (chunk for chunk in resp.iter_content(512 * 1024)),
+        content_type=resp.headers.get('content-type'), status=resp.status_code)
+
+    return response
