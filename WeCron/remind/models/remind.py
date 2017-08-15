@@ -111,7 +111,8 @@ class Remind(models.Model):
                                },
                                "remark": {
                                    "value": "提醒时间：" + self.nature_time_defer()
-                                            + ('\n重复周期：' + self.get_repeat_text()) if self.has_repeat() else '',
+                                            + ('\n重复周期：' + self.get_repeat_text() +
+                                               '\n\n点击详情'+('删除' if self.owner_id == uid else '退订')+'本提醒') if self.has_repeat() else '',
                                }
                         },
                     )

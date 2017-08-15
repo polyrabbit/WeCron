@@ -403,6 +403,17 @@ angular.module('remind', ['ionic'])
                 console.log(e);
             });
         };
+        ctrl.showParticipants = function () {
+            if(!ctrl.model.participants.length) {
+                return;
+            }
+            $ionicPopup.alert({
+                title: '参与者',
+                templateUrl: 'participant-model.html',
+                scope: $scope,
+                okText: '好的'
+            });
+        };
         // ctrl.setEdit = function () {
         //     // For iOS
         //     document.getElementById('remind-title').focus();

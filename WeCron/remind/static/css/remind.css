@@ -53,6 +53,12 @@
     height: 100%;
     border-radius: 50%;
 }
+
+.participant-model .item h2 {
+    color: #666;
+    font-size: 18px;
+}
+
 #remind-title {
     padding-right: 0;
 }

@@ -39,9 +39,9 @@
                 <input type="text" placeholder="重复周期" readonly ng-disabled="!remindDetailCtrl.canEdit()" ng-model="remindDetailCtrl.model.repeat" nature-repeat ng-focus="remindDetailCtrl.showRepeatPicker()">
             </label>
             <!-- Should be "ng-show" here, for WeChat will show the first found image when sharing -->
-            <label class="item item-input item-participant">
+            <label class="item item-input item-participant" ng-click="remindDetailCtrl.showParticipants()">
                 <i class="icon ion-ios-people-outline placeholder-icon"></i>
-                <input type="text" readonly ng-disabled="!remindDetailCtrl.canEdit()" value="{{ remindDetailCtrl.model.participants.length+1 }}人参与" />
+                <input type="text" placeholder="参与人数" readonly ng-disabled="!remindDetailCtrl.canEdit()" value="{{ remindDetailCtrl.model.participants && (remindDetailCtrl.model.participants.length+1+'人参与') }}" />
                 <img class="item-image" ng-src="{{ p.headimgurl }}" alt="{{ p.nickname }}" ng-repeat="p in [remindDetailCtrl.model.owner].concat(remindDetailCtrl.model.participants||[]) | limitTo: 6" />
             </label>
             <div class="item item-input">
@@ -57,4 +57,13 @@
         <h1 class="title">{{ message }}</h1>
     </ion-footer-bar>
 
+    <script id="participant-model.html" type="text/ng-template">
+        <ion-list class="participant-model">
+            <ion-item class="item-avatar"
+                      ng-repeat="p in [remindDetailCtrl.model.owner].concat(remindDetailCtrl.model.participants||[])">
+                <img ng-src="{{ p.headimgurl }}" alt="{{ p.nickname }}">
+                <h2>{{ p.nickname }}</h2>
+            </ion-item>
+        </ion-list>
+    </script>
 </ion-view>
