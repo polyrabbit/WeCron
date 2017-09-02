@@ -208,6 +208,13 @@ class LocalParserTestCase(TestCase):
         self.assertEquals(reminder.time.hour, 13)
         self.assertEquals(reminder.time.minute, 0)
 
+    def test_parse_todays_weekday(self):
+        weekday_names = ['一', '二', '三', '四', '五', '六', '日']
+        text = '周%s下午提醒我发信息给花花' % weekday_names[self.now.weekday()]
+        reminder = self.parse(text)
+        self.assertEqual(reminder.time.weekday(), self.now.weekday())
+        self.assertEqual((reminder.time-self.now).days, 7)
+
     def test_parse_weekday_period(self):
         text = '两个星期后下午提醒我发信息给花花'
         reminder = self.parse(text)

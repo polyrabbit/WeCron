@@ -322,8 +322,8 @@ class LocalParser(object):
             self.set_index(beginning)
             return 0
         self.consume_word(u'的')
-        if self.time_delta_fields['years'] > 100:
-            raise ParseError(u'/:no亲，恕不能保证%s年后的服务' % self.time_delta_fields['years'])
+        if self.time_delta_fields['years'] >= 100:
+            raise ParseError(u'/:no亲，恕不能保证%s年后的服务啊！' % self.time_delta_fields['years'])
         self.consume_month()
         return self.get_index() - beginning
 
@@ -350,41 +350,43 @@ class LocalParser(object):
         beginning = self.get_index()
         has_hour = False
         hour = DEFAULT_HOUR
+        days = None
         if self.consume_word(u'今天'):
-            self.time_delta_fields['days'] = 0
+            days = 0
         elif self.consume_word(u'今早'):
-            self.time_delta_fields['days'] = 0
+            days = 0
             self.afternoon = False
         elif self.consume_word(u'今晚'):
-            self.time_delta_fields['days'] = 0
+            days = 0
             self.afternoon = True
             hour = 20
         elif self.consume_word(u'明天', u'明日'):
-            self.time_delta_fields['days'] = 1
+            days = 1
         elif self.consume_word(u'明早'):
-            self.time_delta_fields['days'] = 1
+            days = 1
             self.afternoon = False
         elif self.consume_word(u'明晚'):
-            self.time_delta_fields['days'] = 1
+            days = 1
             self.afternoon = True
             hour = 20
         elif self.consume_word(u'后天'):
-            self.time_delta_fields['days'] = 2
+            days = 2
         elif self.consume_word(u'大后天'):
-            self.time_delta_fields['days'] = 3
+            days = 3
         else:
             tmp = self.consume_digit()
             if tmp is not None and self.consume_word(u'天'):
                 if self.consume_word(u'后', u'以后'):
-                    self.time_delta_fields['days'] = tmp
+                    days = tmp
                 elif self.consume_hour_period():
-                    self.time_delta_fields['days'] = tmp
+                    days = tmp
                     has_hour = True
-        if 'days' not in self.time_delta_fields:
+        if days is None:
             self.set_index(beginning)
             return 0
-        if self.time_delta_fields['days'] > 1000:
+        if days > 1000:
             raise ParseError(u'/:no亲，%s天跨度太大哦~' % self.time_delta_fields['days'])
+        self.time_delta_fields['days'] = days
         # 两天后下午三点
         if not has_hour and not self.consume_hour():
             self.time_fields['hour'] = hour
@@ -414,6 +416,7 @@ class LocalParser(object):
 
         if weekday is not None:
             self.time_delta_fields['weekday'] = weekday
+            self.time_delta_fields['days'] = 1
         elif week_delta != 0:
             if week_delta > 100:
                 raise ParseError(u'/:no亲，%s星期跨度太大哦~' % week_delta)
