@@ -10,6 +10,8 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <title>微定时 — 我的提醒</title>
     <link rel="canonical" href="http://wecron.betacat.io/"/>
+    <link rel="shortcut icon" href="{% static "img/favicon.jpeg" %}">
+    <link rel="bookmark" href="{% static "img/favicon.jpeg" %}" >
     <link href="https://res.wx.qq.com/open/libs/weui/1.1.0/weui.min.css" rel="stylesheet">
     <link href="//cdn.bootcss.com/ionic/1.3.2/css/ionic.min.css" rel="stylesheet">
     <link href="{% static "css/remind.css" %}" rel="stylesheet">
@@ -21,6 +23,8 @@
         var userID = "{{ request.user.pk }}";
         var remindListUrl = "{% static "tpls/remind_list.html" %}";
         var remindDetailUrl = "{% static "tpls/remind_detail.html" %}";
+        // handle Ads inserted by ISP
+        if (window != top) top.location.href = window.location.href;
     </script>
     <script src="{% static "js/remind.js" %}"></script>
 </head>

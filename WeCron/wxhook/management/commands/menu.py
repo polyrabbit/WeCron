@@ -20,6 +20,7 @@ class Command(BaseCommand):
             {"type": "click", "name": "使用方法", "key": "time_remind_create", "sub_button": []},
             {"name": "亲友团",   "sub_button": [
                 {"type": "view", "name": "\U0001F60A意见反馈", "url": "https://www.sojump.hk/jq/15914889.aspx"},
+                {"type": "view", "name": "©源代码", "url": "https://github.com/polyrabbit/WeCron"},
                 {"type": "click", "name": "小密圈", "key": "join_group"},
                 # {"type": "click", "name": "作者微信", "key": "add_friend"},
                 {"type": "click", "name": "赞赏", "key": "donate"}
