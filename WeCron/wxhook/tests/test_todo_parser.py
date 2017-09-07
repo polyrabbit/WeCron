@@ -213,7 +213,7 @@ class LocalParserTestCase(TestCase):
         text = '周%s下午提醒我发信息给花花' % weekday_names[self.now.weekday()]
         reminder = self.parse(text)
         self.assertEqual(reminder.time.weekday(), self.now.weekday())
-        self.assertEqual((reminder.time-self.now).days, 7)
+        self.assertAlmostEqual((reminder.time-self.now).days, 7, delta=1)
 
     def test_parse_weekday_period(self):
         text = '两个星期后下午提醒我发信息给花花'
@@ -223,6 +223,14 @@ class LocalParserTestCase(TestCase):
         self.assertAlmostEqual((reminder.time - self.now).days, 14, delta=1)
         self.assertEquals(reminder.time.hour, 13)
         self.assertEquals(reminder.time.minute, 0)
+
+    def test_parse_next_weekday(self):
+        text = '下个星期一提醒我吃饭。'
+        reminder = self.parse(text)
+        self.assertEqual(reminder.desc, text)
+        self.assertGreater(reminder.time, self.now)
+        self.assertLessEqual((reminder.time - self.now).days, 7)
+        self.assertEqual(reminder.time.isoweekday(), 1)
 
     def test_parse_weekday_period_with_wrong_segmentation(self):
         for word in [u'礼拜天', u'周日', u'周天']:

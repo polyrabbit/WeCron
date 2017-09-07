@@ -398,7 +398,7 @@ class LocalParser(object):
         weekday = None
         week_delta = 0
 
-        if self.consume_word(u'周', u'下周', u'星期', u'下星期', u'礼拜', u'下礼拜'):
+        if self.consume_word(u'周', u'下周', u'下个周', u'星期', u'下星期', u'下个星期', u'礼拜', u'下礼拜', u'下个礼拜'):
             if self.consume_word(u'日', u'天'):
                 weekday = 6
             elif self.consume_digit(False):
