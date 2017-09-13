@@ -334,6 +334,12 @@ class LocalParserTestCase(TestCase):
         self.assertEquals(reminder.time.hour, 20)
         self.assertEquals(reminder.time.minute, 0)
 
+    def test_parse_repeat_day_with_implict_afternoon(self):
+        text = '每天七点半提醒我起床'
+        reminder = self.parse(text)
+        self.assertEqual(reminder.get_repeat_text(), '每天')
+        self.assertEquals(reminder.time.hour, 7)
+
     def test_parse_repeat_week(self):
         self.parser.now = self.parser.now.replace(hour=20)
         for text in ('每两周一10点', '每两周周一上午10点', '每两周的周一上午10点'):

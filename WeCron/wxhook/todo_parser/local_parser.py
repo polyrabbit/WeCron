@@ -166,10 +166,11 @@ class LocalParser(object):
                 self.repeat[1] = repeat_count
                 return self.get_index() - beginning
             elif self.consume_word(u'天'):
+                # Set repeat first so it can be used in consume_hour()
+                self.repeat[2] = repeat_count
                 if not self.consume_hour():
                     self.time_fields['hour'] = DEFAULT_HOUR
                     self.time_fields['minute'] = DEFAULT_MINUTE
-                self.repeat[2] = repeat_count
                 return self.get_index() - beginning
             elif self.current_word() in (u'周', u'星期'):
                 if self.peek_next_word() in (u'周', u'星期'):

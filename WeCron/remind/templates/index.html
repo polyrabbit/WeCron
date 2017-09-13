@@ -27,6 +27,15 @@
         if (window != top) top.location.href = window.location.href;
     </script>
     <script src="{% static "js/remind.js" %}"></script>
+    <script>
+        var _hmt = _hmt || [];
+        (function() {
+          var hm = document.createElement("script");
+          hm.src = "https://hm.baidu.com/hm.js?8e44abe7851728334fe213346c9bec1f";
+          var s = document.getElementsByTagName("script")[0];
+          s.parentNode.insertBefore(hm, s);
+        })();
+    </script>
 </head>
 <body ng-app="remind">
     <!--Put title align here for Android-->
