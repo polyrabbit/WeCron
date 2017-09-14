@@ -190,6 +190,13 @@ class LocalParserTestCase(TestCase):
         text = '六月三十一号'
         self.assertRaises(ParseError, self.parse, text)
 
+    def test_should_not_add_additional_12_hours(self):
+        text = '12:45报加班'
+        self.parser.now = self.parser.now.replace(hour=12, minute=15)
+        reminder = self.parse(text)
+        self.assertEquals(reminder.time.hour, 12)
+        self.assertEquals(reminder.time.minute, 45)
+
     def test_parse_day_period_without_hour(self):
         text = '九十九天后秒杀流量'
         reminder = self.parse(text)

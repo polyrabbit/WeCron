@@ -92,9 +92,9 @@ class RemindSerializer(serializers.ModelSerializer):
         logger.info('Creating QR code for %s', user.nickname)
         ticket = wechat_client.qrcode.create({
                 'expire_seconds': 2592000,
-                'action_name': 'QR_SCENE',
+                'action_name': 'QR_LIMIT_STR_SCENE',
                 'action_info': {
-                    'scene': {'scene_id': remind.id.fields[0]}, # TODO: fix me, find a way(only integer) to identify remind
+                    'scene': {'scene_str': remind.id.hex},
                 }
             })
         return wechat_client.qrcode.get_url(ticket)

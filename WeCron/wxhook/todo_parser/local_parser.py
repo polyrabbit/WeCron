@@ -263,7 +263,8 @@ class LocalParser(object):
             self.set_index(beginning2)
         else:
             if hour < 13:
-                if self.afternoon or (self.now.hour >= 12 and not self.time_fields
+                # if saying in the afternoon(should not equal to 12)
+                if self.afternoon or (self.now.hour > 12 and not self.time_fields
                                       and not self.time_delta_fields and self.repeat == [0]*len(self.repeat)):
                     hour += 12
             if not (0 <= hour <= 24):

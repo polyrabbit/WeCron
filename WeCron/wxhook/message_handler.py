@@ -90,10 +90,13 @@ class WechatMessage(object):
             self.user.subscribe = True
             self.user.save(update_fields=['subscribe'])
             wechat_client.message.send_text(self.user.openid, self.welcome_text())
-        # TODO: fix me, find a way(only integer) to identify remind
-        subscribe_remind = Remind.objects.filter(
-            id__gt='%s-0000-0000-0000-000000000000' % (hex(int(self.message.scene_id)).replace('0x', ''))
-        ).order_by('id').first()
+        if self.message.scene_id.isdigit():
+            # legacy, when wechat doesn't support string as scene id
+            subscribe_remind = Remind.objects.filter(
+                id__gt='%s-0000-0000-0000-000000000000' % (hex(int(self.message.scene_id)).replace('0x', ''))
+            ).order_by('id').first()
+        else:
+            subscribe_remind = Remind.objects.filter(id=self.message.scene_id).first()
         if subscribe_remind:
             if subscribe_remind.add_participant(self.user.openid):
                 logger.info('User(%s) participants a remind(%s)', self.user.nickname, unicode(subscribe_remind))
