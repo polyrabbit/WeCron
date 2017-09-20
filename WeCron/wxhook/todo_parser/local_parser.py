@@ -226,8 +226,11 @@ class LocalParser(object):
             raise ParseError(u'/:no亲，一个月哪有%s天！' % day)
         self.time_fields['day'] = day
         # 2016年12月14日周三在上海举办的2016 Google 开发者大会
+        # 2016年12月14日(周三)在上海举办的2016 Google 开发者大会
+        self.consume_word(u'(', u'（')
         if self.consume_word(u'周', u'星期'):
             self.consume_word(u'日', u'天') or self.consume_digit()
+            self.consume_word(u')', u'）')
         # set default time
         if not self.consume_hour():
             self.time_fields['hour'] = DEFAULT_HOUR
@@ -389,6 +392,11 @@ class LocalParser(object):
         if days > 1000:
             raise ParseError(u'/:no亲，%s天跨度太大哦~' % self.time_delta_fields['days'])
         self.time_delta_fields['days'] = days
+        # 明天(周四)晚上19点
+        self.consume_word(u'(', u'（')
+        if self.consume_word(u'周', u'星期'):
+            self.consume_word(u'日', u'天') or self.consume_digit()
+            self.consume_word(u')', u'）')
         # 两天后下午三点
         if not has_hour and not self.consume_hour():
             self.time_fields['hour'] = hour

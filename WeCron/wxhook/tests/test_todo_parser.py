@@ -250,6 +250,12 @@ class LocalParserTestCase(TestCase):
             self.assertEquals(reminder.time.hour, 20)
             self.assertEquals(reminder.time.minute, 30)
 
+    def test_parse_weekday_in_parentheses(self):
+        text = '明天(周四)晚上19点'
+        reminder = self.parse(text)
+        self.assertEqual((self.now + relativedelta(days=1)).day, reminder.time.day)
+        self.assertEquals(reminder.time.hour, 19)
+
     def test_parse_month_period(self):
         text = '三个月后的早上提醒我写代码'
         reminder = self.parse(text)
