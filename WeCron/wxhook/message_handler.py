@@ -142,7 +142,7 @@ class WechatMessage(object):
         if self.message.key.lower() == 'time_remind_today':
             now = timezone.now()
             time_reminds = self.user.get_time_reminds().filter(time__date=now).order_by('time').all()
-            remind_text_list = self.format_wechat_remind_list(time_reminds)
+            remind_text_list = self.format_remind_list(time_reminds)
             if remind_text_list:
                 return self.text_reply('/:sunHi %s, 你今天的提醒有:\n\n%s' % (self.user.get_full_name(),
                                                                        '\n'.join(remind_text_list)))
@@ -150,7 +150,7 @@ class WechatMessage(object):
         elif self.message.key.lower() == 'time_remind_tomorrow':
             tomorrow = timezone.now()+timedelta(days=1)
             time_reminds = self.user.get_time_reminds().filter(time__date=tomorrow).order_by('time').all()
-            remind_text_list = self.format_wechat_remind_list(time_reminds, True)
+            remind_text_list = self.format_remind_list(time_reminds, True)
             if remind_text_list:
                 return self.text_reply('/:sunHi %s, 你明天的提醒有:\n\n%s' % (self.user.get_full_name(),
                                                                        '\n'.join(remind_text_list)))
@@ -159,7 +159,7 @@ class WechatMessage(object):
             logger.info('Transfer to customer service')
             return TransferCustomerServiceReply(message=self.message).render()
         elif self.message.key.lower() == 'join_group':
-            logger.info('Sending group QR code')
+            logger.info('Sending 小密圈 QR code')
             wechat_client.message.send_text(self.user.openid, u'喜欢微定时？请加入微定时小密圈，欢迎各种反馈和建议~')
             # http://mmbiz.qpic.cn/mmbiz_jpg/U4AEiaplkjQ3olQ6WLhRNIsLxb2LD4kdQSWN6PxulSiaY0dhwrY4HUVBBYFC8xawEd6Sf4ErGLk7EZTeD094ozxw/0?wx_fmt=jpeg
             return ImageReply(message=self.message, media_id='S8Jjk9aHXZ7wXSwK1qqu2UnkQSAHid-VQv_kxNUZnMI').render()
@@ -175,7 +175,8 @@ class WechatMessage(object):
             return ImageReply(message=self.message, media_id='S8Jjk9aHXZ7wXSwK1qqu2SXTItktLfgk4Cv9bod5l8k').render()
         return self.handle_unknown_event()
 
-    def format_wechat_remind_list(self, reminds, next_run_found=False):
+    @staticmethod
+    def format_remind_list(reminds, next_run_found=False):
         now = timezone.now()
         remind_text_list = []
         for rem in reminds:

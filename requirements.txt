@@ -12,4 +12,5 @@ tomorrow==0.2.4
 httmock==1.2.4
 jieba==0.38
 python_dateutil==2.6.0
+shove==0.6.6
 coverage

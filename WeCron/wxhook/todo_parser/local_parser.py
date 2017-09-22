@@ -474,6 +474,9 @@ class LocalParser(object):
                     raise ParseError(u'/:no亲，%s分钟跨度太大哦~' % minute_delta)
                 self.time_delta_fields['minutes'] = minute_delta
                 return self.get_index() - beginning
+        elif self.consume_word(u'一会', u'一会儿'):
+            self.time_delta_fields['minutes'] = 10
+            return self.get_index() - beginning
         self.set_index(beginning)
         return 0
 
