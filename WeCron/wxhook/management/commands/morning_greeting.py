@@ -31,7 +31,8 @@ class Command(BaseCommand):
             # Get today's reminds of a user
             user_today_reminds = list(user.get_time_reminds().filter(time__date=now).order_by('time').all())
             for rem in user_today_reminds:
-                if rem.time > now:
+                # Add 2 minutes delta so user won't get two consecutive notice
+                if rem.time > now + timezone.timedelta(minutes=2):
                     break
             else:
                 # If all reminds are passed, we should not send the greeting
