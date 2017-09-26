@@ -107,7 +107,10 @@ class WechatMessage(object):
 
     def handle_unsubscribe_event(self):
         self.user.subscribe = False
-        self.user.save(update_fields=['subscribe'])
+        if not self.user.get_time_reminds().exists():
+            self.user.delete()
+        else:
+            self.user.save(update_fields=['subscribe'])
         return self.text_reply("Bye")
 
     def handle_unknown(self):

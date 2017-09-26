@@ -160,10 +160,16 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'standard'
         },
+        'papertrail': {
+            'level': 'WARNING',
+            'class': 'logging.handlers.SysLogHandler',
+            'formatter': 'standard',
+            'address': ('logs6.papertrailapp.com', 29475)
+        },
     },
     'loggers': {
         '': {
-            'handlers': ['console'],
+            'handlers': ['console', 'papertrail'],
             'level': 'DEBUG' if DEBUG else 'INFO',
             'propagate': True,
         },
