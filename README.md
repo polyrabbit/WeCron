@@ -9,3 +9,6 @@
 
 ### 扫码关注微定时公众号，试一下吧
 [![二维码](http://wx3.sinaimg.cn/mw690/ac472348ly1fildd8hmgzj2076076dga.jpg)](http://wecron.betacat.io)
+
+_With great thanks to [wechatpy](http://docs.wechatpy.org)!_
+
