@@ -28,7 +28,7 @@ class WeiXinHook(View):
             check_signature(settings.WX_SIGN_TOKEN, signature, timestamp, nonce)
             return super(WeiXinHook, self).dispatch(request, *args, **kwargs)
         except InvalidSignatureException:
-            logger.warning('Illegal Access!')
+            logger.warning('Invalid signature when accessing %s', request.get_full_path())
             return HttpResponse('Welcome to WeCron')
 
     def get(self, request):

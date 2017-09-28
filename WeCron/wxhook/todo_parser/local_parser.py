@@ -204,6 +204,10 @@ class LocalParser(object):
 
     def consume_month(self):
         beginning = self.get_index()
+        if self.consume_word(u'农历', u'阴历'):
+            raise ParseError(u'/:no亲，暂不支持设置农历提醒哦~')
+        if self.current_word().endswith(u'节'):
+            raise ParseError(u'/:no亲，暂不支持各种节假日提醒哦~')
         month = self.consume_digit()
         if month is None or not self.consume_word(u'月', '-', '/', '.'):
             self.set_index(beginning)
@@ -239,7 +243,11 @@ class LocalParser(object):
 
     def consume_hour(self):
         beginning1 = self.get_index()
-        if self.consume_word(u'早', u'早上', u'早晨', u'今早', u'上午'):
+        if self.consume_word(u'凌晨', u'半夜', u'夜里', u'深夜'):
+            self.afternoon = False
+            self.time_fields['hour'] = 0
+            self.time_fields['minute'] = DEFAULT_MINUTE
+        elif self.consume_word(u'早', u'早上', u'早晨', u'今早', u'上午'):
             self.afternoon = False
             self.time_fields['hour'] = DEFAULT_HOUR
             self.time_fields['minute'] = DEFAULT_MINUTE
@@ -262,12 +270,11 @@ class LocalParser(object):
 
         beginning2 = self.get_index()
         hour = self.consume_digit()
-        if hour is None or not self.consume_word(u'点', u'点钟', ':', u'：', u'.'):
+        if hour is None or not self.consume_word(u'点', u'点钟', ':', u'：', u'.', u'時', u'时'):
             self.set_index(beginning2)
         else:
-            if hour < 13:
-                # if saying in the afternoon(should not equal to 12)
-                if self.afternoon or (self.now.hour > 12 and not self.time_fields
+            if hour < 12:
+                if self.afternoon or (self.now.hour >= 12 and not self.time_fields
                                       and not self.time_delta_fields and self.repeat == [0]*len(self.repeat)):
                     hour += 12
             if not (0 <= hour <= 24):

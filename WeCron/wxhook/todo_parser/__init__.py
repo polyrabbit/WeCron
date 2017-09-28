@@ -5,6 +5,7 @@ import json
 
 from django.utils.dateparse import parse_datetime
 from django.utils import timezone
+from wechatpy.exceptions import WeChatClientException
 from common import wechat_client
 from .local_parser import LocalParser
 from remind.models import Remind
@@ -18,7 +19,7 @@ def parse(text, **kwargs):
     # Try to parse by rules and then turn to wechat API since wechat API is unstable and inaccurate.
     reminder = LocalParser().parse_by_rules(text)
     if not reminder:
-        logger.warning('Failed to parse time from "%s" using rules, try wechat api.', text)
+        logger.info('Failed to parse time from "%s" using rules, try wechat api.', text)
         reminder = parse_by_wechat_api(text, **kwargs)
     if reminder.time <= timezone.now():  # GMT and UTC time can compare with each other
         raise ParseError('/:no%s已经过去了，请重设一个将来的提醒。\n\n消息: %s' % (
@@ -52,12 +53,16 @@ def parse_by_wechat_api(text, **kwargs):
         "type": "remind"
     }
     """
-    wechat_result = wechat_client.semantic.search(
-        query=text,
-        category='remind',
-        city='上海', # F**k, weixin always needs the city param, hard-code one.
-        **kwargs
-    )
+    try:
+        wechat_result = wechat_client.semantic.search(
+            query=text,
+            category='remind',
+            city='上海', # F**k, weixin always needs the city param, hard-code one.
+            **kwargs
+        )
+    except WeChatClientException as e:
+        logger.info('Failed to parse using wechat api ' + str(e))
+        raise
     # wechat_result = json.loads(parse_by_wechat_api.__doc__)
     logger.debug('Semantic result from wechat, %s',
                  json.dumps(wechat_result, ensure_ascii=False))

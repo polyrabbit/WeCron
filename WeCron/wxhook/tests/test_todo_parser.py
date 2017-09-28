@@ -318,6 +318,11 @@ class LocalParserTestCase(TestCase):
         self.assertEquals(reminder.time.hour, DEFAULT_HOUR)
         self.assertEquals(reminder.time.minute, 0)
 
+    def test_parse_nongli(self):
+        for text in ('每年阴历八月初九提醒我生日', '每年农历八月初九提醒我生日'):
+            self.setUp()
+            self.assertRaises(ParseError, self.parse, text)
+
     def test_parse_repeat_no_need_reschedule(self):
         text = '每月20号提醒我还信用卡'
         _now = remind.now()

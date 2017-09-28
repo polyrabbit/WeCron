@@ -277,8 +277,9 @@ class MessageHandlerTestCase(TestCase):
         """
         wechat_msg = self.build_wechat_msg(req_text)
         resp_xml = handle_message(wechat_msg)
-        self.user.refresh_from_db()
-        self.assertFalse(self.user.subscribe)
+        # self.user.refresh_from_db()
+        # self.assertFalse(self.user.subscribe)
+        self.assertIsNone(WechatUser.objects.filter(pk=self.user.pk).first())
 
     def test_location_event(self):
         req_text = """

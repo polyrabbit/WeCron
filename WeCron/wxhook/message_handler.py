@@ -7,6 +7,7 @@ from datetime import timedelta
 from django.utils import timezone
 from django.contrib.auth import get_user_model
 from wechatpy.replies import TextReply, TransferCustomerServiceReply, ImageReply
+from wechatpy.exceptions import WeChatClientException
 
 from common import wechat_client
 from remind.models import Remind
@@ -62,15 +63,17 @@ class WechatMessage(object):
             return self.text_reply('\n'.join(reply_lines))
         except ParseError as e:
             return self.text_reply(unicode(e))
+        except WeChatClientException:  # TODO: refine it
+            pass
         except Exception as e:  # Catch all kinds of wired errors
             logger.exception('Semantic parse error')
-            return self.text_reply(
-                '\U0001F648抱歉，我还只是一个比较初级的定时机器人，理解不了您刚才所说的话：\n\n“%s”\n\n'
-                '或者您可以换个姿势告诉我该怎么定时，比如这样：\n\n' 
-                '“两个星期后提醒我去复诊”。\n'
-                '“周五晚上提醒我打电话给老妈”。\n'
-                '“每月20号提醒我还信用卡[捂脸]”。' % self.message.content
-            )
+        return self.text_reply(
+            '\U0001F648抱歉，我还只是一个比较初级的定时机器人，理解不了您刚才所说的话：\n\n“%s”\n\n'
+            '或者您可以换个姿势告诉我该怎么定时，比如这样：\n\n' 
+            '“两个星期后提醒我去复诊”。\n'
+            '“周五晚上提醒我打电话给老妈”。\n'
+            '“每月20号提醒我还信用卡[捂脸]”。' % self.message.content
+        )
 
     def welcome_text(self):
         return (
@@ -168,7 +171,8 @@ class WechatMessage(object):
             return ImageReply(message=self.message, media_id='S8Jjk9aHXZ7wXSwK1qqu2UnkQSAHid-VQv_kxNUZnMI').render()
         elif self.message.key.lower() == 'donate':
             logger.info('Sending donation QR code')
-            wechat_client.message.send_text(self.user.openid, u'好的服务离不开大家的鼓励和支持，如果觉得微定时给你的生活带来了一丝便利，请使劲用赞赏来支持。')
+            wechat_client.message.send_text(self.user.openid, u'好的服务离不开大家的鼓励和支持，如果觉得微定时给你的生活带来了一丝便利，'
+                                                              u'请使劲用赞赏来支持(别忘了备注微信名，否则微信不让我看到是谁赞赏的)。')
             # http://mmbiz.qpic.cn/mmbiz_png/U4AEiaplkjQ26gI5kMFhaBda9CAcI5uxE4FDwWp8pOduoyBDDuWXtdgxx9UMH3GxUgrRoqibsqDHtwMMNjHJkjVg/0?wx_fmt=png
             return ImageReply(message=self.message, media_id='S8Jjk9aHXZ7wXSwK1qqu2b6yDboZT6UIvYWF4dKLyQs').render()
         elif self.message.key.lower() == 'add_friend':

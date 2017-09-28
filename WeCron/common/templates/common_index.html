@@ -21,7 +21,7 @@
         <![endif]-->
         <script>
             // handle Ads inserted by ISP
-            if (window != top) top.location.href = window.location.href;
+            if (window !== top) top.location.href = window.location.href;
         </script>
         <script>
             var _hmt = _hmt || [];
@@ -56,7 +56,9 @@
                         <h1 class="cover-heading">微信上的定时提醒</h1>
                         <p class="lead">可能是东半球最简洁的一个提醒应用，一条语音或者文字消息，就可以设置提醒，没有APP，没有客户端，只有一个公众号。</p>
                         <p class="lead">
-                            <img src="{% static "img/qrcode.jpg" %}" alt="扫码使用微定时">
+                            <a href="https://github.com/polyrabbit/WeCron">
+                                <img src="{% static "img/qrcode.jpg" %}" alt="扫码使用微定时" />
+                            </a>
                             <p>扫码关注微定时公众号，现在就来试一下吧！</p>
                         </p>
                     </div>
