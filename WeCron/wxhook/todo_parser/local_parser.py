@@ -491,7 +491,8 @@ class LocalParser(object):
         beginning = self.get_index()
         second_delta = self.consume_digit()
         if second_delta is not None:
-            if self.consume_word(u'秒', u'秒钟') and self.consume_word(u'后', u'以后'):
+            if self.consume_word(u'秒', u'秒钟'):
+                self.consume_word(u'后', u'以后')
                 if second_delta > 10000:
                     raise ParseError(u'/:no亲，%s秒跨度太大哦~' % second_delta)
                 self.time_delta_fields['seconds'] = second_delta
