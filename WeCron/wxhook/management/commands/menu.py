@@ -23,7 +23,7 @@ class Command(BaseCommand):
                 {"type": "view", "name": "©源代码", "url": "https://github.com/polyrabbit/WeCron"},
                 {"type": "click", "name": "小密圈", "key": "join_group"},
                 # {"type": "click", "name": "作者微信", "key": "add_friend"},
-                {"type": "click", "name": "赞赏", "key": "donate"}
+                {"type": "click", "name": "赞赏", "key": "donate_geizang"}
             ]}
         ]}
         self.stdout.write(
