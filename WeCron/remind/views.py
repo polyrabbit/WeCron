@@ -4,9 +4,8 @@ import logging
 import time
 from urllib import quote_plus
 
-from rest_framework import viewsets, permissions, pagination
+from rest_framework import viewsets, permissions, pagination, authentication
 from rest_framework.generics import get_object_or_404
-from rest_framework.exceptions import ValidationError
 from django.views.generic import TemplateView
 from django.http import Http404, StreamingHttpResponse
 from django.utils import timezone
@@ -58,7 +57,8 @@ class DefaultCursorPagination(pagination.CursorPagination):
 
 class RemindViewSet(viewsets.ModelViewSet):
 
-    http_method_names = ['get', 'patch', 'delete']
+    http_method_names = ['post', 'get', 'patch', 'delete']
+    authentication_classes = (authentication.SessionAuthentication, authentication.TokenAuthentication)
     permission_classes = (permissions.IsAuthenticated,)
     serializer_class = RemindSerializer
     pagination_class = DefaultCursorPagination
@@ -84,8 +84,10 @@ class RemindViewSet(viewsets.ModelViewSet):
         )
         return oauth_client.authorize_url
 
-    def perform_create(self, serializer):
-        raise ValidationError('Not supported')
+    def get_throttles(self):
+        if self.action == 'create':
+            self.throttle_scope = 'remind.' + self.action
+        return super(RemindViewSet, self).get_throttles()
 
     def perform_update(self, serializer):
         # TODO: refine me

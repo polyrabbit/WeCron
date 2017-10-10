@@ -5,7 +5,7 @@ from datetime import datetime
 
 from django.utils.dateformat import format
 from django.contrib.auth import get_user_model
-from django.utils.timezone import utc
+from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError, PermissionDenied
 from common import wechat_client
@@ -35,7 +35,7 @@ class TimestampField(serializers.DateTimeField):
 
     def to_internal_value(self, value):
         try:
-            return datetime.fromtimestamp(int(value)/1000.0, utc)
+            return datetime.fromtimestamp(int(value)/1000.0, timezone.utc)
         except ValueError:
             raise ValidationError('Invalid format')
 
@@ -77,7 +77,7 @@ class RemindSerializer(serializers.ModelSerializer):
     owner = UserSerializer(read_only=True)
     time = TimestampField()
     title = TitleField(source='event')
-    participants = ParticipantSerializer()
+    participants = ParticipantSerializer(default=list)
     participate_qrcode = serializers.SerializerMethodField()
 
     class Meta:
@@ -85,11 +85,15 @@ class RemindSerializer(serializers.ModelSerializer):
         fields = ('title', 'time', 'owner', 'id', 'defer', 'desc', 'repeat', 'participants', 'participate_qrcode', 'media_id')
         read_only_fields = ('owner', 'id', 'media_id')
 
+    _created = False
+
     def get_participate_qrcode(self, remind):
         user = self.context['request'].user
-        if user.subscribe:
+        # If current user is subscribed and uses session authentication,
+        # for token authentication is used for API, when doing an API request, the QR code should be returned.
+        if user.subscribe and not self._created:
             return None
-        logger.info('Creating QR code for %s', user.nickname)
+        logger.info('%s requests QR code for %s', user.nickname, unicode(remind))
         ticket = wechat_client.qrcode.create({
                 'expire_seconds': 2592000,
                 'action_name': 'QR_LIMIT_STR_SCENE',
@@ -100,8 +104,12 @@ class RemindSerializer(serializers.ModelSerializer):
         return wechat_client.qrcode.get_url(ticket)
 
     def create(self, validated_data):
-        raise PermissionDenied()
+        self._created = True
+        validated_data['owner'] = self.context['request'].user
+        if 'time' in validated_data and validated_data['time'] <= timezone.now():
+            raise ValidationError('不能设一个过去的提醒: %s' % validated_data['time'].strftime('%Y-%m-%d %H:%M'))
+        return super(RemindSerializer, self).create(validated_data)
 
-    def save(self, **kwargs):
-        self.instance.done = False
-        return super(RemindSerializer, self).save(**kwargs)
+    def update(self, instance, validated_data):
+        instance.done = False
+        return super(RemindSerializer, self).update(instance, validated_data)

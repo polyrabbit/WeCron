@@ -104,7 +104,8 @@ class WechatMessage(object):
             if subscribe_remind.add_participant(self.user.openid):
                 logger.info('User(%s) participants a remind(%s)', self.user.nickname, unicode(subscribe_remind))
             return self.handle_text(subscribe_remind)
-        return self.text_reply('')
+        logger.warning('Cannot find remind from scene id %s', self.message.scene_id)
+        return self.text_reply('处理不了的scene id呢: %s' % self.message.scene_id)
 
     handle_scan_event = handle_subscribe_scan_event
 

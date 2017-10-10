@@ -12,7 +12,7 @@
             <ion-item class="item-divider">
                 {{ group[0] }}
             </ion-item>
-            <ion-item ng-href="#/{{ remind.id }}" class="item-avatar item-icon-right"
+            <ion-item ui-sref="remind-detail({ id: remind.id })" class="item-avatar item-icon-right"
                       ng-repeat="remind in group[1] track by remind.id" nav-direction="forward">
                 <img ng-src="{{ remind.owner.headimgurl }}" alt="{{ remind.owner.nickname }}">
                 <h2>{{ remind.title }}</h2>

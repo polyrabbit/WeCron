@@ -2,7 +2,6 @@
 from __future__ import unicode_literals, absolute_import
 from datetime import datetime, timedelta
 
-from ago import delta2dict
 from django.utils.timezone import is_aware, utc
 
 

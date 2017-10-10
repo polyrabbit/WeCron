@@ -42,6 +42,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.humanize',
     'rest_framework',
+    'rest_framework.authtoken',
     'common',
     'wxhook',
     'wechat_user.apps.WechatUserConfig',
@@ -57,7 +58,6 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
@@ -116,6 +116,20 @@ DATETIME_INPUT_FORMATS += (
     '%Y-%m-%dT%H:%M',
 )
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.SessionAuthentication',
+    ),
+    'DEFAULT_THROTTLE_CLASSES': (
+        'rest_framework.throttling.ScopedRateThrottle',
+        'rest_framework.throttling.UserRateThrottle'
+    ),
+    'DEFAULT_THROTTLE_RATES': {
+        'remind.create': '20/hour',
+        'user': '1000/day'
+    }
+}
+
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
 
@@ -128,6 +142,8 @@ USE_I18N = True
 # USE_L10N = True
 
 USE_TZ = True
+
+USE_ETAGS = True
 
 AUTH_USER_MODEL = 'wechat_user.WechatUser'
 
@@ -161,7 +177,7 @@ LOGGING = {
             'formatter': 'standard'
         },
         'papertrail': {
-            'level': 'WARNING',
+            'level': 'INFO',
             'class': 'logging.handlers.SysLogHandler',
             'formatter': 'standard',
             'address': ('logs6.papertrailapp.com', 29475)
