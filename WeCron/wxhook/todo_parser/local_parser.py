@@ -206,8 +206,8 @@ class LocalParser(object):
         beginning = self.get_index()
         if self.consume_word(u'农历', u'阴历'):
             raise ParseError(u'/:no亲，暂不支持设置农历提醒哦~')
-        if self.current_word().endswith(u'节'):
-            raise ParseError(u'/:no亲，暂不支持各种节假日提醒哦~')
+        if self.consume_word(u'工作日'):
+            raise ParseError(u'/:no亲，暂不支持工作日提醒哦~')
         month = self.consume_digit()
         if month is None or not self.consume_word(u'月', '-', '/', '.'):
             self.set_index(beginning)
@@ -222,6 +222,8 @@ class LocalParser(object):
 
     def consume_day(self):
         beginning = self.get_index()
+        if self.current_word().endswith(u'节'):
+            raise ParseError(u'/:no亲，暂不支持各种节假日提醒哦~')
         day = self.consume_digit()
         if day is None or not self.consume_word(u'日', '号'):
             self.set_index(beginning)

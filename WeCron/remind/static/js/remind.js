@@ -488,9 +488,9 @@ angular.module('remind', ['ionic'])
             if (!oldVal || angular.equals(newVal, oldVal)) {
                 return;
             }
-            var payload = {morning_greeting: null};
+            var payload = {morning_greeting: null, notify_subscription: profile.notify_subscription};
             if(profile.hasMorningGreeting) {
-                payload = {morning_greeting: $filter('date')(profile.morningGreetingTime, 'HH:mm')};
+                payload.morning_greeting = $filter('date')(profile.morningGreetingTime, 'HH:mm');
             }
             remindManager.updateProfile(payload);
         }, true);

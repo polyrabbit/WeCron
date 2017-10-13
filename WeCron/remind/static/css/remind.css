@@ -90,3 +90,10 @@
     right: 0;
     top: 5px;
 }
+
+.settings-description {
+    color: #aaa;
+    font-size: 14px;
+    margin-top: 10px;
+    white-space: initial;
+}

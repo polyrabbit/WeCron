@@ -17,6 +17,7 @@ from wechatpy.utils import random_string
 from remind.models import Remind
 from remind.serializers import RemindSerializer
 from common import wechat_client
+from remind.signals import participant_modified
 
 logger = logging.getLogger(__name__)
 
@@ -109,6 +110,7 @@ class RemindViewSet(WWWAuthenticateHeaderMixIn, viewsets.ModelViewSet):
             instance.participants.remove(self.request.user.pk)
             instance.save(update_fields=['participants'])
             logger.info('User(%s) quites a remind(%s)', user.nickname, unicode(instance))
+            participant_modified.send(sender=instance, participant=user, add=False)
         else:
             self.permission_denied(self.request, message=u'Unauthorized!')
 

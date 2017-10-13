@@ -10,6 +10,8 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError, PermissionDenied
 from common import wechat_client
 from remind.models import Remind
+from remind.signals import participant_modified
+
 
 logger = logging.getLogger(__name__)
 UserModel = get_user_model()
@@ -59,6 +61,7 @@ class ParticipantSerializer(serializers.Field):
     def to_internal_value(self, participants):
         logger.info('User(%s) subscribes a remind(%s)',
                     self.parent.context['request'].user.nickname, unicode(self.parent.instance))
+        participant_modified.send(sender=self.parent.instance, participant=self.parent.context['request'].user, add=True)
         return list(set(p['id'] for p in participants if UserModel.objects.filter(pk=p['id'], subscribe=True).first()))
 
     def to_representation(self, participant_id_list):

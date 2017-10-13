@@ -6,7 +6,7 @@
             <ion-item class="item-divider"></ion-item>
             <ion-toggle ng-model="profile.hasMorningGreeting" toggle-class="toggle-positive">
                 早报
-                <div style="color: #aaa; font-size: 14px; margin-top: 10px; white-space: initial;">
+                <div class="settings-description">
                     开启后，微定时会在每天早晨推送今天的提醒列表，方便亲们提前做好准备。</div>
             </ion-toggle>
             <label class="item" ng-show="profile.hasMorningGreeting" ng-if="false">
@@ -15,6 +15,12 @@
                        ng-model="profile.morningGreetingTime" style="position: absolute; top: -1000px;">
                 <span class="item-note">{{ profile.morningGreetingTime | date:'HH:mm' }}</span>
             </label>
+
+            <ion-toggle ng-model="profile.notify_subscription" toggle-class="toggle-positive">
+                提醒被订阅通知
+                <div class="settings-description">
+                    开启后，每当有人订阅你分享出去的提醒时，微定时会给你发条通知。</div>
+            </ion-toggle>
 
         </ion-list>
     </ion-content>

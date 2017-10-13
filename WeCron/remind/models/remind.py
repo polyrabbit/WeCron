@@ -3,20 +3,20 @@ from __future__ import unicode_literals, absolute_import
 import logging
 import uuid
 from urlparse import urljoin
-from datetime import timedelta
 
 from tomorrow import threads
 from dateutil.relativedelta import relativedelta
 from django.db import models
 from django.core.urlresolvers import reverse
 from django.conf import settings
-from django.utils.timezone import localtime, now
+from django.utils.timezone import localtime, now, timedelta
 from django.utils.formats import date_format
 from django.contrib.postgres.fields import ArrayField
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from common import wechat_client
 from remind.utils import nature_time
+from remind.signals import participant_modified
 
 logger = logging.getLogger(__name__)
 
@@ -130,6 +130,7 @@ class Remind(models.Model):
             return False
         self.participants.append(uid)
         self.save(update_fields=['participants'])
+        participant_modified.send(sender=self, participant=self.owner._default_manager.get(pk=uid), add=True)
         return True
 
     def remove_participant(self, uid):
@@ -193,3 +194,19 @@ def update_notify_time(instance, **kwargs):
     if instance.reschedule():
         instance.done = False
     instance.update_notify_time()
+
+
+@receiver(participant_modified, dispatch_uid='notify-participant-modified')
+def notify_participant_modified(sender, participant, add, **kwargs):
+    if not sender.owner.notify_subscription:
+        return
+    settings_link = '\n<a href="%s">通知设置</a>' % urljoin(settings.HOST_NAME, '/reminds/#/settings')
+    if add:
+        notification = '\U0001F389 %s订阅了你的提醒：%s\n%s' % (participant.get_full_name(), sender.desc, settings_link)
+    else:
+        notification = '\U0001F494 %s退出了你的提醒：%s\n%s' % (participant.get_full_name(), sender.desc, settings_link)
+    if now() - participant.last_login < timedelta(hours=48):
+        try:
+            wechat_client.message.send_text(sender.owner_id, notification)
+        except Exception as e:
+            logger.info('Failed to notify user %s for participant modification, %s', participant.get_full_name(), e)
