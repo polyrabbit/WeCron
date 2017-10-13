@@ -21,9 +21,10 @@
     <script src="https://res.wx.qq.com/open/libs/weuijs/1.0.0/weui.min.js" defer></script>
     <script>
         var userID = "{{ request.user.pk }}";
+        var settingsUrl = "{% static "tpls/settings.html" %}";
         var remindListUrl = "{% static "tpls/remind_list.html" %}";
         var remindDetailUrl = "{% static "tpls/remind_detail.html" %}";
-        // handle Ads inserted by ISP
+        // handle hijack by ISP
         if (window !== top) top.location.href = window.location.href;
     </script>
     <script src="{% static "js/remind.js" %}"></script>
@@ -37,16 +38,25 @@
         })();
     </script>
 </head>
+
 <body ng-app="remind">
-    <!--Put title align here for Android-->
-    <ion-nav-bar class="bar-positive no-border" align-title="center">
-    </ion-nav-bar>
-    <ion-nav-view>
-    </ion-nav-view>
+
+    <ion-tabs class="tabs-icon-top tabs-positive">
+        <ion-tab title="提醒" icon-on="icon ion-ios-clock" icon-off="icon ion-ios-clock-outline" ui-sref="remind-list">
+            <!--Put title align here for Android-->
+            <ion-nav-bar class="bar-positive no-border" align-title="center"></ion-nav-bar>
+            <ion-nav-view name="remind-view"></ion-nav-view>
+        </ion-tab>
+        <ion-tab title="设置" icon-on="icon ion-ios-gear" icon-off="icon ion-ios-gear-outline" ui-sref="settings">
+            <ion-nav-view name="settings-view"></ion-nav-view>
+        </ion-tab>
+    </ion-tabs>
+
     <div id="weixinTip" onclick="this.style.display='none'">
         <!-- ng-src for lazy load -->
-        <img ng-src="{% static "img/weixin-share.png" %}">
+        <img ng-src="{% static "img/weixin-share.png" %}" />
     </div>
+
     <script id="loading-toast" type="text/ng-template">
         <div class="weui-mask_transparent"></div>
         <div class="weui-toast">

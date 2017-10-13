@@ -177,7 +177,7 @@ class Remind(models.Model):
         # url = reverse('remind-detail', kwargs={'pk': self.pk.hex})
         url = '/reminds/#/' + self.pk.hex
         if full:
-            return urljoin('http://wecron.betacat.io', url)
+            return urljoin(settings.HOST_NAME, url)
         return url
 
     def get_api_endpoint(self):

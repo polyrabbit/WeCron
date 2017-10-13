@@ -1,4 +1,4 @@
-<ion-view hide-back-button="true">
+<ion-view hide-back-button="true" view-title="微定时 — 我的提醒">
     <!-- view-title will also update browser title, so use ion-nav-title instead -->
     <ion-nav-title>我的提醒</ion-nav-title>
 
@@ -12,7 +12,7 @@
             <ion-item class="item-divider">
                 {{ group[0] }}
             </ion-item>
-            <ion-item ui-sref="remind-detail({ id: remind.id })" class="item-avatar item-icon-right"
+            <ion-item ng-click="remindListCtrl.viewDetail(remind)" class="item-avatar item-icon-right"
                       ng-repeat="remind in group[1] track by remind.id" nav-direction="forward">
                 <img ng-src="{{ remind.owner.headimgurl }}" alt="{{ remind.owner.nickname }}">
                 <h2>{{ remind.title }}</h2>

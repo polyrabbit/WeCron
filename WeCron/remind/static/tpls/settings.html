@@ -1,0 +1,22 @@
+<ion-view view-title="微定时 — 设置">
+
+    <ion-content>
+        <ion-list>
+
+            <ion-item class="item-divider"></ion-item>
+            <ion-toggle ng-model="profile.hasMorningGreeting" toggle-class="toggle-positive">
+                早报
+                <div style="color: #aaa; font-size: 14px; margin-top: 10px; white-space: initial;">
+                    开启后，微定时会在每天早晨推送今天的提醒列表，方便亲们提前做好准备。</div>
+            </ion-toggle>
+            <label class="item" ng-show="profile.hasMorningGreeting" ng-if="false">
+                推送时间
+                <input type="time" class="item-note"
+                       ng-model="profile.morningGreetingTime" style="position: absolute; top: -1000px;">
+                <span class="item-note">{{ profile.morningGreetingTime | date:'HH:mm' }}</span>
+            </label>
+
+        </ion-list>
+    </ion-content>
+
+</ion-view>

@@ -12,3 +12,6 @@
 
 _With great thanks to [wechatpy](http://docs.wechatpy.org)!_
 
+<a target='_blank' rel='nofollow' href='https://app.codesponsor.io/link/G8ZV529iq7CuaDw7NF5Qfy7h/polyrabbit/WeCron'>
+  <img alt='Sponsor' width='888' height='68' src='https://app.codesponsor.io/embed/G8ZV529iq7CuaDw7NF5Qfy7h/polyrabbit/WeCron.svg' />
+</a>

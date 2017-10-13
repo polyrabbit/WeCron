@@ -38,8 +38,10 @@ class IndexView(TemplateView):
         return ctx
 
 
-class DefaultCursorPagination(pagination.CursorPagination):
-    ordering = 'time'
+class CursorPaginationStartsToday(pagination.CursorPagination):
+    # Don't know why but it seems slicing in Django queryset will change
+    # list order when their keys are all the same, so add "create_time" as a second key to sort.
+    ordering = ('time', 'create_time')
     page_size = 10
 
     def decode_cursor(self, request):
@@ -52,23 +54,11 @@ class DefaultCursorPagination(pagination.CursorPagination):
                                                         doseq=True)
             encoded = pagination.b64encode(querystring.encode('ascii')).decode('ascii')
             request.query_params[self.cursor_query_param] = encoded
-        return super(DefaultCursorPagination, self).decode_cursor(request)
+        return super(CursorPaginationStartsToday, self).decode_cursor(request)
 
 
-class RemindViewSet(viewsets.ModelViewSet):
-
-    http_method_names = ['post', 'get', 'patch', 'delete']
-    authentication_classes = (authentication.SessionAuthentication, authentication.TokenAuthentication)
+class WWWAuthenticateHeaderMixIn(object):
     permission_classes = (permissions.IsAuthenticated,)
-    serializer_class = RemindSerializer
-    pagination_class = DefaultCursorPagination
-
-    def get_queryset(self):
-        return self.request.user.get_time_reminds()
-
-    def get_object(self):
-        # Don't check ownership hear for sharing
-        return get_object_or_404(Remind.objects, **self.kwargs)
 
     def get_authenticate_header(self, request):
         """
@@ -83,6 +73,20 @@ class RemindViewSet(viewsets.ModelViewSet):
             state=quote_plus(current_state)
         )
         return oauth_client.authorize_url
+
+
+class RemindViewSet(WWWAuthenticateHeaderMixIn, viewsets.ModelViewSet):
+    http_method_names = ['post', 'get', 'patch', 'delete']
+    authentication_classes = (authentication.SessionAuthentication, authentication.TokenAuthentication)
+    serializer_class = RemindSerializer
+    pagination_class = CursorPaginationStartsToday
+
+    def get_queryset(self):
+        return self.request.user.get_time_reminds()
+
+    def get_object(self):
+        # Don't check ownership hear for sharing
+        return get_object_or_404(Remind.objects, **self.kwargs)
 
     def get_throttles(self):
         if self.action == 'create':

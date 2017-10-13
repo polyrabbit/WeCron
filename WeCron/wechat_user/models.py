@@ -59,6 +59,7 @@ class WechatUser(AbstractBaseUser):
     subscribe_time = models.DateTimeField('关注时间', null=True)
     remark = models.CharField('备注', max_length=200, null=True)
     groupid = models.IntegerField('分组ID', null=True)
+    morning_greeting = models.TimeField('早报时间', null=True, default='08:00')
 
     objects = UserManager()
 

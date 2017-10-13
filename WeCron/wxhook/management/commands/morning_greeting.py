@@ -2,9 +2,11 @@
 from __future__ import unicode_literals, absolute_import
 
 import logging
+from urlparse import urljoin
 from django.core.management import BaseCommand
 from django.contrib.auth import get_user_model
 from django.utils import timezone
+from django.conf import settings
 
 from remind.models import Remind
 from common import wechat_client
@@ -23,9 +25,11 @@ class Command(BaseCommand):
             users_to_notify.add(rem.owner_id)
             users_to_notify.update(rem.participants)
 
+        # Wechat only allows replying users active in the last 48 hours
         time_threshold = now - timezone.timedelta(hours=48)
         for uid in users_to_notify:
-            user = get_user_model().objects.filter(pk=uid, subscribe=True, last_login__gt=time_threshold).first()
+            user = get_user_model().objects.filter(pk=uid, subscribe=True, last_login__gt=time_threshold,
+                                                   morning_greeting__isnull=False).first()
             if not user:
                 continue
             # Get today's reminds of a user
@@ -40,9 +44,10 @@ class Command(BaseCommand):
             remind_text_list = WechatMessage.format_remind_list(user_today_reminds)
             if not remind_text_list:
                 continue
-            morning_greeting = '/:sun早上好%s, 你今天的提醒有:\n\n%s' % (
+            morning_greeting = '/:sun早上好%s, 你今天的提醒有:\n\n%s\n\n%s' % (
                 user.get_full_name(),
-                '\n'.join(remind_text_list))
+                '\n'.join(remind_text_list),
+                '<a href="%s">早报设置</a>' % urljoin(settings.HOST_NAME, '/reminds/#/settings'))
             try:
                 wechat_client.message.send_text(user.openid, morning_greeting)
                 logger.info('Send %s morning greeting to %s', len(remind_text_list), user.get_full_name())

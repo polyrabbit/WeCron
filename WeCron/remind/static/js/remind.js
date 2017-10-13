@@ -3,21 +3,60 @@ angular.module('remind', ['ionic'])
     .config(function ($httpProvider, $stateProvider, $ionicConfigProvider, $urlRouterProvider) {
         $httpProvider.defaults.xsrfCookieName = 'csrftoken';
         $httpProvider.defaults.xsrfHeaderName = 'X-CSRFToken';
-        $urlRouterProvider.otherwise('/');
+
         $ionicConfigProvider.templates.maxPrefetch(0);
-        $ionicConfigProvider.views.maxCache(0);
+        // $ionicConfigProvider.views.maxCache(0);
+        $ionicConfigProvider.tabs.position('bottom');
+        $ionicConfigProvider.tabs.style('standard');
+
+        $urlRouterProvider.otherwise('/');
         $stateProvider
+            .state('settings', {
+                url: '/settings',
+                views: {
+                    'settings-view': {
+                        templateUrl: settingsUrl,
+                        controller: 'SettingsCtrl',
+                        controllerAs: 'settingsCtrl',
+                        resolve: {
+                            profile: function (remindManager) {
+                                return remindManager.getProfile();
+                            }
+                        }
+                    }
+                }
+            })
             .state('remind-list', {
                 url: '/',
-                templateUrl: remindListUrl,
-                controller: 'RemindListCtrl',
-                controllerAs: 'remindListCtrl'
+                views: {
+                    'remind-view': {
+                        templateUrl: remindListUrl,
+                        controller: 'RemindListCtrl',
+                        controllerAs: 'remindListCtrl'
+                    }
+                }
             })
             .state('remind-detail', {
                 url: '/:id',
-                templateUrl: remindDetailUrl,
-                controller: 'RemindDetailCtrl',
-                controllerAs: 'remindDetailCtrl'
+                views: {
+                    'remind-view': {
+                        templateUrl: remindDetailUrl,
+                        controller: 'RemindDetailCtrl',
+                        controllerAs: 'remindDetailCtrl',
+                        resolve: {
+                            remind: function (remindManager, $stateParams, $q) {
+                                if (remindManager.currentRemind && remindManager.currentRemind.id === $stateParams.id) {
+                                    return remindManager.currentRemind;
+                                }
+                                var deferred = $q.defer();
+                                remindManager.get($stateParams.id, function (remind) {
+                                    deferred.resolve(remind);
+                                });
+                                return deferred.promise;
+                            }
+                        }
+                    }
+                }
             });
     })
     // .constant('$ionicLoadingConfig', {
@@ -35,6 +74,7 @@ angular.module('remind', ['ionic'])
         };
     })
     .factory('remindManager', function($http, $ionicLoading, $rootScope, indicator, $state, $location) {
+        // Returns a promise as well as accepting callback for legacy reason
         function httpRequest(url, method, onSuccess, payload) {
             method = method || 'get';
             $ionicLoading.show({
@@ -56,16 +96,16 @@ angular.module('remind', ['ionic'])
             }).error(function (body, status, headerGetter, config) {
                 var msg = '请稍候再试~';
                 var title = '哎呀，出错啦！！！';
-                if(status == 401) {
+                if(status === 401) {
                     document.title = '微信登录中...';
                     if(headerGetter('WWW-Authenticate')) {
                         location.href = headerGetter('WWW-Authenticate');
                         return;
                     }
-                } else if (status == 404) {
+                } else if (status === 404) {
                     title = '没找到这个提醒';
                     msg = '它是不是被删了，或者你进错了地方？';
-                } else if (status == 403) {
+                } else if (status === 403) {
                     title = '没有权限';
                     msg = '亲，你不能这样做哦';
                 }
@@ -92,7 +132,7 @@ angular.module('remind', ['ionic'])
                     type: 'primary',
                     onClick: function () {
                         httpRequest('/reminds/api/' + id + '/', 'delete', function () {
-                            if (list != undefined) {
+                            if (list !== undefined) {
                                 for (var i = 0; i < list.length; ++i) {
                                     if (list[i].id === id) {
                                         list.splice(i, 1);
@@ -124,10 +164,18 @@ angular.module('remind', ['ionic'])
                     indicator.show(msg || '更新成功', 2000);
                     onSuccess && onSuccess(resp);
                 }, payload);
+            },
+            getProfile: function () {
+                return httpRequest('/profile/api/', 'get').then(function (resp) {
+                    return resp.data;
+                });
+            },
+            updateProfile: function (payload) {
+                return httpRequest('/profile/api/', 'patch', null, payload);
             }
         }
     })
-    .controller('RemindListCtrl', function($scope, remindManager, $filter){
+    .controller('RemindListCtrl', function($scope, remindManager, $filter, $state){
         var ctrl = this;
         ctrl.remindList = [];
         document.title = '微定时 — 我的提醒';
@@ -164,6 +212,12 @@ angular.module('remind', ['ionic'])
             });
         };
 
+        ctrl.viewDetail = function (remind) {
+            // Any better way to pass extra data to new state?
+            remindManager.currentRemind = remind;
+            $state.go('remind-detail', remind);
+        };
+
         $scope.$watchCollection(function () {
             return ctrl.remindList;
         }, function (newVal) {
@@ -198,48 +252,43 @@ angular.module('remind', ['ionic'])
             });
         }
     })
-    .controller('RemindDetailCtrl', function($scope, $stateParams, $filter, $ionicPopup, $location, remindManager) {
+    .controller('RemindDetailCtrl', function(remind, $scope, $stateParams, $filter, $ionicPopup, $location, remindManager) {
         var ctrl = this;
-        wx.error(function(res){
-           // alert(res);
-        });
 
-        remindManager.get($stateParams.id, function(remind) {
-            remind.time = new Date(remind.time);
-            ctrl.modified = false;
-            ctrl.model = remind;
-            if (remind.participate_qrcode) {
-                $ionicPopup.show({
-                    title: '长按扫码，关注公众号后接受邀请',
-                    subTitle: remind.desc,
-                    template: '<img class="qrcode" src="'+ remind.participate_qrcode + '" />'
+        remind.time = new Date(remind.time);
+        ctrl.modified = false;
+        ctrl.model = remind;
+        if (remind.participate_qrcode) {
+            $ionicPopup.show({
+                title: '长按扫码，关注公众号后接受邀请',
+                subTitle: remind.desc,
+                template: '<img class="qrcode" src="'+ remind.participate_qrcode + '" />'
+            });
+        } else {
+            var pidList = remind.participants.map(function (p) {
+                return p.id;
+            });
+            if (pidList.concat(remind.owner.id).indexOf(userID) === -1) {
+                weui.confirm(remind.desc, {
+                    title: '是否订阅此提醒？',
+                    buttons: [{
+                        label: '取消',
+                        type: 'default'
+                    }, {
+                        label: '确认',
+                        type: 'primary',
+                        onClick: function () {
+                            remindManager.update($stateParams.id, {
+                                participants: remind.participants.concat([{id: userID}])
+                            }, function (newRemind) {
+                                newRemind.time = new Date(newRemind.time);
+                                ctrl.model = newRemind;
+                            }, '订阅成功');
+                        }
+                    }]
                 });
-            } else {
-                var pidList = remind.participants.map(function (p) {
-                    return p.id;
-                });
-                if (pidList.concat(remind.owner.id).indexOf(userID) == -1) {
-                    weui.confirm(remind.desc, {
-                        title: '是否订阅此提醒？',
-                        buttons: [{
-                            label: '取消',
-                            type: 'default'
-                        }, {
-                            label: '确认',
-                            type: 'primary',
-                            onClick: function () {
-                                remindManager.update($stateParams.id, {
-                                    participants: remind.participants.concat([{id: userID}])
-                                }, function (newRemind) {
-                                    newRemind.time = new Date(newRemind.time);
-                                    ctrl.model = newRemind;
-                                }, '订阅成功');
-                            }
-                        }]
-                    });
-                }
             }
-        });
+        }
 
         ctrl.update = function () {
             remindManager.update($stateParams.id, {
@@ -249,7 +298,6 @@ angular.module('remind', ['ionic'])
                 repeat: ctrl.model.repeat,
                 title: ctrl.model.title
             }, function () {
-                ctrl.originModel = angular.copy(ctrl.model);
                 ctrl.modified = false;
             });
         };
@@ -257,35 +305,36 @@ angular.module('remind', ['ionic'])
             return ctrl.model && ctrl.model.owner && ctrl.model.owner.id === userID;
         };
 
+        wx.error(function(res){
+           // alert(res);
+        });
         var dateFormatter = $filter('date');
         $scope.$watch(function () {
            return ctrl.model;
         }, function (newVal, oldVal) {
-            if(oldVal) {
-                ctrl.modified = !angular.equals(ctrl.originModel, ctrl.model);
-            } else {
-                ctrl.originModel = angular.copy(ctrl.model);
+            if(oldVal && !angular.equals(newVal, oldVal)) {
+                ctrl.modified = true;
             }
             if(newVal && newVal.desc) {
                 document.title = '微定时 — ' + newVal.desc;
 
-            var shareCfg = {
-                title: '[微定时] ' + newVal.title,
-                desc: '来自：' + newVal.owner.nickname +
-                    '\n时间：' + dateFormatter(newVal.time, 'yyyy/M/d(EEE) HH:mm') +
-                    '\n描述：' + newVal.desc +
-                    (formatTimeRepeat(newVal.repeat) ? '\n重复：' + formatTimeRepeat(newVal.repeat) : ''),
-                link: $location.absUrl(),
-                imgUrl: newVal.owner.headimgurl
-            };
-            wx.ready(function() {
-                wx.onMenuShareAppMessage(shareCfg);
-                wx.onMenuShareQQ(shareCfg);
-                wx.onMenuShareWeibo(shareCfg);
-                wx.onMenuShareQZone(shareCfg);
-                // 分享到朋友圈没有desc字段，取title
-                wx.onMenuShareTimeline(angular.extend({}, shareCfg, {title: '[微定时] ' + newVal.desc}));
-            });
+                var shareCfg = {
+                    title: '[微定时] ' + newVal.title,
+                    desc: '来自：' + newVal.owner.nickname +
+                        '\n时间：' + dateFormatter(newVal.time, 'yyyy/M/d(EEE) HH:mm') +
+                        '\n描述：' + newVal.desc +
+                        (formatTimeRepeat(newVal.repeat) ? '\n重复：' + formatTimeRepeat(newVal.repeat) : ''),
+                    link: $location.absUrl(),
+                    imgUrl: newVal.owner.headimgurl
+                };
+                wx.ready(function() {
+                    wx.onMenuShareAppMessage(shareCfg);
+                    wx.onMenuShareQQ(shareCfg);
+                    wx.onMenuShareWeibo(shareCfg);
+                    wx.onMenuShareQZone(shareCfg);
+                    // 分享到朋友圈没有desc字段，取title
+                    wx.onMenuShareTimeline(angular.extend({}, shareCfg, {title: '[微定时] ' + newVal.desc}));
+                });
             }
         }, true);
 
@@ -377,7 +426,7 @@ angular.module('remind', ['ionic'])
                 defaultValue: (function(){
                     var repeat = ctrl.model.repeat || [0, 0, 0, 0];
                     for(var i=0; i<repeat.length; ++i) {
-                        if(repeat[i] != 0) {
+                        if(repeat[i] !== 0) {
                             return [0, repeat[i], i];
                         }
                     }
@@ -425,6 +474,26 @@ angular.module('remind', ['ionic'])
         //         document.getElementById('remind-title').focus();
         //     }, 0);
         // };
+    })
+    .controller('SettingsCtrl', function($scope, profile, remindManager, $filter) {
+        $scope.profile = profile;
+        profile.hasMorningGreeting = Boolean(profile.morning_greeting);
+        if (profile.hasMorningGreeting) {
+            var timeFields = profile.morning_greeting.split(':');
+            profile.morningGreetingTime = new Date(2017, 1, 1, timeFields[0], timeFields[1]);
+        } else {
+            profile.morningGreetingTime = new Date(2017, 1, 1, 8);
+        }
+        $scope.$watch('profile', function (newVal, oldVal) {
+            if (!oldVal || angular.equals(newVal, oldVal)) {
+                return;
+            }
+            var payload = {morning_greeting: null};
+            if(profile.hasMorningGreeting) {
+                payload = {morning_greeting: $filter('date')(profile.morningGreetingTime, 'HH:mm')};
+            }
+            remindManager.updateProfile(payload);
+        }, true);
     }).directive('natureTimeDefer', function () {
         return {
             require: '^ngModel',
@@ -463,7 +532,7 @@ angular.module('remind', ['ionic'])
 function formatTimeRepeat(repeat) {
     repeat = repeat || [0, 0, 0, 0];
     for(var i=0; i<repeat.length; ++i) {
-        if(repeat[i] != 0) {
+        if(repeat[i] !== 0) {
             return '每'+repeat[i]+(['年', '月', '天', '周'][i]);
         }
     }
