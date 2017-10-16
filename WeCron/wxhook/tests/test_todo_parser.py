@@ -176,6 +176,16 @@ class LocalParserTestCase(TestCase):
         self.assertEquals(reminder.time.hour, 20)
         self.assertEquals(reminder.time.minute, 0)
 
+    def test_parse_middle_night(self):
+        for text in ('晚上零点提醒我 我姐生日', '凌晨零点提醒我 我姐生日'):
+            self.setUp()
+            reminder = self.parse(text)
+            self.assertEqual(reminder.desc, text)
+            self.assertEqual(reminder.title(), '我姐生日')
+            self.assertEqual((self.now + relativedelta(days=1)).day, reminder.time.day)
+            self.assertEquals(reminder.time.hour, 0)
+            self.assertEquals(reminder.time.minute, 0)
+
     def test_parse_with_punctuation_in_time(self):
         for text in ('明天09:30提醒我把门的报告递交上去', '明天09：30提醒我把门的报告递交上去'):
             self.setUp()

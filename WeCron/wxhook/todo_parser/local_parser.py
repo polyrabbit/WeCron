@@ -247,6 +247,7 @@ class LocalParser(object):
         beginning1 = self.get_index()
         if self.consume_word(u'凌晨', u'半夜', u'夜里', u'深夜'):
             self.afternoon = False
+            self.time_delta_fields['days'] = 1
             self.time_fields['hour'] = 0
             self.time_fields['minute'] = DEFAULT_MINUTE
         elif self.consume_word(u'早', u'早上', u'早晨', u'今早', u'上午'):
@@ -275,7 +276,9 @@ class LocalParser(object):
         if hour is None or not self.consume_word(u'点', u'点钟', ':', u'：', u'.', u'時', u'时'):
             self.set_index(beginning2)
         else:
-            if hour < 12:
+            if self.afternoon and hour == 0:  # special case for "晚上零点"
+                self.time_delta_fields['days'] = 1
+            elif hour < 12:
                 if self.afternoon or (self.now.hour >= 12 and not self.time_fields
                                       and not self.time_delta_fields and self.repeat == [0]*len(self.repeat)):
                     hour += 12
