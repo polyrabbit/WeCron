@@ -5,6 +5,7 @@ import pytz
 
 from django.db import models
 from django.core.urlresolvers import reverse
+from django.utils import timezone
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, update_last_login
 
 from common import wechat_client
@@ -28,6 +29,7 @@ class UserManager(BaseUserManager):
             params['subscribe_time'] = \
                 datetime.fromtimestamp(params['subscribe_time'], pytz.utc)
         params['subscribe'] = bool(params['subscribe'])
+        params['last_login'] = timezone.now()
         # TODO get_all_field_names is deprecated, need test case here
         field_list = WechatUser._meta.get_all_field_names()
         for field in params.keys():

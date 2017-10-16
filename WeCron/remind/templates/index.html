@@ -13,11 +13,11 @@
     <link rel="shortcut icon" href="{% static "img/favicon.jpeg" %}">
     <link rel="bookmark" href="{% static "img/favicon.jpeg" %}" >
     <link href="https://res.wx.qq.com/open/libs/weui/1.1.0/weui.min.css" rel="stylesheet">
-    <link href="//cdn.bootcss.com/ionic/1.3.2/css/ionic.min.css" rel="stylesheet">
+    <link href="https://cdn.bootcss.com/ionic/1.3.2/css/ionic.min.css" rel="stylesheet">
     <link href="{% static "css/remind.css" %}" rel="stylesheet">
 
-    <script src="//cdn.bootcss.com/ionic/1.3.2/js/ionic.bundle.min.js"></script>
-    <script src="//cdn.bootcss.com/angular-i18n/1.5.3/angular-locale_zh-cn.min.js" defer></script>
+    <script src="https://cdn.bootcss.com/ionic/1.3.2/js/ionic.bundle.min.js"></script>
+    <script src="https://cdn.bootcss.com/angular-i18n/1.5.3/angular-locale_zh-cn.min.js" defer></script>
     <script src="https://res.wx.qq.com/open/libs/weuijs/1.0.0/weui.min.js" defer></script>
     <script>
         var userID = "{{ request.user.pk }}";
@@ -40,11 +40,10 @@
 </head>
 
 <body ng-app="remind">
-
+    <!--Put title align here for Android-->
+    <ion-nav-bar class="bar-positive no-border" align-title="center"></ion-nav-bar>
     <ion-tabs class="tabs-icon-top tabs-positive">
         <ion-tab title="提醒" icon-on="icon ion-ios-clock" icon-off="icon ion-ios-clock-outline" ui-sref="remind-list">
-            <!--Put title align here for Android-->
-            <ion-nav-bar class="bar-positive no-border" align-title="center"></ion-nav-bar>
             <ion-nav-view name="remind-view"></ion-nav-view>
         </ion-tab>
         <ion-tab title="设置" icon-on="icon ion-ios-gear" icon-off="icon ion-ios-gear-outline" ui-sref="settings">

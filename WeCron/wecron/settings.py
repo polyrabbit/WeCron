@@ -83,18 +83,12 @@ TEMPLATES = [
 
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache'
-    },
-    'staticfiles': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'staticfiles',
-        'TIMEOUT': 3600 * 24 * 8,
-        'MAX_ENTRIES': 1000,
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': '/tmp/django_cache',
     }
 }
 
 WSGI_APPLICATION = 'wecron.wsgi.application'
-
 
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases

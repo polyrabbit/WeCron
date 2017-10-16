@@ -1,22 +1,24 @@
-<ion-view>
-    <ion-nav-buttons side="left">
-        <button class="button back-button buttons button-clear" ui-sref="remind-list" nav-direction="back">
-            <i class="icon ion-arrow-left-c"></i>
-        </button>
-    </ion-nav-buttons>
-    <ion-nav-buttons side="right">
-        <button class="button button-clear" ng-click="remindDetailCtrl.update()" ng-if="remindDetailCtrl.modified && remindDetailCtrl.canEdit()">
-            <i class="icon ion-checkmark-round"></i>
-        </button>
-        &nbsp;
-        <button class="button button-clear" ng-click="deleteRemind(remindDetailCtrl.model.id)">
-            <i class="icon ion-trash-a"></i>
-        </button>
-        &nbsp;
-        <button class="button button-clear" ng-click="remindDetailCtrl.promptShare()">
-            <i class="icon ion-share"></i>
-        </button>
-    </ion-nav-buttons>
+<ion-view view-title="" hide-nav-bar="false">
+    <ion-nav-bar class="bar-positive no-border" align-title="center">
+        <ion-nav-buttons side="left">
+            <button class="button back-button buttons button-clear" ui-sref="remind-list" nav-direction="back">
+                <i class="icon ion-arrow-left-c"></i>
+            </button>
+        </ion-nav-buttons>
+        <ion-nav-buttons side="right">
+            <button class="button button-clear" ng-click="remindDetailCtrl.update()" ng-if="remindDetailCtrl.modified && remindDetailCtrl.canEdit()">
+                <i class="icon ion-checkmark-round"></i>
+            </button>
+            &nbsp;
+            <button class="button button-clear" ng-click="deleteRemind(remindDetailCtrl.model.id)">
+                <i class="icon ion-trash-a"></i>
+            </button>
+            &nbsp;
+            <button class="button button-clear" ng-click="remindDetailCtrl.promptShare()">
+                <i class="icon ion-share"></i>
+            </button>
+        </ion-nav-buttons>
+    </ion-nav-bar>
 
     <ion-content>
         <div class="list positive-bg content-input">

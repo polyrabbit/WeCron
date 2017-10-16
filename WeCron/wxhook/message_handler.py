@@ -63,7 +63,7 @@ class WechatMessage(object):
             return self.text_reply('\n'.join(reply_lines))
         except ParseError as e:
             return self.text_reply(unicode(e))
-        except WeChatClientException:  # TODO: refine it
+        except (WeChatClientException, KeyError):  # TODO: refine it
             pass
         except Exception as e:  # Catch all kinds of wired errors
             logger.exception('Semantic parse error')
@@ -163,27 +163,27 @@ class WechatMessage(object):
                                                                        '\n'.join(remind_text_list)))
             return self.text_reply('/:coffee明天还没有提醒，休息一下吧！')
         elif self.message.key.lower() == 'customer_service':
-            logger.info('Transfer to customer service')
+            logger.info('Transfer to customer service for %s', self.user.get_full_name())
             return TransferCustomerServiceReply(message=self.message).render()
         elif self.message.key.lower() == 'join_group':
-            logger.info('Sending 小密圈 QR code')
+            logger.info('Sending 小密圈 QR code to %s', self.user.get_full_name())
             wechat_client.message.send_text(self.user.openid, u'喜欢微定时？请加入微定时小密圈，欢迎各种反馈和建议~')
             # http://mmbiz.qpic.cn/mmbiz_jpg/U4AEiaplkjQ3olQ6WLhRNIsLxb2LD4kdQSWN6PxulSiaY0dhwrY4HUVBBYFC8xawEd6Sf4ErGLk7EZTeD094ozxw/0?wx_fmt=jpeg
             return ImageReply(message=self.message, media_id='S8Jjk9aHXZ7wXSwK1qqu2UnkQSAHid-VQv_kxNUZnMI').render()
         elif self.message.key.lower() == 'donate':
-            logger.info('Sending donation QR code')
+            logger.info('Sending donation QR code to %s', self.user.get_full_name())
             wechat_client.message.send_text(self.user.openid, u'好的服务离不开大家的鼓励和支持，如果觉得微定时给你的生活带来了一丝便利，'
                                                               u'请使劲用赞赏来支持(别忘了备注微信名，否则微信不让我看到是谁赞赏的)。')
             # http://mmbiz.qpic.cn/mmbiz_png/U4AEiaplkjQ26gI5kMFhaBda9CAcI5uxE4FDwWp8pOduoyBDDuWXtdgxx9UMH3GxUgrRoqibsqDHtwMMNjHJkjVg/0?wx_fmt=png
             return ImageReply(message=self.message, media_id='S8Jjk9aHXZ7wXSwK1qqu2b6yDboZT6UIvYWF4dKLyQs').render()
         elif self.message.key.lower() == 'donate_geizang':
-            logger.info('Sending donation geizang QR code')
+            logger.info('Sending donation GeiZang QR code to %s', self.user.get_full_name())
             wechat_client.message.send_text(self.user.openid, u'好的服务离不开大家的鼓励和支持，如果觉得微定时给你的生活带来了一丝便利，'
                                                               u'请使劲用赞赏来支持。')
             # http://mmbiz.qpic.cn/mmbiz_png/U4AEiaplkjQ0DypiahsELePfHTh2NysKvQmqTBoqVTHabpPPJiaqg5aFunCUdVwraGMdcCo2Tz9GngWccoch3YWow/0?wx_fmt=png
             return ImageReply(message=self.message, media_id='S8Jjk9aHXZ7wXSwK1qqu2d1M_OVm4CoEECgdDlrG0mQ').render()
         elif self.message.key.lower() == 'add_friend':
-            logger.info('Sending personal QR code')
+            logger.info('Sending personal QR code to %s', self.user.get_full_name())
             wechat_client.message.send_text(self.user.openid, u'长按下面的二维码，添加作者个人微信，等你来撩~')
             # http://mmbiz.qpic.cn/mmbiz_jpg/U4AEiaplkjQ1x2YoD9GRticXvMk5iaWJCtEVuChsHecnwdfHFbiafJarWXyiaABTu4pPUKibvnJ1ZGwUF7arzCaFkArw/0?wx_fmt=jpeg
             return ImageReply(message=self.message, media_id='S8Jjk9aHXZ7wXSwK1qqu2SXTItktLfgk4Cv9bod5l8k').render()

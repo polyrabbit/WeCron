@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 def parse(text, **kwargs):
     """Returns a Remind"""
     # Try to parse by rules and then turn to wechat API since wechat API is unstable and inaccurate.
+    logger.info('Trying to parse "%s" using rules.', text)
     reminder = LocalParser().parse_by_rules(text)
     if not reminder:
         logger.info('Failed to parse time from "%s" using rules, try wechat api.', text)

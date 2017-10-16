@@ -377,7 +377,7 @@ class LocalParser(object):
             days = 0
             self.afternoon = True
             hour = 20
-        elif self.consume_word(u'明天', u'明日'):
+        elif self.consume_word(u'明天', u'明日', u'明儿'):
             days = 1
         elif self.consume_word(u'明早'):
             days = 1

@@ -202,11 +202,16 @@ def notify_participant_modified(sender, participant, add, **kwargs):
         return
     settings_link = '\n<a href="%s">通知设置</a>' % urljoin(settings.HOST_NAME, '/reminds/#/settings')
     if add:
-        notification = '\U0001F389 %s订阅了你的提醒：%s\n%s' % (participant.get_full_name(), sender.desc, settings_link)
+        notification = '\U0001F389 %s订阅了你的提醒：<a href="%s">%s</a>\n%s' % (
+            participant.get_full_name(), sender.get_absolute_url(True), sender.title(), settings_link)
     else:
-        notification = '\U0001F494 %s退出了你的提醒：%s\n%s' % (participant.get_full_name(), sender.desc, settings_link)
-    if now() - participant.last_login < timedelta(hours=48):
+        notification = '\U0001F494 %s退出了你的提醒：<a href="%s">%s</a>\n%s' % (
+            participant.get_full_name(), sender.get_absolute_url(True), sender.title(), settings_link)
+    logger.info('Trying to notify user %s for participant modification on %s', sender.owner.get_full_name(), sender.desc)
+    if now() - sender.owner.last_login < timedelta(hours=48):
         try:
             wechat_client.message.send_text(sender.owner_id, notification)
         except Exception as e:
             logger.info('Failed to notify user %s for participant modification, %s', participant.get_full_name(), e)
+    else:
+        logger.info('Ignore sending participant modification to %s, for inactivity for a long time', sender.owner.get_full_name())
