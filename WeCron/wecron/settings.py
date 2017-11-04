@@ -61,6 +61,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'wechat_user.middlewares.TimezoneMiddleware',
 )
 
 ROOT_URLCONF = 'wecron.urls'

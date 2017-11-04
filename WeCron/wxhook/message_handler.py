@@ -21,6 +21,7 @@ class WechatMessage(object):
     def __init__(self, message):
         self.message = message
         self.user = get_user_model().objects.get_or_fetch(message.source)
+        self.user.activate_timezone()
 
     @property
     def json_msg(self):
@@ -111,7 +112,9 @@ class WechatMessage(object):
 
     def handle_unsubscribe_event(self):
         self.user.subscribe = False
-        if not self.user.get_time_reminds().exists():
+        existing_count = self.user.time_reminds_created.count()
+        if existing_count <= 10:
+            self.user.time_reminds_created.all().delete()
             self.user.delete()
         else:
             self.user.save(update_fields=['subscribe'])

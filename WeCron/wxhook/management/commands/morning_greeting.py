@@ -32,6 +32,7 @@ class Command(BaseCommand):
                                                    morning_greeting__isnull=False).first()
             if not user:
                 continue
+            user.activate_timezone()
             # Get today's reminds of a user
             user_today_reminds = list(user.get_time_reminds().filter(time__date=now).order_by('time').all())
             for rem in user_today_reminds:

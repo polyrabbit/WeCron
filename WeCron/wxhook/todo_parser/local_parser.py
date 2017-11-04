@@ -131,6 +131,7 @@ class LocalParser(object):
             if self.get_index() != beginning:
                 # Time found
                 self.consume_word(u'准时')
+                self.consume_word(u'是')
                 if self.consume_word(u'提醒'):
                     self.consume_word(u'我')
                 if self.current_tag() == 'v' and self.peek_next_word() == u'我':
@@ -192,7 +193,7 @@ class LocalParser(object):
     def consume_year(self):
         beginning = self.get_index()
         year = self.consume_digit()
-        if year is None or not self.consume_word(u'年', '-'):
+        if year is None or not self.consume_word(u'年', '-', '/', '.'):
             self.set_index(beginning)
             return 0
         if year > 3000:
@@ -241,6 +242,7 @@ class LocalParser(object):
         if not self.consume_hour():
             self.time_fields['hour'] = DEFAULT_HOUR
             self.time_fields['minute'] = DEFAULT_MINUTE
+        self.exclude_time_range(self.consume_day)
         return self.get_index() - beginning
 
     def consume_hour(self):
@@ -275,19 +277,20 @@ class LocalParser(object):
         hour = self.consume_digit()
         if hour is None or not self.consume_word(u'点', u'点钟', ':', u'：', u'.', u'時', u'时'):
             self.set_index(beginning2)
-        else:
-            if self.afternoon and hour == 0:  # special case for "晚上零点"
-                self.time_delta_fields['days'] = 1
-            elif hour < 12:
-                if self.afternoon or (self.now.hour >= 12 and not self.time_fields
-                                      and not self.time_delta_fields and self.repeat == [0]*len(self.repeat)):
-                    hour += 12
-            if not (0 <= hour <= 24):
-                raise ParseError(u'/:no亲，一天哪有%s小时！' % hour)
-            self.time_fields['hour'] = hour
-            if not self.consume_minute():
-                self.time_fields['minute'] = DEFAULT_MINUTE
+            # Assert fails
             return self.get_index() - beginning1
+        if self.afternoon and hour == 0:  # special case for "晚上零点"
+            self.time_delta_fields['days'] = 1
+        elif hour < 12:
+            if self.afternoon or (self.now.hour >= 12 and not self.time_fields
+                                  and not self.time_delta_fields and self.repeat == [0]*len(self.repeat)):
+                hour += 12
+        if not (0 <= hour <= 24):
+            raise ParseError(u'/:no亲，一天哪有%s小时！' % hour)
+        self.time_fields['hour'] = hour
+        if not self.consume_minute():
+            self.time_fields['minute'] = DEFAULT_MINUTE
+        self.exclude_time_range(self.consume_hour)
         return self.get_index() - beginning1
 
     # minute should only be called from hour
@@ -321,6 +324,13 @@ class LocalParser(object):
                 return self.get_index() - beginning
         self.set_index(beginning)
         return 0
+
+    def exclude_time_range(self, next_expectation):
+        range_index = self.get_index()
+        if self.consume_word(u'到', u'至', u'-', u'~'):
+            if next_expectation():
+                raise ParseError(u'/:no亲，暂不支持设置连续时间段的提醒(如:周一至周五、下午3点到5点)，请分开设置试试~')
+        self.set_index(range_index)
 
     def consume_year_period(self):
         beginning = self.get_index()
@@ -450,6 +460,7 @@ class LocalParser(object):
         if not self.consume_hour():
             self.time_fields['hour'] = DEFAULT_HOUR
             self.time_fields['minute'] = DEFAULT_MINUTE
+        self.exclude_time_range(self.consume_weekday_period)
         return self.get_index() - beginning
 
     def consume_hour_period(self):

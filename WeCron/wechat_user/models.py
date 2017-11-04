@@ -6,6 +6,7 @@ import pytz
 from django.db import models
 from django.core.urlresolvers import reverse
 from django.utils import timezone
+from django.conf import settings
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, update_last_login
 
 from common import wechat_client
@@ -63,6 +64,7 @@ class WechatUser(AbstractBaseUser):
     groupid = models.IntegerField('分组ID', null=True)
     morning_greeting = models.TimeField('早报时间', null=True, default='08:00')
     notify_subscription = models.NullBooleanField('提醒被订阅通知', default=True)
+    timezone = models.CharField('默认时区', max_length=64, default=settings.TIME_ZONE)
 
     objects = UserManager()
 
@@ -93,6 +95,15 @@ class WechatUser(AbstractBaseUser):
         created = self.time_reminds_created.all()
         participate = Remind.objects.filter(participants__contains=[self.pk])
         return (created | participate).order_by('time')
+
+    def get_timezone(self):
+        tzname = self.timezone
+        if tzname not in pytz.all_timezones_set:
+            tzname = settings.TIME_ZONE
+        return pytz.timezone(tzname)
+
+    def activate_timezone(self):
+        timezone.activate(self.get_timezone())
 
 # A hack around django's not allowing override a parent model's attribute
 WechatUser._meta.get_field('password').null = True

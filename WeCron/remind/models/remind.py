@@ -92,6 +92,7 @@ class Remind(models.Model):
         if not user.subscribe:
             logger.info('User %s has unsubscribed, skip sending notification' % name)
             return
+        user.activate_timezone()
         try:
             res = wechat_client.message.send_template(
                         user_id=uid,

@@ -200,6 +200,14 @@ class LocalParserTestCase(TestCase):
         text = '六月三十一号'
         self.assertRaises(ParseError, self.parse, text)
 
+    def test_parse_time_range(self):
+        for text in ('2017年11月12日 11:00-12:00 安美宝一包', '星期一到星期五提醒我早上六点半起床', '三号~五号吃饭'):
+            self.setUp()
+            with self.assertRaises(ParseError) as cm:
+                self.parse(text)
+            the_exception = cm.exception
+            self.assertIn('连续时间段', the_exception.message)
+
     def test_should_not_add_additional_12_hours(self):
         text = '12:45报加班'
         self.parser.now = self.parser.now.replace(hour=12, minute=15)

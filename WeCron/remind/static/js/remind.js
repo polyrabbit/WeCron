@@ -457,14 +457,19 @@ angular.module('remind', ['ionic'])
         };
         ctrl.showParticipants = function () {
             if(!ctrl.model.participants.length) {
-                return;
+                $ionicPopup.alert({
+                    title: '参与者',
+                    template: '目前还没有人订阅这条提醒，快快点击右上角，把它分享出去，让别人也能接受到你设定的提醒吧~',
+                    okText: '好的'
+                });
+            } else {
+                $ionicPopup.alert({
+                    title: '参与者',
+                    templateUrl: 'participant-model.html',
+                    scope: $scope,
+                    okText: '好的'
+                });
             }
-            $ionicPopup.alert({
-                title: '参与者',
-                templateUrl: 'participant-model.html',
-                scope: $scope,
-                okText: '好的'
-            });
         };
         // ctrl.setEdit = function () {
         //     // For iOS
@@ -484,11 +489,13 @@ angular.module('remind', ['ionic'])
         } else {
             profile.morningGreetingTime = new Date(2017, 1, 1, 8);
         }
+        profile.timezone = profile.timezone || 'Asia/Shanghai';
         $scope.$watch('profile', function (newVal, oldVal) {
             if (!oldVal || angular.equals(newVal, oldVal)) {
                 return;
             }
-            var payload = {morning_greeting: null, notify_subscription: profile.notify_subscription};
+            var payload = {morning_greeting: null, notify_subscription: profile.notify_subscription,
+                timezone: profile.timezone};
             if(profile.hasMorningGreeting) {
                 payload.morning_greeting = $filter('date')(profile.morningGreetingTime, 'HH:mm');
             }

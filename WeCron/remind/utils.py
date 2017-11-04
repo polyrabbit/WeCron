@@ -2,7 +2,7 @@
 from __future__ import unicode_literals, absolute_import
 from datetime import datetime, timedelta
 
-from django.utils.timezone import is_aware, utc
+from django.utils import timezone
 
 
 def delta2dict( delta ):
@@ -22,7 +22,7 @@ def nature_time(dt, precision=2, past_tense='{}前', future_tense='{}后'):
     """Accept a datetime or timedelta, return a human readable delta string,
     Steal from ago.human
     """
-    now = datetime.now(utc if is_aware(dt) else None).replace(microsecond=0)
+    now = timezone.now().replace(microsecond=0)
     delta = dt
     if type(dt) is not type(timedelta()):
         delta = dt - now

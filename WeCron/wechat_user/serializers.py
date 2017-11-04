@@ -16,5 +16,5 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserModel
-        fields = meta_fields + ('morning_greeting', 'notify_subscription')
+        fields = meta_fields + ('morning_greeting', 'notify_subscription', 'timezone')
         read_only_fields = meta_fields
