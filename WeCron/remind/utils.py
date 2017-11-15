@@ -1,8 +1,9 @@
 # coding: utf-8
 from __future__ import unicode_literals, absolute_import
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from django.utils import timezone
+from common import wechat_client
 
 
 def delta2dict( delta ):
@@ -46,3 +47,14 @@ def nature_time(dt, precision=2, past_tense='{}前', future_tense='{}后'):
         count += 1
     human_delta = ''.join(hlist)
     return the_tense.format(human_delta)
+
+
+def get_qrcode_url(scene_id):
+    ticket = wechat_client.qrcode.create({
+        'expire_seconds': 2592000,
+        'action_name': 'QR_LIMIT_STR_SCENE',
+        'action_info': {
+            'scene': {'scene_str': scene_id},
+        }
+    })
+    return wechat_client.qrcode.get_url(ticket)

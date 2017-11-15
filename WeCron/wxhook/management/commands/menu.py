@@ -31,3 +31,25 @@ class Command(BaseCommand):
                 json.dumps(wechat_client.menu.create(new_menu),
                 indent=2,
                 ensure_ascii=False))
+
+# wechat_client.message.send_template(
+#     user_id='owQF1v2jgcmoINYC-RE2AzhuATq0',
+#     template_id='OHwCU_UbAW3XoaLJimwMzbc7RFQMCEX0OBZ4PvsDTuk',
+#     url='http://wecron.betacat.io/reminds/#/settings',
+#     top_color='#459ae9',
+#     data={
+#         "first": {
+#             "value": '微定时更新',
+#             "color": "#459ae9"
+#         },
+#         "keyword1": {
+#             "value": '喵小咪',
+#         },
+#         "keyword2": {
+#             "value": '根据亲的反馈，本次更新主要增加了对不同时区的支持，让海外用户也能愉快的使用微定时。',
+#         },
+#         'remark': {
+#             'value': '\n欢迎试用并提出您的宝贵意见！'
+#         }
+#     },
+# )

@@ -73,7 +73,7 @@ angular.module('remind', ['ionic'])
             }
         };
     })
-    .factory('remindManager', function($http, $ionicLoading, $rootScope, indicator, $state, $location) {
+    .factory('remindManager', function($http, $ionicLoading, $rootScope, indicator, $state, $location, $q) {
         // Returns a promise as well as accepting callback for legacy reason
         function httpRequest(url, method, onSuccess, payload) {
             method = method || 'get';
@@ -148,6 +148,7 @@ angular.module('remind', ['ionic'])
             });
         };
 
+        var qrUrlCache = {};
         return {
             getList: function (url, onSuccess) {
                 url = url || '/reminds/api/';
@@ -172,6 +173,16 @@ angular.module('remind', ['ionic'])
             },
             updateProfile: function (payload) {
                 return httpRequest('/profile/api/', 'patch', null, payload);
+            },
+            getQRcodeURL: function (remindId) {
+                if(qrUrlCache[remindId]) return $q.resolve(qrUrlCache[remindId]);
+                return httpRequest('/reminds/api/'+remindId+'/qrcode/').then(function (resp) {
+                    if(resp.data.qrcodeUrl && resp.data.qrcodeUrl.startsWith('http')) {
+                        qrUrlCache[remindId] = resp.data.qrcodeUrl;
+                        return resp.data.qrcodeUrl;
+                    }
+                    throw new Error('不知道什么原因，不能获取到该提醒的二维码~');
+                });
             }
         }
     })
@@ -441,6 +452,22 @@ angular.module('remind', ['ionic'])
             });
         };
 
+        ctrl.showQRcode = function () {
+            remindManager.getQRcodeURL(remind.id)
+                .then(function (qrcodeUrl) {
+                    $ionicPopup.alert({
+                        title: '把这个二维码分享出去，让别的小伙伴也能接受到这个提醒吧~',
+                        template: '<img class="qrcode" src="'+ qrcodeUrl + '" />'
+                    });
+                }).catch(function (err) {
+                    weui.alert(err.message, {
+                        title: '哎呀，出错啦！！！',
+                        buttons: [{
+                            label: '好的'
+                        }]
+                    });
+                });
+        };
         ctrl.promptShare = function () {
             document.getElementById('weixinTip').style.display="block";
         };
@@ -459,7 +486,7 @@ angular.module('remind', ['ionic'])
             if(!ctrl.model.participants.length) {
                 $ionicPopup.alert({
                     title: '参与者',
-                    template: '目前还没有人订阅这条提醒，快快点击右上角，把它分享出去，让别人也能接受到你设定的提醒吧~',
+                    template: '目前还没有人订阅这条提醒，快快点击右上角，把它分享出去，让别的小伙伴也能接受到这个提醒吧~',
                     okText: '好的'
                 });
             } else {

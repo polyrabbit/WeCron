@@ -8,7 +8,7 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError, PermissionDenied
-from common import wechat_client
+from remind.utils import get_qrcode_url
 from remind.models import Remind
 from remind.signals import participant_modified
 
@@ -97,14 +97,7 @@ class RemindSerializer(serializers.ModelSerializer):
         if user.subscribe and not self._created:
             return None
         logger.info('%s requests QR code for %s', user.nickname, unicode(remind))
-        ticket = wechat_client.qrcode.create({
-                'expire_seconds': 2592000,
-                'action_name': 'QR_LIMIT_STR_SCENE',
-                'action_info': {
-                    'scene': {'scene_str': remind.id.hex},
-                }
-            })
-        return wechat_client.qrcode.get_url(ticket)
+        return get_qrcode_url(remind.id.hex)
 
     def create(self, validated_data):
         self._created = True

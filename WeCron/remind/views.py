@@ -7,17 +7,18 @@ from urllib import quote_plus
 from rest_framework import viewsets, permissions, pagination, authentication
 from rest_framework.generics import get_object_or_404
 from django.views.generic import TemplateView
-from django.http import Http404, StreamingHttpResponse
+from django.http import Http404, StreamingHttpResponse, JsonResponse
 from django.utils import timezone
 from django.core.urlresolvers import reverse
 from django.conf import settings
 from wechatpy import WeChatOAuth, WeChatClientException
 from wechatpy.utils import random_string
 
+from common import wechat_client
 from remind.models import Remind
 from remind.serializers import RemindSerializer
-from common import wechat_client
 from remind.signals import participant_modified
+from remind.utils import get_qrcode_url
 
 logger = logging.getLogger(__name__)
 
@@ -128,3 +129,7 @@ def media_proxy(request, media_id):
         content_type=resp.headers.get('content-type'), status=resp.status_code)
 
     return response
+
+
+def qrCodeView(request, remind_id):
+    return JsonResponse({'qrcodeUrl': get_qrcode_url(remind_id)})

@@ -123,7 +123,7 @@ class Remind(models.Model):
             logger.exception('Failed to send notification(%s) to user %s', self.desc, name)
 
     def notify_users(self):
-        for uid in [self.owner_id] + self.participants:
+        for uid in frozenset([self.owner_id] + self.participants):
             self.notify_user_by_id(uid)
 
     def add_participant(self, uid):
