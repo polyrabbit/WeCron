@@ -101,6 +101,7 @@ class LocalParser(object):
         self.idx = 0
         self.now = timezone.localtime(timezone.now())
         self.time_fields = {}
+        self.parse_beginning = 0
         self.time_delta_fields = {}
         self.repeat = [0]*Remind._meta.get_field('repeat').size
 
@@ -109,7 +110,7 @@ class LocalParser(object):
         _text = re.sub(ur'([周|星期]\w)(\d)', r'\1 \2', text, flags=re.U)
         self.words = pseg.lcut(parse_cn_number(_text), HMM=False)
         while self.has_next():
-            beginning = self.get_index()
+            self.parse_beginning = self.get_index()
 
             self.consume_repeat()
 
@@ -128,7 +129,7 @@ class LocalParser(object):
 
             self.consume_hour()
 
-            if self.get_index() != beginning:
+            if self.get_index() != self.parse_beginning:
                 # Time found
                 self.consume_word(u'准时')
                 self.consume_word(u'是')
@@ -196,9 +197,11 @@ class LocalParser(object):
         if year is None or not self.consume_word(u'年', '-', '/', '.'):
             self.set_index(beginning)
             return 0
-        if year > 3000:
-            raise ParseError(u'/:no亲，恕不能保证%s年的服务' % year)
         if self.consume_month():
+            if year > 3000:
+                raise ParseError(u'/:no亲，恕不能保证%s年的服务' % year)
+            if year < self.now.year:
+                raise ParseError(u'/:no亲，起码设个今年的提醒吧，公元%s年几个意思？' % year)
             self.time_fields['year'] = year
             return self.get_index() - beginning
         return 0
@@ -226,7 +229,8 @@ class LocalParser(object):
         if self.current_word().endswith(u'节'):
             raise ParseError(u'/:no亲，暂不支持各种节假日提醒哦~')
         day = self.consume_digit()
-        if day is None or not self.consume_word(u'日', '号'):
+        if day is None or (not self.consume_word(u'日', u'号') and beginning == self.parse_beginning):
+            # If not in a sub-parse and not ends with ('日', '号')
             self.set_index(beginning)
             return 0
         if day > 31:
@@ -293,7 +297,7 @@ class LocalParser(object):
         self.exclude_time_range(self.consume_hour)
         return self.get_index() - beginning1
 
-    # minute should only be called from hour
+    # consume_minute should not be called by parser directly
     def consume_minute(self):
         beginning = self.get_index()
         minute = self.consume_digit()

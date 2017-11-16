@@ -156,7 +156,7 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'standard': {
-            'format': '%(levelname)s - %(name)s - [%(asctime)s] %(message)s',
+            'format': '%(levelname)s - %(name)s - %(process)d->%(threadName)s - [%(asctime)s] %(message)s',
             'datefmt': '%d/%b %H:%M:%S',
         },
     },

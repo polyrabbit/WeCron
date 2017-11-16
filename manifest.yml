@@ -1,7 +1,7 @@
 applications:
 - path: .
   name: wecron
-  memory: 512M
+  memory: 1024M
   instances: 1
   domains:
   - weixin.at

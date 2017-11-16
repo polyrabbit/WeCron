@@ -7,6 +7,7 @@ from django.core.management import BaseCommand
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.conf import settings
+from wechatpy import WeChatException
 
 from remind.models import Remind
 from common import wechat_client
@@ -52,5 +53,12 @@ class Command(BaseCommand):
             try:
                 wechat_client.message.send_text(user.openid, morning_greeting)
                 logger.info('Send %s morning greeting to %s', len(remind_text_list), user.get_full_name())
+            except WeChatException as e:
+                ignore_msg = ''
+                if e.errcode == 45015:
+                    user.last_login = time_threshold
+                    user.save(update_fields=['last_login'])
+                    ignore_msg = ', ignoring'
+                logger.info('Failed to send morning greeting to user %s, %s%s', user.get_full_name(), e, ignore_msg)
             except Exception as e:
                 logger.info('Failed to send morning greeting to user %s, %s', user.get_full_name(), e)

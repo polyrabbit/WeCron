@@ -79,6 +79,10 @@ class Remind(models.Model):
             return self.event
         return self.default_title
 
+    def notify_users(self):
+        for uid in frozenset([self.owner_id] + self.participants):
+            self.notify_user_by_id(uid)
+
     # TODO: not suitable using async here, for reschedule may already have modified self.time
     # @threads(10, timeout=60)
     def notify_user_by_id(self, uid):
@@ -93,38 +97,42 @@ class Remind(models.Model):
             logger.info('User %s has unsubscribed, skip sending notification' % name)
             return
         user.activate_timezone()
+        # Prepare all parameters, in case they get modified when sending message asyncly
+        message_params = {
+            'user_id': uid,
+            'template_id': 'IxUSVxfmI85P3LJciVVcUZk24uK6zNvZXYkeJrCm_48',
+            'url': self.get_absolute_url(full=True),
+            'top_color': '#459ae9',
+            'data': {
+                "first": {
+                    "value": '\U0001F552 %s\n' % self.title(),
+                    "color": "#459ae9"
+                },
+                "keyword1": {
+                    "value": self.desc,
+                },
+                "keyword2": {
+                    "value": self.local_time_string('Y/n/d(D) G:i'),
+                },
+                "remark": {
+                    "value": "提醒时间：" + self.nature_time_defer()
+                             + ('\n重复周期：' + self.get_repeat_text() +
+                                '\n\n点击详情' + (
+                                '删除' if self.owner_id == uid else '退订') + '本提醒') if self.has_repeat() else '',
+                }
+            },
+
+        }
+        self.send_template_message_async(message_params, self.desc, name)
+
+    @threads(10, timeout=60)
+    def send_template_message_async(self, message_params, desc, uname):
         try:
-            res = wechat_client.message.send_template(
-                        user_id=uid,
-                        template_id='IxUSVxfmI85P3LJciVVcUZk24uK6zNvZXYkeJrCm_48',
-                        url=self.get_absolute_url(full=True),
-                        top_color='#459ae9',
-                        data={
-                               "first": {
-                                   "value": '\U0001F552 %s\n' % self.title(),
-                                   "color": "#459ae9"
-                               },
-                               "keyword1": {
-                                   "value": self.desc,
-                               },
-                               "keyword2": {
-                                   "value": self.local_time_string('Y/n/d(D) G:i'),
-                               },
-                               "remark": {
-                                   "value": "提醒时间：" + self.nature_time_defer()
-                                            + ('\n重复周期：' + self.get_repeat_text() +
-                                               '\n\n点击详情'+('删除' if self.owner_id == uid else '退订')+'本提醒') if self.has_repeat() else '',
-                               }
-                        },
-                    )
-            logger.info('Successfully send notification(%s) to user %s', self.desc, name)
+            res = wechat_client.message.send_template(**message_params)
+            logger.info('Successfully send notification(%s) to user %s', desc, uname)
             return res
         except:
-            logger.exception('Failed to send notification(%s) to user %s', self.desc, name)
-
-    def notify_users(self):
-        for uid in frozenset([self.owner_id] + self.participants):
-            self.notify_user_by_id(uid)
+            logger.exception('Failed to send notification(%s) to user %s', desc, uname)
 
     def add_participant(self, uid):
         if uid == self.owner_id or uid in self.participants:

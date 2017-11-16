@@ -8,6 +8,7 @@ from django.utils import timezone
 from django.contrib.auth import get_user_model
 from wechatpy.replies import TextReply, TransferCustomerServiceReply, ImageReply
 from wechatpy.exceptions import WeChatClientException
+from shove import Shove
 
 from common import wechat_client
 from remind.models import Remind
@@ -209,7 +210,17 @@ class WechatMessage(object):
         return remind_text_list
 
 
+# shove = Shove('file:///tmp/wecron_last_msgid', sync=1)
+
 def handle_message(msg):
+    # msgid = str(msg.id)
+    # if msgid not in ['0', 'None'] and shove.get('last_msgid') == msgid:  # Duplicated message
+    #     return TextReply(
+    #         content='',
+    #         message=msg,
+    #     ).render()
     # TODO unique based on msgid
-    return WechatMessage(msg).handle()
+    resp_msg = WechatMessage(msg).handle()
+    # shove['last_msgid'] = msgid
+    return resp_msg
 

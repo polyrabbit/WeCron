@@ -325,6 +325,16 @@ class LocalParserTestCase(TestCase):
         self.assertEquals(reminder.time.hour, 8)
         self.assertEquals(reminder.time.minute, 0)
 
+    def test_parse_date_without_explict_ending(self):
+        text = '2017-12-16 09:10:00'
+        reminder = self.parse(text)
+        self.assertEqual(reminder.desc, text)
+        self.assertEqual(reminder.time.year, 2017)
+        self.assertEqual(reminder.time.month, 12)
+        self.assertEqual(reminder.time.day, 16)
+        self.assertEquals(reminder.time.hour, 9)
+        self.assertEquals(reminder.time.minute, 10)
+
     def test_parse_repeat_year(self):
         text = '每年1月22号生日'
         reminder = self.parse(text)

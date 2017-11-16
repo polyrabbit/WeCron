@@ -456,7 +456,7 @@ angular.module('remind', ['ionic'])
             remindManager.getQRcodeURL(remind.id)
                 .then(function (qrcodeUrl) {
                     $ionicPopup.alert({
-                        title: '把这个二维码分享出去，让别的小伙伴也能接受到这个提醒吧~',
+                        title: '把这个二维码\u5206\u4eab出去，让别的小伙伴也能接受到这个提醒吧~',
                         template: '<img class="qrcode" src="'+ qrcodeUrl + '" />'
                     });
                 }).catch(function (err) {
@@ -486,7 +486,7 @@ angular.module('remind', ['ionic'])
             if(!ctrl.model.participants.length) {
                 $ionicPopup.alert({
                     title: '参与者',
-                    template: '目前还没有人订阅这条提醒，快快点击右上角，把它分享出去，让别的小伙伴也能接受到这个提醒吧~',
+                    template: '目前还没有人订阅这条提醒，快快点击右上角，把它\u5206\u4eab出去，让别的小伙伴也能接受到这个提醒吧~',
                     okText: '好的'
                 });
             } else {

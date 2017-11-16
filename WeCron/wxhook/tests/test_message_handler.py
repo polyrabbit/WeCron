@@ -86,7 +86,7 @@ class MessageHandlerTestCase(TestCase):
         <CreateTime>1348831860</CreateTime>
         <MsgType><![CDATA[text]]></MsgType>
         <Content><![CDATA[%s]]></Content>
-        <MsgId>1234567890123456</MsgId>
+        <MsgId>12345678901234561</MsgId>
         </xml>
         """ % self.remind_desc
         wechat_msg = self.build_wechat_msg(req_text)
@@ -102,7 +102,7 @@ class MessageHandlerTestCase(TestCase):
         <CreateTime>1348831860</CreateTime>
         <MsgType><![CDATA[text]]></MsgType>
         <Content><![CDATA[%s]]></Content>
-        <MsgId>1234567890123456</MsgId>
+        <MsgId>12345678901234562</MsgId>
         </xml>
         """ % '每月20号提醒我还信用卡'
         wechat_msg = self.build_wechat_msg(req_text)
@@ -120,7 +120,7 @@ class MessageHandlerTestCase(TestCase):
         <MsgType><![CDATA[image]]></MsgType>
         <PicUrl><![CDATA[this is a url]]></PicUrl>
         <MediaId><![CDATA[media_id]]></MediaId>
-        <MsgId>1234567890123456</MsgId>
+        <MsgId>12345678901234563</MsgId>
         </xml>
         """
         wechat_msg = self.build_wechat_msg(req_text)
@@ -137,7 +137,7 @@ class MessageHandlerTestCase(TestCase):
         <MediaId><![CDATA[media_id]]></MediaId>
         <Format><![CDATA[Format]]></Format>
         <Recognition><![CDATA[%s]]></Recognition>
-        <MsgId>1234567890123456</MsgId>
+        <MsgId>12345678901234564</MsgId>
         </xml>
         """ % self.remind_desc
         wechat_msg = self.build_wechat_msg(req_text)
@@ -155,7 +155,7 @@ class MessageHandlerTestCase(TestCase):
         <MediaId><![CDATA[%s]]></MediaId>
         <Format><![CDATA[Format]]></Format>
         <Recognition><![CDATA[%s]]></Recognition>
-        <MsgId>1234567890123456</MsgId>
+        <MsgId>12345678901234565</MsgId>
         </xml>
         """ % (media_id, self.remind_desc)
         wechat_msg = self.build_wechat_msg(req_text)
@@ -173,7 +173,7 @@ class MessageHandlerTestCase(TestCase):
         <MsgType><![CDATA[video]]></MsgType>
         <MediaId><![CDATA[media_id]]></MediaId>
         <ThumbMediaId><![CDATA[thumb_media_id]]></ThumbMediaId>
-        <MsgId>1234567890123456</MsgId>
+        <MsgId>12345678901234566</MsgId>
         </xml>
         """
         wechat_msg = self.build_wechat_msg(req_text)
@@ -189,7 +189,7 @@ class MessageHandlerTestCase(TestCase):
         <MsgType><![CDATA[shortvideo]]></MsgType>
         <MediaId><![CDATA[media_id]]></MediaId>
         <ThumbMediaId><![CDATA[thumb_media_id]]></ThumbMediaId>
-        <MsgId>1234567890123456</MsgId>
+        <MsgId>12345678901234567</MsgId>
         </xml>
         """
         wechat_msg = self.build_wechat_msg(req_text)
@@ -207,7 +207,7 @@ class MessageHandlerTestCase(TestCase):
         <Location_Y>113.358803</Location_Y>
         <Scale>20</Scale>
         <Label><![CDATA[位置信息]]></Label>
-        <MsgId>1234567890123456</MsgId>
+        <MsgId>12345678901234568</MsgId>
         </xml>
         """
         wechat_msg = self.build_wechat_msg(req_text)
@@ -224,7 +224,7 @@ class MessageHandlerTestCase(TestCase):
         <Title><![CDATA[公众平台官网链接]]></Title>
         <Description><![CDATA[公众平台官网链接]]></Description>
         <Url><![CDATA[url]]></Url>
-        <MsgId>1234567890123456</MsgId>
+        <MsgId>12345678901234569</MsgId>
         </xml>
         """
         wechat_msg = self.build_wechat_msg(req_text)
