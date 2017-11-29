@@ -5,11 +5,17 @@ from datetime import timedelta
 from django.test import TestCase
 from django.utils import timezone
 from remind.models import Remind
+from wechat_user.models import WechatUser
 
 
 class RemindModelTestCase(TestCase):
 
+    def setUp(self):
+        u = WechatUser(openid='miao', nickname='miaomiao', subscribe=True, last_login=timezone.now())
+        u.save()
+
     def test_add_add_participant(self):
+        WechatUser(openid='abc', nickname='abcabc', subscribe=True).save()
         r = Remind(time=timezone.now(), owner_id='miao', event='吃饭', desc='吃饭饭')
         r.save()
         r.add_participant('abc')

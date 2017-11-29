@@ -98,6 +98,7 @@ class Remind(models.Model):
             return
         user.activate_timezone()
         # Prepare all parameters, in case they get modified when sending message asyncly
+        # TODO: test those parameters
         message_params = {
             'user_id': uid,
             'template_id': 'IxUSVxfmI85P3LJciVVcUZk24uK6zNvZXYkeJrCm_48',
@@ -116,20 +117,37 @@ class Remind(models.Model):
                 },
                 "remark": {
                     "value": "提醒时间：" + self.nature_time_defer()
-                             + ('\n重复周期：' + self.get_repeat_text() +
+                             + (('\n重复周期：' + self.get_repeat_text() +
                                 '\n\n点击详情' + (
-                                '删除' if self.owner_id == uid else '退订') + '本提醒') if self.has_repeat() else '',
+                                '删除' if self.owner_id == uid else '退订') + '本提醒') if self.has_repeat() else ''),
                 }
             },
 
         }
+        if user.last_login and now() - user.last_login < timedelta(hours=48):
+            raw_text = '\U0001F552 %s\n\n备注：%s\n时间：%s\n提醒：%s\n%s\n%s' % (
+                self.title(),
+                self.desc,
+                self.local_time_string('Y/n/d(D) G:i'),
+                self.nature_time_defer(),
+                ('重复：' + self.get_repeat_text() + '\n') if self.has_repeat() else '',
+                '<a href="%s">详情</a>' % self.get_absolute_url(True))
+            message_params['raw_text'] = raw_text
         self.send_template_message_async(message_params, self.desc, name)
 
     @threads(10, timeout=60)
     def send_template_message_async(self, message_params, desc, uname):
+        if 'raw_text' in message_params:
+            try:
+                res = wechat_client.message.send_text(message_params['user_id'], message_params['raw_text'])
+                logger.info('Successfully send notification(%s) to user %s in text mode', desc, uname)
+                return res
+            except:
+                pass
         try:
+            message_params.pop('raw_text', None)
             res = wechat_client.message.send_template(**message_params)
-            logger.info('Successfully send notification(%s) to user %s', desc, uname)
+            logger.info('Successfully send notification(%s) to user %s in template mode', desc, uname)
             return res
         except:
             logger.exception('Failed to send notification(%s) to user %s', desc, uname)
@@ -217,7 +235,7 @@ def notify_participant_modified(sender, participant, add, **kwargs):
         notification = '\U0001F494 %s退出了你的提醒：<a href="%s">%s</a>\n%s' % (
             participant.get_full_name(), sender.get_absolute_url(True), sender.title(), settings_link)
     logger.info('Trying to notify user %s for participant modification on %s', sender.owner.get_full_name(), sender.desc)
-    if now() - sender.owner.last_login < timedelta(hours=48):
+    if sender.owner.last_login and now() - sender.owner.last_login < timedelta(hours=48):
         try:
             wechat_client.message.send_text(sender.owner_id, notification)
         except Exception as e:
