@@ -99,8 +99,11 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'HOST': os.environ.get('WECRON_DB_HOST', 'localhost'),
         'PORT': os.environ.get('WECRON_DB_PORT', 5432),
+        # create database "___" WITH OWNER "__" TEMPLATE template0 ENCODING='UTF8' CONNECTION LIMIT=-1;
         'NAME': os.environ.get('WECRON_DB_NAME', 'wecron'),
+        # CREATE USER "__" WITH SUPERUSER PASSWORD '__';
         'USER': os.environ.get('WECRON_DB_USER', 'postgres'),
+        # GRANT ALL PRIVILEGES ON DATABASE "___" to "__";
         'PASSWORD': os.environ.get('WECRON_DB_PASSWORD', ''),
     }
 }

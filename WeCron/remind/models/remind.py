@@ -180,6 +180,7 @@ class Remind(models.Model):
         return
 
     def reschedule(self):
+        # This method is idempotent
         if not self.has_repeat():
             return False
         _now = now()
@@ -196,6 +197,7 @@ class Remind(models.Model):
         return True
 
     def update_notify_time(self):
+        # This method is idempotent
         self.notify_time = self.time + timedelta(minutes=self.defer)
 
     def subscribed_by(self, user):

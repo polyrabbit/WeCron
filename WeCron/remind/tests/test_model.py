@@ -32,3 +32,9 @@ class RemindModelTestCase(TestCase):
         r.save()
         self.assertEqual(r.notify_time, n-timedelta(minutes=10))
         self.assertEqual(r.nature_time_defer(), '提前 10 分钟')
+
+    def test_reschedule(self):
+        n = timezone.now() - timedelta(minutes=10)
+        r = Remind(time=n, owner_id='miao', event='吃饭', desc='吃饭饭', repeat=(0, 0, 1, 0), defer=-60)
+        r.save()
+        self.assertEqual(r.notify_time,  n-timedelta(minutes=60)+timedelta(days=1))
