@@ -7,7 +7,7 @@ from urllib import quote_plus
 from rest_framework import viewsets, permissions, pagination, authentication
 from rest_framework.generics import get_object_or_404
 from django.views.generic import TemplateView
-from django.http import Http404, StreamingHttpResponse, JsonResponse
+from django.http import Http404, StreamingHttpResponse, JsonResponse, HttpResponse
 from django.utils import timezone
 from django.core.urlresolvers import reverse
 from django.conf import settings
@@ -19,6 +19,7 @@ from remind.models import Remind
 from remind.serializers import RemindSerializer
 from remind.signals import participant_modified
 from remind.utils import get_qrcode_url
+from remind.share_post import draw_post
 
 logger = logging.getLogger(__name__)
 
@@ -131,5 +132,19 @@ def media_proxy(request, media_id):
     return response
 
 
-def qrCodeView(request, remind_id):
+def qr_code_view(request, remind_id):
     return JsonResponse({'qrcodeUrl': get_qrcode_url(remind_id)})
+
+
+def share_post_view(request, remind_id):
+    user = None
+    if request.user.is_authenticated():
+        user = request.user
+    remind = get_object_or_404(Remind.objects, pk=remind_id)
+    post_image = draw_post(remind, user)
+
+    # Saving the image to the Django response object:
+    response = HttpResponse(content_type='image/png')
+    post_image.save(response, 'PNG')
+
+    return response

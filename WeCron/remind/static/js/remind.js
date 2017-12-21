@@ -468,6 +468,15 @@ angular.module('remind', ['ionic'])
                     });
                 });
         };
+
+        ctrl.showSharePost = function () {
+            var postUrl = '/reminds/api/'+remind.id+'/share_post/';
+            $ionicPopup.alert({
+                title: '长按图片，把它\u5206\u4eab出去，让别的小伙伴也能接受到这个提醒吧~',
+                template: '<a href="' + postUrl + '"><img class="qrcode" alt="提醒海报" src="'+ postUrl + '" /></a>'
+            });
+        };
+
         ctrl.promptShare = function () {
             document.getElementById('weixinTip').style.display="block";
         };

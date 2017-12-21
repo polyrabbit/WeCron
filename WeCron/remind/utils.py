@@ -2,7 +2,7 @@
 from __future__ import unicode_literals, absolute_import
 from datetime import timedelta
 
-from django.utils import timezone
+from django.utils import timezone, lru_cache
 from common import wechat_client
 
 

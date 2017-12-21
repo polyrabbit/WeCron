@@ -6,7 +6,7 @@ requests==2.8.1
 psycopg2==2.6.1
 APScheduler==3.0.6
 pytz
-pycrypto==2.6.1
+pycrypto==2.7.3.1
 ago==0.0.6
 tomorrow==0.2.4
 httmock==1.2.4
@@ -14,3 +14,4 @@ jieba==0.38
 python_dateutil==2.6.0
 shove==0.6.6
 coverage
+Pillow==4.3.0
