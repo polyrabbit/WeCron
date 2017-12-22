@@ -33,6 +33,7 @@ class Remind(models.Model):
     remark = models.TextField('备注', default='', blank=True, null=True)
     event = models.TextField('提醒事件', default='', blank=True, null=True)
     media_id = models.URLField('语音消息媒体id', max_length=120, blank=True, null=True)
+    external_url = models.URLField('外部链接地址', max_length=120, blank=True, null=True)
     # year, month, day, week, hour, minute
     repeat = ArrayField(models.IntegerField(), size=4, verbose_name='重复', default=list)
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name='创建者',
@@ -204,6 +205,8 @@ class Remind(models.Model):
         return self.owner_id == user.pk or user.pk in self.participants
 
     def get_absolute_url(self, full=False):
+        if self.external_url:
+            return self.external_url
         # url = reverse('remind-detail', kwargs={'pk': self.pk.hex})
         url = '/reminds/#/' + self.pk.hex
         if full:

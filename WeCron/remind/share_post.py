@@ -1,13 +1,18 @@
 #coding: utf-8
 import os
-import requests
 from cStringIO import StringIO
+import logging
+
+import requests
 from PIL import Image, ImageFont, ImageDraw
+from django.utils import lru_cache
 from remind.utils import get_qrcode_url
 
 
+logger = logging.getLogger(__name__)
 FONT = ImageFont.truetype(os.path.join(os.path.dirname(__file__), 'asserts/STHEITI.ttf'), 60)
-tpl_post_path = os.path.join(os.path.dirname(__file__), 'asserts/share_post_template.png')
+TPL_IMAGE_PATH = os.path.join(os.path.dirname(__file__), 'asserts/share_post_template.jpg')
+LOGO_PATH = os.path.join(os.path.dirname(__file__), '../common/static/img/favicon.jpeg')
 LINE_SPACING = 20
 
 
@@ -29,8 +34,8 @@ def draw_header(tpl, avatar, uname):
     region_width = txt_width + avatar_width
     region_height = txt_height + avatar_height
 
-    header_x = (im_width - region_width) / 2
-    header_y = (360 - region_height) / 2
+    header_x = (im_width - region_width) // 2
+    header_y = (360 - region_height) // 2
 
     tpl.paste(avatar, box=(header_x, header_y), mask=get_circular_mask(avatar))
     dr = ImageDraw.Draw(tpl)
@@ -55,7 +60,7 @@ def draw_body(tpl, text):
             chr_width, chr_height = FONT.getsize(chr)
             line_max_height = max(line_max_height, chr_height)
             if line_width + chr_width >= container_width:
-                text_height += line_max_height + LINE_SPACING - 5
+                text_height += line_max_height + LINE_SPACING - 4  # some gap?
                 if text_height > im_height * 0.4:
                     text_buf[-1] = '...'
                     text_height -= LINE_SPACING
@@ -74,7 +79,7 @@ def draw_body(tpl, text):
         text_height = font_height
 
     # Draw text
-    text_offset = ((im_width - font_width) / 2, (im_height - text_height) / 2)
+    text_offset = ((im_width - font_width) // 2, (im_height - text_height) // 2)
     dr.text(text_offset, text, font=FONT, fill='#545255', spacing=LINE_SPACING)
 
     # Draw quotes
@@ -89,34 +94,48 @@ def draw_body(tpl, text):
 
 def draw_footer(tpl, qr):
     qr = qr.resize((200, 200), Image.ANTIALIAS)
-    im_width, im_height = tpl.size
     qr_width, qr_height = qr.size
+
+    # Paste logo
+    logo = Image.open(LOGO_PATH)
+    logo = logo.resize((qr_width//4, qr_height//4), Image.ANTIALIAS)
+    logo_width, logo_height = logo.size
+    qr.paste(logo, box=((qr_width-logo_width)//2, (qr_height-logo_height)//2))
+
+    # Paste QR code
+    im_width, im_height = tpl.size
     box_x = im_width - qr_width - 70
     box_y = im_height - qr_height - 40
     tpl.paste(qr, box=(box_x, box_y))
     return tpl
 
 
+@lru_cache.lru_cache(maxsize=128)
+def http_get_bytes(url):
+    # idempotent, so it can be cached
+    resp = requests.get(url)
+    resp.raise_for_status()
+    return resp.content
+
+
 def draw_post(remind, user=None):
     text = remind.desc
-    tpl = Image.open(tpl_post_path)
 
     if user is None:
         user = remind.owner
 
-    avatar_resp = requests.get(user.headimgurl)
-    avatar = Image.open(StringIO(avatar_resp.content))
+    try:
+        avatar = Image.open(StringIO(http_get_bytes(user.headimgurl)))
+    except Exception as e:
+        logger.warning('Failed to build user avatar for %s, use a default one: %s', user.get_full_name(), e.message)
+        avatar = Image.new('RGB', (128, 128), 'white')
 
-    qr_resp = requests.get(get_qrcode_url(remind.id.hex))
-    qr = Image.open(StringIO(qr_resp.content))
+    qr_url = get_qrcode_url(remind.id.hex)
+    qr = Image.open(StringIO(http_get_bytes(qr_url)))
 
+    tpl = Image.open(TPL_IMAGE_PATH)
     draw_header(tpl, avatar, user.get_full_name())
     draw_body(tpl, text)
     draw_footer(tpl, qr)
+    logger.info('%s requests a share post for %s', user.get_full_name(), text)
     return tpl
-
-
-# TODO: test one line, two lines, too much lines
-# from remind.models import Remind
-# from wechat_user.models import WechatUser
-# draw_post(Remind.objects.order_by('id').first(), WechatUser.objects.first()).show()

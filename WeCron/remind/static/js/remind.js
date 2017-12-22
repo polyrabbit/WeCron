@@ -183,7 +183,8 @@ angular.module('remind', ['ionic'])
                     }
                     throw new Error('不知道什么原因，不能获取到该提醒的二维码~');
                 });
-            }
+            },
+            httpRequest: httpRequest
         }
     })
     .controller('RemindListCtrl', function($scope, remindManager, $filter, $state){
@@ -470,10 +471,17 @@ angular.module('remind', ['ionic'])
         };
 
         ctrl.showSharePost = function () {
-            var postUrl = '/reminds/api/'+remind.id+'/share_post/';
+            var postUrl = remind.post_url;
+            var newScope = $scope.$new();
+            newScope.imgOnLoad = function ($event) {
+                newScope.loaded = true;
+            };
             $ionicPopup.alert({
                 title: '长按图片，把它\u5206\u4eab出去，让别的小伙伴也能接受到这个提醒吧~',
-                template: '<a href="' + postUrl + '"><img class="qrcode" alt="提醒海报" src="'+ postUrl + '" /></a>'
+                scope: newScope,
+                template: '<div style="text-align: center;"><ion-spinner ng-show="!loaded" icon="android"></ion-spinner>' +
+                '<a ng-show="loaded" href="' + postUrl + '"><img class="qrcode" alt="提醒海报" ' +
+                'img-on-load="imgOnLoad()" src="'+ postUrl + '" /></a></div>'
             });
         };
 
@@ -570,7 +578,19 @@ angular.module('remind', ['ionic'])
                 });
             }
         };
-    });
+    }).directive('imgOnLoad', ['$parse', function ($parse) {
+        return {
+          restrict: 'A',
+          link: function (scope, elem, attrs) {
+            var fn = $parse(attrs.imgOnLoad);
+            elem.on('load', function (event) {
+              scope.$apply(function() {
+                fn(scope, { $event: event });
+              });
+            });
+          }
+        };
+  }]);
 
 function formatTimeRepeat(repeat) {
     repeat = repeat || [0, 0, 0, 0];

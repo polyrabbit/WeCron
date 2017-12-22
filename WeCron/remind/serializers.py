@@ -6,6 +6,7 @@ from datetime import datetime
 from django.utils.dateformat import format
 from django.contrib.auth import get_user_model
 from django.utils import timezone
+from django.core.urlresolvers import reverse
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError, PermissionDenied
 from remind.utils import get_qrcode_url
@@ -82,10 +83,12 @@ class RemindSerializer(serializers.ModelSerializer):
     title = TitleField(source='event')
     participants = ParticipantSerializer(default=list)
     participate_qrcode = serializers.SerializerMethodField()
+    post_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Remind
-        fields = ('title', 'time', 'owner', 'id', 'defer', 'desc', 'repeat', 'participants', 'participate_qrcode', 'media_id')
+        fields = ('title', 'time', 'owner', 'id', 'defer', 'desc', 'repeat',
+                  'participants', 'participate_qrcode', 'media_id', 'post_url', 'external_url')
         read_only_fields = ('owner', 'id', 'media_id')
 
     _created = False
@@ -109,3 +112,7 @@ class RemindSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         instance.done = False
         return super(RemindSerializer, self).update(instance, validated_data)
+
+    def get_post_url(self, remind):
+        return self.context['request'].build_absolute_uri(
+            reverse('remind_share_post', kwargs={'remind_id': remind.pk.hex}))
