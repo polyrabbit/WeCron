@@ -29,7 +29,9 @@ class RemindSerializerTestCase(TestCase):
 
     def setUp(self):
         self.request = RequestFactory().get('/')
-        self.request.user = get_user_model()(openid='123', nickname='abc')
+        user = get_user_model()(openid='miao', nickname='abc')
+        user.save()
+        self.request.user = user
         self.r = Remind(time=timezone.now(), owner_id='miao', event='吃饭', desc='吃饭饭', done=True)
         self.r.save()
 
@@ -69,7 +71,7 @@ class RemindSerializerTestCase(TestCase):
         update_data = {
             'id': '123',
             'owner': {
-                'id': '123'
+                'id': 'miao'
             },
             'title': self.r.event,
             'time': TimestampField().to_representation(self.r.time),

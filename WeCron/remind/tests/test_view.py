@@ -10,6 +10,8 @@ from wechat_user.models import WechatUser
 
 class RemindViewTestCase(TestCase):
     def setUp(self):
+        self.user = WechatUser(openid='miao', nickname='456')
+        self.user.save()
         self.r = Remind(time=timezone.now(), owner_id='miao', event='吃饭', desc='吃饭饭')
         self.r.save()
 
@@ -28,19 +30,16 @@ class RemindViewTestCase(TestCase):
         self.assertEqual(resp.status_code, 403)
 
     def test_participant_delete(self):
-        WechatUser(openid='miao', nickname='miaomiaomiao').save()
-        self.r.add_participant('123')
         u = WechatUser(openid='123', nickname='456')
         u.save()
+        self.r.add_participant('123')
         self.client.force_login(u)
         resp = self.client.delete(reverse('remind-detail', args=(self.r.pk.hex,)))
         self.assertEqual(resp.status_code, 204)
         # self.assertEqual(resp.url, reverse('remind_list'))
 
     def test_delete(self):
-        u = WechatUser(openid='miao', nickname='456')
-        u.save()
-        self.client.force_login(u)
+        self.client.force_login(self.user)
         resp = self.client.delete(reverse('remind-detail', args=(self.r.pk.hex,)))
         self.assertEqual(resp.status_code, 204)
         # self.assertEqual(resp.url, reverse('remind_list'))

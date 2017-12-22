@@ -14,7 +14,6 @@ cache:
     - $HOME/.cache/pip
 
 before_script:
-  - psql -U postgres -c "create extension postgis"
   - psql -c 'create database wecron;' -U postgres
   - make syncdb
 

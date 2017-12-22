@@ -38,6 +38,7 @@ class LocalParserTestCase(TestCase):
     def test_parse_year(self):
         # Unknown starting should be ignored
         text = '吃吃吃2016年三月十五号下午三点四十提醒我睡觉'
+        self.parser.now = self.parser.now.replace(year=2016)
         reminder = self.parse(text)
         self.assertEqual(reminder.desc, text)
         self.assertEqual(reminder.title(), '睡觉')
@@ -201,6 +202,7 @@ class LocalParserTestCase(TestCase):
         self.assertRaises(ParseError, self.parse, text)
 
     def test_parse_time_range(self):
+        self.parser.now = self.parser.now.replace(year=2017)
         for text in ('2017年11月12日 11:00-12:00 安美宝一包', '星期一到星期五提醒我早上六点半起床', '三号~五号吃饭'):
             self.setUp()
             with self.assertRaises(ParseError) as cm:
