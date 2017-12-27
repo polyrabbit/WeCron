@@ -539,7 +539,7 @@ class LocalParser(object):
         return self.get_index() - beginning
 
     def consume_digit(self, consume=True):
-        if self.current_word().isdigit():
+        if self.current_word().isdecimal():  #NOTE: isdigit covers too much
             digit = int(self.current_word())
             if consume:
                 self.advance()

@@ -52,3 +52,16 @@ class SharePostTestCase(TestCase):
 
         if DISPLAY_POST:
             image.show()
+
+    @with_httmock(access_token_mock, create_qrcode_mock, get_qr_image_mock)
+    def test_lines_with_carriage(self):
+        desc = """2018 NEO编程日 第1站  时间：2018年1月13日13：00（签到）—18：30（下午）""" + \
+            """\n地点：上海浦东新区金科路长泰广场C座12层
+                    """
+        r = Remind(time=timezone.now(), owner_id='miao', event='吃饭', desc=desc)
+        image = draw_post(r, self.user)
+
+        if DISPLAY_POST:
+            image.show()
+
+

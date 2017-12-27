@@ -16,3 +16,4 @@ shove==0.6.6
 coverage
 Pillow==4.3.0
 py-lru-cache==0.1.4
+grip

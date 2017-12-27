@@ -1,4 +1,4 @@
-.PHONY: run clean test collectstatic run-in-prod run-uwsgi-test
+.PHONY: run clean test docs collectstatic run-in-prod run-uwsgi-test
 
 VCAP_APP_PORT ?= 8000
 PORT ?= $(VCAP_APP_PORT)
@@ -6,7 +6,7 @@ PORT ?= $(VCAP_APP_PORT)
 run:
 	python WeCron/manage.py runserver 0.0.0.0:$(PORT)
 
-run-in-prod: clean syncdb collectstatic
+run-in-prod: clean docs syncdb collectstatic
 	# uwsgi --ini=deploy/conf/uwsgi.ini.j2 --http :$(PORT) 
 	uwsgi --ini=deploy/conf/uwsgi.ini --http :$(PORT) 
 
@@ -21,6 +21,9 @@ run-uwsgi-test:
 		--processes=4 \
 		--master \
 		# --home=/path/to/virtual/env \   # optional path to a virtualenv
+
+docs:
+	python -m grip --user-content --wide --export --title="提醒即服务 - Reminder as a Service" WeCron/remind/static/docs/raas.md WeCron/remind/static/docs/raas.html
 
 collectstatic:
 	python WeCron/manage.py collectstatic --noinput -v0 --clear

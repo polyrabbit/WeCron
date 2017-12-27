@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 FONT = ImageFont.truetype(os.path.join(os.path.dirname(__file__), 'asserts/STHEITI.ttf'), 60)
 TPL_IMAGE_PATH = os.path.join(os.path.dirname(__file__), 'asserts/share_post_template.jpg')
 LOGO_PATH = os.path.join(os.path.dirname(__file__), '../common/static/img/favicon.jpeg')
+UGULU_LOGO_PATH = os.path.join(os.path.dirname(__file__), 'asserts/ugulu_logo.jpg')
 LINE_SPACING = 20
 
 
@@ -45,6 +46,7 @@ def draw_header(tpl, avatar, uname):
 
 
 def draw_body(tpl, text):
+    text = text.strip()
     im_width, im_height = tpl.size
     dr = ImageDraw.Draw(tpl)
     font_width, font_height = dr.textsize(text, FONT, spacing=LINE_SPACING)
@@ -59,15 +61,19 @@ def draw_body(tpl, text):
         for chr in text:
             chr_width, chr_height = FONT.getsize(chr)
             line_max_height = max(line_max_height, chr_height)
-            if line_width + chr_width >= container_width:
-                text_height += line_max_height + LINE_SPACING - 4  # some gap?
+            if line_width + chr_width >= container_width or chr == '\n':
+                text_height += line_max_height + LINE_SPACING - 4.5  # some gap?
                 if text_height > im_height * 0.4:
                     text_buf[-1] = '...'
                     text_height -= LINE_SPACING
                     break
+                if line_width + chr_width >= container_width:
+                    # If line exceeds container width, insert a carriage return
+                    text_buf.append('\n')
+                elif chr == '\n':
+                    chr_width = 0
                 line_width = 0
                 line_max_height = 0
-                text_buf.append('\n')
             text_buf.append(chr)
             line_width += chr_width
         else:
@@ -92,12 +98,13 @@ def draw_body(tpl, text):
     return tpl
 
 
-def draw_footer(tpl, qr):
+def draw_footer(tpl, qr, logo_path):
     qr = qr.resize((200, 200), Image.ANTIALIAS)
     qr_width, qr_height = qr.size
+    qr = qr.convert('RGB')
 
     # Paste logo
-    logo = Image.open(LOGO_PATH)
+    logo = Image.open(logo_path)
     logo = logo.resize((qr_width//4, qr_height//4), Image.ANTIALIAS)
     logo_width, logo_height = logo.size
     qr.paste(logo, box=((qr_width-logo_width)//2, (qr_height-logo_height)//2))
@@ -136,6 +143,9 @@ def draw_post(remind, user=None):
     tpl = Image.open(TPL_IMAGE_PATH)
     draw_header(tpl, avatar, user.get_full_name())
     draw_body(tpl, text)
-    draw_footer(tpl, qr)
+    logo_path = LOGO_PATH
+    if remind.owner.pk == 'owQF1vwl4GxUD8nTsiC0tVBla2H8':
+        logo_path = UGULU_LOGO_PATH
+    draw_footer(tpl, qr, logo_path)
     logger.info('%s requests a share post for %s', user.get_full_name(), text)
     return tpl
