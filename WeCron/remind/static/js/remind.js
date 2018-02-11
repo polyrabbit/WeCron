@@ -424,6 +424,10 @@ angular.module('remind', ['ionic'])
                         {
                             label: '周',
                             value: 3
+                        },
+                        {
+                            label: '小时',
+                            value: 3
                         }
                     ]
                 };
@@ -436,7 +440,7 @@ angular.module('remind', ['ionic'])
                 }
             ], {
                 defaultValue: (function(){
-                    var repeat = ctrl.model.repeat || [0, 0, 0, 0];
+                    var repeat = ctrl.model.repeat || [0, 0, 0, 0, 0];
                     for(var i=0; i<repeat.length; ++i) {
                         if(repeat[i] !== 0) {
                             return [0, repeat[i], i];
@@ -445,7 +449,7 @@ angular.module('remind', ['ionic'])
                     return [0, 0, 0];
                 })(),
                 onConfirm: function (result) {
-                    ctrl.model.repeat = [0, 0, 0, 0];
+                    ctrl.model.repeat = [0, 0, 0, 0, 0];
                     ctrl.model.repeat[result[2]] = result[1];
                     $scope.$apply();
                 },
@@ -593,10 +597,10 @@ angular.module('remind', ['ionic'])
   }]);
 
 function formatTimeRepeat(repeat) {
-    repeat = repeat || [0, 0, 0, 0];
+    repeat = repeat || [0, 0, 0, 0, 0];
     for(var i=0; i<repeat.length; ++i) {
         if(repeat[i] !== 0) {
-            return '每'+repeat[i]+(['年', '月', '天', '周'][i]);
+            return '每'+repeat[i]+(['年', '月', '天', '周', '小时', '分钟'][i]);
         }
     }
     return null;

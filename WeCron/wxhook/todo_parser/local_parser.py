@@ -182,7 +182,11 @@ class LocalParser(object):
                     return self.get_index() - beginning
             elif self.consume_word(u'小时'):
                 self.consume_minute()
-                raise ParseError(u'/:no亲，暂不支持小时级别的重复提醒哦~')
+                if repeat_count < 12:
+                    raise ParseError(u'/:no亲，每%s小时的提醒太频繁了，现在还只支持间隔12个小时以上的重复提醒哦~' % repeat_count)
+                else:
+                    self.repeat[4] = repeat_count
+                    return self.get_index() - beginning
             elif self.consume_word(u'分', u'分钟'):
                 # self.consume_minute()
                 raise ParseError(u'/:no亲，暂不支持分钟级别的重复提醒哦~')

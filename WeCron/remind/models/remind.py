@@ -35,7 +35,7 @@ class Remind(models.Model):
     media_id = models.URLField('语音消息媒体id', max_length=120, blank=True, null=True)
     external_url = models.URLField('外部链接地址', max_length=120, blank=True, null=True)
     # year, month, day, week, hour, minute
-    repeat = ArrayField(models.IntegerField(), size=4, verbose_name='重复', default=list)
+    repeat = ArrayField(models.IntegerField(), size=5, verbose_name='重复', default=list)
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name='创建者',
                               related_name='time_reminds_created', on_delete=models.DO_NOTHING)
     # participants = models.ManyToManyField('wechat_user.WechatUser', verbose_name='订阅者',

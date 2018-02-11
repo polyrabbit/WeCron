@@ -328,10 +328,10 @@ class LocalParserTestCase(TestCase):
         self.assertEquals(reminder.time.minute, 0)
 
     def test_parse_date_without_explict_ending(self):
-        text = '2017-12-16 09:10:00'
+        text = '%s-12-16 09:10:00' % self.now.year
         reminder = self.parse(text)
         self.assertEqual(reminder.desc, text)
-        self.assertEqual(reminder.time.year, 2017)
+        self.assertEqual(reminder.time.year, self.now.year)
         self.assertEqual(reminder.time.month, 12)
         self.assertEqual(reminder.time.day, 16)
         self.assertEquals(reminder.time.hour, 9)
@@ -398,15 +398,16 @@ class LocalParserTestCase(TestCase):
             self.assertEquals(reminder.time.hour, 10)
             self.assertEquals(reminder.time.minute, 0)
 
-    @unittest.skip("Hourly repeat not supported")
+    # @unittest.skip("Hourly repeat not supported")
     def test_parse_repeat_hour(self):
-        text = '每两小时'
+        text = '每23个小时'
         reminder = self.parse(text)
         self.assertEqual(reminder.desc, text)
-        self.assertEqual(reminder.get_repeat_text(), '每2小时')
-        self.assertEquals((self.now + relativedelta(hours=2)).hour, reminder.time.hour)
+        self.assertEqual(reminder.get_repeat_text(), '每23小时')
+        self.assertEquals((self.now + relativedelta(hours=23)).hour, reminder.time.hour)
         self.assertEquals(reminder.time.minute, self.now.minute)
 
     def test_parse_repeat_with_throttle(self):
-        text = '每分钟提醒我一次'
-        self.assertRaises(ParseError, self.parse, text)
+        for text in ('每分钟提醒我一次', '每两小时'):
+            self.setUp()
+            self.assertRaises(ParseError, self.parse, text)
