@@ -5,6 +5,7 @@ from datetime import timedelta
 from django.test import TestCase
 from django.utils import timezone
 from remind.models import Remind
+from remind.models.remind import REPEAT_KEY_DAY
 from wechat_user.models import WechatUser
 
 
@@ -35,6 +36,6 @@ class RemindModelTestCase(TestCase):
 
     def test_reschedule(self):
         n = timezone.now() - timedelta(minutes=10)
-        r = Remind(time=n, owner_id='miao', event='吃饭', desc='吃饭饭', repeat=(0, 0, 1, 0), defer=-60)
+        r = Remind(time=n, owner_id='miao', event='吃饭', desc='吃饭饭', repeat={REPEAT_KEY_DAY: 1}, defer=-60)
         r.save()
         self.assertEqual(r.notify_time,  n-timedelta(minutes=60)+timedelta(days=1))

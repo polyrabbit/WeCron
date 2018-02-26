@@ -411,23 +411,23 @@ angular.module('remind', ['ionic'])
                     children: [
                         {
                             label: '年',
-                            value: 0
+                            value: 'year'
                         },
                         {
                             label: '月',
-                            value: 1
+                            value: 'month'
                         },
                         {
                             label: '天',
-                            value: 2
+                            value: 'day'
                         },
                         {
                             label: '周',
-                            value: 3
+                            value: 'week'
                         },
                         {
                             label: '小时',
-                            value: 3
+                            value: 'hour'
                         }
                     ]
                 };
@@ -440,16 +440,15 @@ angular.module('remind', ['ionic'])
                 }
             ], {
                 defaultValue: (function(){
-                    var repeat = ctrl.model.repeat || [0, 0, 0, 0, 0];
-                    for(var i=0; i<repeat.length; ++i) {
-                        if(repeat[i] !== 0) {
-                            return [0, repeat[i], i];
+                    var repeat = ctrl.model.repeat || {};
+                    for (var key in repeat) {
+                        if (repeat[key]) {
+                            return [0, repeat[key], key];
                         }
                     }
-                    return [0, 0, 0];
+                    return [0, 0, 'year'];
                 })(),
                 onConfirm: function (result) {
-                    ctrl.model.repeat = [0, 0, 0, 0, 0];
                     ctrl.model.repeat[result[2]] = result[1];
                     $scope.$apply();
                 },
@@ -568,18 +567,15 @@ angular.module('remind', ['ionic'])
         };
     }).directive('natureRepeat', function () {
         return {
-            require: '^ngModel',
+            require: 'ngModel',
             restrict: 'A',
             link: function (scope, elm, attrs, ctrl) {
-                ctrl.$formatters.unshift(function (modelValue) {
+                ctrl.$formatters = [(function (modelValue) {
                     if (modelValue === undefined) {
                         return null;
                     }
-                    if (angular.isString(modelValue)) {
-                        modelValue = JSON.parse("[" + modelValue + "]");
-                    }
                     return formatTimeRepeat(modelValue) || '不重复';
-                });
+                })];
             }
         };
     }).directive('imgOnLoad', ['$parse', function ($parse) {
@@ -597,10 +593,17 @@ angular.module('remind', ['ionic'])
   }]);
 
 function formatTimeRepeat(repeat) {
-    repeat = repeat || [0, 0, 0, 0, 0];
-    for(var i=0; i<repeat.length; ++i) {
-        if(repeat[i] !== 0) {
-            return '每'+repeat[i]+(['年', '月', '天', '周', '小时', '分钟'][i]);
+    repeat = repeat || {};
+    for (var key in repeat) {
+        if (repeat[key]) {
+            return '每' + repeat[key] + ({
+                'year': '年',
+                'month': '月',
+                'day': '天',
+                'week': '周',
+                'hour': '小时',
+                'minute': '分钟'
+            }[key]);
         }
     }
     return null;

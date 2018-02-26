@@ -53,7 +53,7 @@ def draw_body(tpl, text):
 
     text_buf = []
     line_width = 0
-    line_max_height = FONT.getsize(text[0])[1]
+    line_max_height = FONT.getsize(text[0])[1] if len(text) > 0 else 0
     text_height = 0
     container_width = im_width * 0.8
     # Text is limited in a container

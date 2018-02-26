@@ -9,7 +9,7 @@ from remind.models import Remind
 class Command(BaseCommand):
 
     def handle(self, *args, **options):
-        yesterday = timezone.now() - timezone.timedelta(days=4)
+        yesterday = timezone.now() - timezone.timedelta(days=0)  # Change to the date when server stopped
         reminds = Remind.objects.filter(notify_time__date=yesterday).all()
         for rem in reminds:
             if rem.reschedule():

@@ -8,6 +8,8 @@ import jieba.posseg as pseg
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
 from remind.models import Remind
+from remind.models.remind import REPEAT_KEY_YEAR, REPEAT_KEY_MONTH, \
+    REPEAT_KEY_DAY, REPEAT_KEY_WEEK, REPEAT_KEY_HOUR, REPEAT_KEY_MINUTE
 from .exceptions import ParseError
 
 jieba.initialize()
@@ -103,7 +105,7 @@ class LocalParser(object):
         self.time_fields = {}
         self.parse_beginning = 0
         self.time_delta_fields = {}
-        self.repeat = [0]*Remind._meta.get_field('repeat').size
+        self.repeat = {}
 
     def parse_by_rules(self, text):
         # TODO: refine me, here is an ad-hoc patch to distinguish weekday and hour
@@ -162,14 +164,14 @@ class LocalParser(object):
                 raise ParseError(u'/:no亲，时间跨度太大哦~')
             self.consume_word(u'个')
             if self.consume_word(u'年') and self.consume_month():
-                self.repeat[0] = repeat_count
+                self.repeat[REPEAT_KEY_YEAR] = repeat_count
                 return self.get_index() - beginning
             elif self.consume_word(u'月') and self.consume_day():
-                self.repeat[1] = repeat_count
+                self.repeat[REPEAT_KEY_MONTH] = repeat_count
                 return self.get_index() - beginning
             elif self.consume_word(u'天'):
                 # Set repeat first so it can be used in consume_hour()
-                self.repeat[2] = repeat_count
+                self.repeat[REPEAT_KEY_DAY] = repeat_count
                 if not self.consume_hour():
                     self.time_fields['hour'] = DEFAULT_HOUR
                     self.time_fields['minute'] = DEFAULT_MINUTE
@@ -178,14 +180,14 @@ class LocalParser(object):
                 if self.peek_next_word() in (u'周', u'星期'):
                     self.consume_word(u'周', u'星期')
                 if self.consume_weekday_period():
-                    self.repeat[3] = repeat_count
+                    self.repeat[REPEAT_KEY_WEEK] = repeat_count
                     return self.get_index() - beginning
             elif self.consume_word(u'小时'):
                 self.consume_minute()
                 if repeat_count < 12:
                     raise ParseError(u'/:no亲，每%s小时的提醒太频繁了，现在还只支持间隔12个小时以上的重复提醒哦~' % repeat_count)
                 else:
-                    self.repeat[4] = repeat_count
+                    self.repeat[REPEAT_KEY_HOUR] = repeat_count
                     return self.get_index() - beginning
             elif self.consume_word(u'分', u'分钟'):
                 # self.consume_minute()
@@ -291,7 +293,7 @@ class LocalParser(object):
             self.time_delta_fields['days'] = 1
         elif hour < 12:
             if self.afternoon or (self.now.hour >= 12 and not self.time_fields
-                                  and not self.time_delta_fields and self.repeat == [0]*len(self.repeat)):
+                                  and not self.time_delta_fields and not self.repeat):
                 hour += 12
         if not (0 <= hour <= 24):
             raise ParseError(u'/:no亲，一天哪有%s小时！' % hour)

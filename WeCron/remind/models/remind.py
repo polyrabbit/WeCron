@@ -11,7 +11,7 @@ from django.core.urlresolvers import reverse
 from django.conf import settings
 from django.utils.timezone import localtime, now, timedelta
 from django.utils.formats import date_format
-from django.contrib.postgres.fields import ArrayField
+from django.contrib.postgres.fields import ArrayField, JSONField
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from common import wechat_client
@@ -19,6 +19,13 @@ from remind.utils import nature_time
 from remind.signals import participant_modified
 
 logger = logging.getLogger(__name__)
+
+REPEAT_KEY_YEAR     = 'year'
+REPEAT_KEY_MONTH    = 'month'
+REPEAT_KEY_DAY      = 'day'
+REPEAT_KEY_WEEK     = 'week'
+REPEAT_KEY_HOUR     = 'hour'
+REPEAT_KEY_MINUTE   = 'minute'
 
 
 class Remind(models.Model):
@@ -35,7 +42,8 @@ class Remind(models.Model):
     media_id = models.URLField('语音消息媒体id', max_length=120, blank=True, null=True)
     external_url = models.URLField('外部链接地址', max_length=120, blank=True, null=True)
     # year, month, day, week, hour, minute
-    repeat = ArrayField(models.IntegerField(), size=5, verbose_name='重复', default=list)
+    # repeat = ArrayField(models.IntegerField(), size=5, verbose_name='重复', default=list)
+    repeat = JSONField(verbose_name='重复', default=dict)
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name='创建者',
                               related_name='time_reminds_created', on_delete=models.DO_NOTHING)
     # participants = models.ManyToManyField('wechat_user.WechatUser', verbose_name='订阅者',
@@ -168,17 +176,18 @@ class Remind(models.Model):
         self.save(update_fields=['participants'])
 
     def has_repeat(self):
-        return self.repeat and len(self.repeat) >= 4 and self.repeat != [0]*len(self.repeat)
+        return bool(self.repeat)
 
     def get_repeat_text(self):
-        if self.has_repeat():
-            # TODO: we don't support hour and minute now
-            repeat_names = ('年', '月', '天', '周', '小时', '分钟')
-            for idx, repeat_count in enumerate(self.repeat):
-                if repeat_count:
-                    return '每%s%s' % (
-                        '' if repeat_count == 1 else repeat_count, repeat_names[idx])
-        return
+        # TODO: we don't support hour and minute now
+        repeat_chinese_names = {REPEAT_KEY_YEAR: '年', REPEAT_KEY_MONTH: '月', REPEAT_KEY_DAY: '天',
+                                REPEAT_KEY_WEEK: '周', REPEAT_KEY_HOUR: '小时', REPEAT_KEY_MINUTE: '分钟'}
+        for key in self.repeat:
+            repeat_count = self.repeat[key]
+            if repeat_count:
+                # First one wins
+                return '每%s%s' % (
+                        '' if repeat_count == 1 else repeat_count, repeat_chinese_names[key])
 
     def reschedule(self):
         # This method is idempotent
@@ -188,10 +197,12 @@ class Remind(models.Model):
         self.update_notify_time()
         if _now < self.notify_time:
             return False
-        delta_keys = ['years', 'months', 'days', 'weeks', 'hours', 'minutes']
+        self.repeat.pop(REPEAT_KEY_MINUTE, None)  # No repeat every minute
+        delta_params_map = {REPEAT_KEY_YEAR: 'years', REPEAT_KEY_MONTH: 'months', REPEAT_KEY_DAY: 'days',
+                            REPEAT_KEY_WEEK: 'weeks', REPEAT_KEY_HOUR: 'hours', REPEAT_KEY_MINUTE: 'minutes'}
         delta = {}
-        for idx, repeat_count in enumerate(self.repeat):
-            delta[delta_keys[idx]] = repeat_count
+        for key in self.repeat:
+            delta[delta_params_map[key]] = self.repeat[key]
         while self.notify_time <= _now:
             self.time += relativedelta(**delta)
             self.update_notify_time()
