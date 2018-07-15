@@ -101,6 +101,11 @@ class WechatMessage(object):
             subscribe_remind = Remind.objects.filter(
                 id__gt='%s-0000-0000-0000-000000000000' % (hex(int(self.message.scene_id)).replace('0x', ''))
             ).order_by('id').first()
+        elif self.message.scene_id == 'eos_ram_price':
+            logger.info('Get an EOS ram price subscription from %s', self.user.get_full_name())
+            return self.text_reply('亲爱的 %s，欢迎订阅EOS Ram价格变动提醒！\n\n'
+                                   '点击<a href="http://wecron.betacat.io/eosram/">\U0001F449这里</a>'
+                                   '设置你的提醒' % (self.user.get_full_name()))
         else:
             subscribe_remind = Remind.objects.filter(id=self.message.scene_id).first()
         if subscribe_remind:

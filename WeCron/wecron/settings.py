@@ -47,6 +47,7 @@ INSTALLED_APPS = (
     'wxhook',
     'wechat_user.apps.WechatUserConfig',
     'remind.apps.RemindConfig',
+    'eosram',
 )
 
 AUTHENTICATION_BACKENDS = (

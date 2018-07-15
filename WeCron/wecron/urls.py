@@ -29,5 +29,6 @@ urlpatterns = [
     url(r'^under_construction$',
         TemplateView.as_view(template_name='under_construction.html'), name='under_construction'),
 
+    url(r'^eosram/', include('eosram.urls')),
     # url(r'^admin/', include(admin.site.urls)),  # Tuning django's user model is a disaster
 ]
