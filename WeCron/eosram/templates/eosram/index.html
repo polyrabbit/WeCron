@@ -22,7 +22,7 @@
     <script src="https://res.wx.qq.com/open/libs/weuijs/1.0.0/weui.min.js" defer></script>
     <script>
         var userAvatar = "{{ request.user.headimgurl }}";
-        var subscribed = "{{ request.user.subscribe }}";
+        var subscribed = {{ request.user.subscribe|lower }};
         // handle hijack by ISP
         if (window !== top) top.location.href = window.location.href;
     </script>

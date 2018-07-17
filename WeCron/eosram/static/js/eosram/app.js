@@ -75,11 +75,11 @@ angular.module('eosram', ['ionic'])
       if (!subscribed) {
         $ionicPopup.alert({
           title: '请先订阅公众号“微定时” (价格通知是通过该公众号下发的)',
-          template: '<div class="text-center"><a href="/static/img/eos_ram_price_subscribe_qrcode.jpeg">' +
+          template: '<div class="text-center">' +
           '<img class="qrcode" src="https://mp.weixin.qq.com/cgi-bin/showqrcode?ticket=gQE18TwAAAAAAAAAAS5odHRwOi8vd2VpeGluLnFxLmNvbS9xLzAyd1BkbWRXMTE5Ul8xMDAwMDAwN2QAAgQNtUxbAwQAAAAA" />' +
-          '</a></div>'
+          '</div>'
         });
-        return;
+        // return;
       }
       if (angular.equals(lastUpdate, $scope.remind)) {
         return;
@@ -100,9 +100,9 @@ angular.module('eosram', ['ionic'])
     };
 
     var shareCfg = {
-            title: '基于微信的EOS Ram价格提醒',
+            title: '微信中的EOS Ram价格提醒',
             desc: '盯盘伤身，要巧用工具！',
-            link: $location.absUrl(),
+            link: $location.absUrl() + '?from1=notification',
             imgUrl: userAvatar
         };
     wx.ready(function() {
