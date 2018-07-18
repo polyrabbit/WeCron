@@ -1,3 +1,12 @@
 span.input-label {
     width: 50%;
 }
+
+ul.ram-note {
+    list-style: circle;
+}
+
+ul.ram-note li {
+    margin-left: 20px;
+    color: grey
+}

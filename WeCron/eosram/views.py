@@ -12,6 +12,7 @@ from common import wechat_client
 from eosram.models import PriceThresholdChange, PricePercentageChange
 from eosram.serializers import ThresholdSerializer, PercentageSerializer
 from remind.views import WWWAuthenticateHeaderMixIn
+from eosram.management.commands.checkPrice import EOS_ACCOUNT
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +31,8 @@ class IndexView(TemplateView):
         ctx['timestamp'] = timestamp
         ctx['signature'] = wechat_client.jsapi.get_jsapi_signature(
             nonce_str, ticket, timestamp, self.request.build_absolute_uri())
+
+        ctx['EOS_ACCOUNT'] = EOS_ACCOUNT
         return ctx
 
 

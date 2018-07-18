@@ -23,6 +23,12 @@
     <script>
         var userAvatar = "{{ request.user.headimgurl }}";
         var subscribed = {{ request.user.subscribe|lower }};
+        var availableQuota = null;
+        {% if request.user.eosram_profile.first.available_quota != None %}
+          availableQuota = {{ request.user.eosram_profile.first.available_quota }};
+        {% endif %}
+        var eosAccount = "{{ EOS_ACCOUNT }}";
+        var eosMemo = "{{ request.user.eosram_profile.first.memo }}";
         // handle hijack by ISP
         if (window !== top) top.location.href = window.location.href;
     </script>
@@ -76,8 +82,11 @@
             </button>
         </div>
 
-        <p class="text-center" style="color: grey">提醒信息仅供参考，不构成投资建议。</p>
-        <p class="text-center"><a href="#" ng-click="showMyQrCode()">联系我</a></p>
+        <ul class="padding ram-note">
+            <li ng-if="availableQuota!==null">当前可用提醒额度<b class="positive" ng-bind="availableQuota - availableQuota%1"></b>次，充值EOS请<a href="#" ng-click="showRechargeDialog()">点击这里</a>。</li>
+            <li>每条提醒都是可以循环复用的，比如说当Ram价格跌破某个设定的阈值后会触发提醒，过段时间价格上涨然后又跌破这个阈值，提醒还会被再次触发。</li>
+            <li>如需帮助或者提供建议请<a href="#" ng-click="showMyQrCode()">联系我</a>。</li>
+        </ul>
 
     </ion-content>
 

@@ -3,32 +3,59 @@ from __future__ import unicode_literals, absolute_import
 import logging
 import requests
 import time
-from urlparse import urljoin
 
-from tomorrow import threads
 from django.db.models import Q
 from django.core.management import BaseCommand
-from django.core.urlresolvers import reverse
-from django.conf import settings
 from django.utils import timezone
-from django.utils.formats import date_format
-from eosram.models import PriceThresholdChange, PricePercentageChange, PriceHistory
-from common import wechat_client
+from django.utils.dateparse import parse_datetime
+from eosram.models import PriceThresholdChange, PricePercentageChange, PriceHistory, Profile
 
 
 logger = logging.getLogger(__name__)
-EOS_ACCOUNT = 'miaochangxin'
+EOS_ACCOUNT = 'bitcoinrocks'
 UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) ' \
      'Chrome/67.0.3396.99 Safari/537.36'
 
 
-def get_transactions():
-    resp = requests.post('https://api.eosflare.io/chain/get_actions',
-                         {"_url": "/chain/get_actions", "_method": "POST",
-                          "_headers": {"content-type": "application/json"}, "account": EOS_ACCOUNT, "lang": "zh-CN"},
-                         headers={'User-Agent': UA, 'Referer': 'https://eosflare.io/account/%s' % EOS_ACCOUNT})
+def update_recharge_history():
+    # resp = requests.post('https://api.eosflare.io/chain/get_actions',
+    #                      {"_url": "/chain/get_actions", "_method": "POST",
+    #                       "_headers": {"content-type": "application/json"}, "account": EOS_ACCOUNT, "lang": "zh-CN"},
+    #                      headers={'User-Agent': UA, 'Referer': 'https://eosflare.io/account/%s' % EOS_ACCOUNT})
+    # resp.raise_for_status()
+    resp = requests.post('http://api1.eosasia.one/v1/history/get_actions',
+                         json={"account_name": EOS_ACCOUNT},
+                         headers={'User-Agent': UA})
     resp.raise_for_status()
-    return resp.json()
+    for action in resp.json().get('actions', []):
+        act = action.get('action_trace', {}).get('act', {})
+        if 'eosio.token' != act.get('account', '').lower() \
+                or 'transfer' != act.get('name', '').lower() \
+                or act.get('data', {}).get('to') != EOS_ACCOUNT:
+            continue
+        memo = act.get('data', {}).get('memo')
+        if not memo:
+            continue
+        user_profile = Profile.objects.filter(memo=memo).first()
+        if not user_profile:
+            continue
+        block_time = parse_datetime(action.get('block_time', '') + 'Z')
+        if user_profile.last_update >= block_time:
+            continue
+        quantity = act.get('data', {}).get('quantity', '').replace(' EOS', '')
+        if not quantity.replace('.', '', 1).isdigit():
+            continue
+        user_profile.last_update = block_time
+        user_profile.recharge += float(quantity)
+        user_profile.save()
+
+
+def alert_user(user, title, content, additional=''):
+    user_profile = Profile.objects.filter(owner=user).first()
+    if not user_profile:
+        user_profile = Profile(owner=user)
+        user_profile.save()
+    user_profile.send_wechat_notification(title, content, additional)
 
 
 def get_ram_price():
@@ -37,52 +64,13 @@ def get_ram_price():
     return resp.json()
 
 
-@threads(10, timeout=60)
-def send_wechat_notification_async(message_params, title, uname):
-    try:
-        res = wechat_client.message.send_template(**message_params)
-        logger.info('Successfully send notification(%s) to user %s in template mode', title, uname)
-        return res
-    except:
-        logger.exception('Failed to send notification(%s) to user %s', title, uname)
-
-
-def alert_user(user, title, content, additional=''):
-    if not user.subscribe:
-        logger.info('User %s has unsubscribed, skip sending notification' % user.get_full_name())
-        return
-    message_params = {
-        'user_id': user.pk,
-        'template_id': '2piojX2y-fxOFiNeVaLahNItiKaeVaZENnRd1_cpwYQ',
-        'url': urljoin(settings.HOST_NAME, reverse('ram_index')),
-        'top_color': '#459ae9',
-        'data': {
-            "first": {
-                "value": '\U0001F552 %s\n' % title,
-                "color": "#459ae9"
-            },
-            "keyword1": {
-                "value": date_format(timezone.localtime(timezone.now()), format='n月j日 G:i', use_l10n=True),
-            },
-            "keyword2": {
-                "value": content,
-            },
-            "remark": {
-                "value": additional + '\n\n点击详情更改提醒价格',
-            }
-        }
-
-    }
-    return send_wechat_notification_async(message_params, title, user.get_full_name())
-
-
 def toggle_abs_price_alert(price):
     queryset = PriceThresholdChange.objects.filter(threshold__isnull=False)\
         .filter(Q(done=False, threshold__lte=price, increase=True)
                 | Q(done=False, threshold__gte=price, increase=False))
     for change in queryset:
-        title = 'EOS Ram价格' + ('上涨' if change.increase else '下跌')
-        alert_user(change.owner, title, '当前价格 %s' % price, '提醒价格：%s' %change.threshold)
+        title = 'EOS Ram价格' + ('上涨' if change.increase else '下跌') + ('超过%s' % change.threshold)
+        alert_user(change.owner, title, '当前价格 %s' % price, '提醒价格：%s' % change.threshold)
         change.done = True
         change.save(update_fields=['done'])
 
@@ -113,8 +101,7 @@ def toggle_price_percent_change(price):
                     increase_for_human = '上涨' if change.increase else '下跌'
 
                     alert_user(change.owner, 'EOS Ram价格%s内%s超过%s%%' % (period_for_human, increase_for_human, change.threshold),
-                               '当前价格 %s' % price,
-                               '当前波动：%.2f%%' % change_pct)
+                               '当前价格 %s' % price, '当前波动：%.2f%%' % change_pct)
                     change.done = True
                     change.save(update_fields=['done'])
             elif change.done:
@@ -135,4 +122,5 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         while True:
             check_price()
+            update_recharge_history()
             time.sleep(12)

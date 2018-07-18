@@ -99,10 +99,22 @@ angular.module('eosram', ['ionic'])
       });
     };
 
+    $scope.showRechargeDialog = function() {
+      $ionicPopup.alert({
+          title: 'EOS充值信息',
+          template: '<p>充值地址：<b>' + eosAccount + '</b></p>' +
+          '<p>备注(memo)：<b>' + eosMemo + '</b></p>' +
+          '<ul class="ram-note"><li>目前价格：1EOS=500次提醒（即10次提醒只需充值0.02EOS）</li>' +
+          '<li>为什么收费：少量的费用一方面可以让这个项目持续下去，另一方面也可以减少一些滥用。</li></ul>'
+      });
+    };
+
+    $scope.availableQuota = availableQuota;
+
     var shareCfg = {
             title: '微信中的EOS Ram价格提醒',
             desc: '盯盘伤身，要巧用工具！',
-            link: $location.absUrl() + '?from1=notification',
+            link: $location.absUrl(),
             imgUrl: userAvatar
         };
     wx.ready(function() {
