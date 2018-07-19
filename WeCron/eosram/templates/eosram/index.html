@@ -45,45 +45,36 @@
 
         <ion-list>
 
-            <label class="item item-input">
-                <span class="input-label">上涨到 (EOS/Kb)</span>
-                <input type="number" placeholder="0.9" ng-change="remind.threshold.increase.done=false"
-                       ng-model="remind.threshold.increase.threshold">
+            <label class="item item-input" ng-repeat="rem in remind.threshold">
+                <span class="input-label">[[ rem.increase ? '上涨到 (EOS/KB)' : '下跌到 (EOS/KB)' ]]</span>
+                <input type="number" placeholder="[[ rem.increase ? 0.9 : 0.1 ]]" ng-change="rem.done=false"
+                       ng-model="rem.threshold">
             </label>
 
-            <label class="item item-input">
-                <span class="input-label">下跌到 (EOS/Kb)</span>
-                <input type="number" placeholder="0.1" ng-change="remind.threshold.decrease.done=false"
-                       ng-model="remind.threshold.decrease.threshold">
+            <label class="item item-input" ng-repeat="rem in remind.percent">
+                <span class="input-label">[[ formatRemindText(rem) ]]</span>
+                <input type="number" placeholder="9.99" ng-change="rem.done=false"
+                       ng-model="rem.threshold">
             </label>
-
-            <label class="item item-input">
-                <span class="input-label">每小时上涨 (%)</span>
-                <input type="number" placeholder="9.99" ng-change="remind.percent.increase.done=false"
-                       ng-model="remind.percent.increase.threshold">
-            </label>
-
-            <label class="item item-input">
-                <span class="input-label">每小时下跌 (%)</span>
-                <input type="number" placeholder="9.99" ng-change="remind.percent.decrease.done=false"
-                       ng-model="remind.percent.decrease.threshold">
-            </label>
-
-{#            <label class="item item-input">#}
-{#                <span class="input-label">每隔 (小时)</span>#}
-{#                <input type="number" placeholder="2">#}
-{#            </label>#}
 
         </ion-list>
 
         <div class="padding">
-            <button class="button button-block button-positive" ng-click="updateAlert()">
-              确定
+
+            <button class="button button-block button-outline button-positive" ng-click="addAnotherRemind()">
+                <i class="icon ion-ios-plus-outline"></i>
+                增加提醒项
             </button>
+
+            <button class="button button-block button-positive" ng-click="updateAlert()">
+                <i class="icon ion-ios-checkmark-outline"></i>
+                保存
+            </button>
+
         </div>
 
         <ul class="padding ram-note">
-            <li ng-if="availableQuota!==null">当前可用提醒额度<b class="positive" ng-bind="availableQuota - availableQuota%1"></b>次，充值EOS请<a href="#" ng-click="showRechargeDialog()">点击这里</a>。</li>
+            <li ng-if="availableQuota!==null">当前可用提醒额度<b class="positive">[[availableQuota - availableQuota%1]]</b>次，<a href="#" ng-click="showRechargeDialog()">点击这里充值EOS</a>可购买提醒额度。</li>
             <li>每条提醒都是可以循环复用的，比如说当Ram价格跌破某个设定的阈值后会触发提醒，过段时间价格上涨然后又跌破这个阈值，提醒还会被再次触发。</li>
             <li>如需帮助或者提供建议请<a href="#" ng-click="showMyQrCode()">联系我</a>。</li>
         </ul>
@@ -91,7 +82,7 @@
     </ion-content>
 
     <ion-footer-bar align-title="center" class="bar-balanced item-remove-animate" ng-if="message">
-        <h1 class="title" ng-bind="message"></h1>
+        <h1 class="title"> [[ message ]]</h1>
     </ion-footer-bar>
 
     <div id="weixinTip" onclick="this.style.display='none'">
@@ -106,6 +97,7 @@
             <p class="weui-toast__content">数据加载中</p>
         </div>
     </script>
+
     <script src="https://res.wx.qq.com/open/js/jweixin-1.2.0.js"></script>
     <script>
         wx.config({

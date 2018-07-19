@@ -16,5 +16,5 @@ class PriceThresholdChange(models.Model):
                               related_name='threshold_change', on_delete=models.CASCADE)
 
     class Meta:
-        # ordering = ["-time"]
+        ordering = ["-threshold"]
         db_table = 'eosram_price_threshold_change'

@@ -15,6 +15,8 @@ logger = logging.getLogger(__name__)
 EOS_ACCOUNT = 'bitcoinrocks'
 UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) ' \
      'Chrome/67.0.3396.99 Safari/537.36'
+# BP_API = 'http://api1.eosasia.one'
+BP_API = 'http://api.eosnewyork.io'
 
 
 def update_recharge_history():
@@ -23,9 +25,9 @@ def update_recharge_history():
     #                       "_headers": {"content-type": "application/json"}, "account": EOS_ACCOUNT, "lang": "zh-CN"},
     #                      headers={'User-Agent': UA, 'Referer': 'https://eosflare.io/account/%s' % EOS_ACCOUNT})
     # resp.raise_for_status()
-    resp = requests.post('http://api1.eosasia.one/v1/history/get_actions',
+    resp = requests.post(BP_API + '/v1/history/get_actions',
                          json={"account_name": EOS_ACCOUNT},
-                         headers={'User-Agent': UA})
+                         headers={'User-Agent': UA}, timeout=10)
     resp.raise_for_status()
     for action in resp.json().get('actions', []):
         act = action.get('action_trace', {}).get('act', {})
@@ -48,6 +50,7 @@ def update_recharge_history():
         user_profile.last_update = block_time
         user_profile.recharge += float(quantity)
         user_profile.save()
+        logger.info('User(%s) recharges %s EOS', user_profile.owner.get_full_name(), quantity)
 
 
 def alert_user(user, title, content, additional=''):
@@ -59,7 +62,9 @@ def alert_user(user, title, content, additional=''):
 
 
 def get_ram_price():
-    resp = requests.post('http://35.227.201.66/v1/getram/ramprices', headers={'User-Agent': UA, 'Referer': 'http://southex.com/'})
+    resp = requests.post('http://35.227.201.66/v1/getram/ramprices',
+                         headers={'User-Agent': UA, 'Referer': 'http://southex.com/'},
+                         timeout=10)
     resp.raise_for_status()
     return resp.json()
 
@@ -93,7 +98,8 @@ def toggle_price_percent_change(price):
         if price_pivot:
             change_pct = 100.0 * (price - price_pivot.price) / price_pivot.price
 
-            if abs(change_pct) >= abs(change.threshold):
+            if (change.increase and change_pct >= change.threshold) \
+                    or (not change.increase and change_pct*-1 > change.threshold):
                 if not change.done:
                     period_for_human = '%s分钟' % change.period
                     if change.period % 60 == 0:

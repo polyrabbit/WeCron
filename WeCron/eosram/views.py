@@ -1,3 +1,5 @@
+# coding: utf-8
+from __future__ import unicode_literals
 import time
 import logging
 
@@ -40,53 +42,91 @@ class EosRamAlertView(WWWAuthenticateHeaderMixIn, RetrieveUpdateAPIView):
     http_method_names = ['post', 'get', 'patch', 'delete']
     authentication_classes = (authentication.SessionAuthentication, authentication.TokenAuthentication)
 
+    def get_alerts(self):
+        resp = {}
+
+        alert_qs = PriceThresholdChange.objects.filter(owner=self.request.user)
+        resp['threshold'] = ThresholdSerializer(alert_qs, many=True).data
+
+        alert_qs = PricePercentageChange.objects.filter(owner=self.request.user)
+        resp['percent'] = PercentageSerializer(alert_qs, many=True).data
+        return resp
+
     def get(self, request, *args, **kwargs):
-        resp = {'threshold': {'increase': {'increase': True}, 'decrease': {'increase': False}},
-                'percent': {'increase': {'increase': True}, 'decrease': {'increase': False}}}
 
-        inc_alert = PriceThresholdChange.objects.filter(owner=self.request.user, increase=True).first()
-        if inc_alert is not None:
-            resp['threshold']['increase'] = ThresholdSerializer(inc_alert).data
-        dec_alert = PriceThresholdChange.objects.filter(owner=self.request.user, increase=False).first()
-        if dec_alert is not None:
-            resp['threshold']['decrease'] = ThresholdSerializer(dec_alert).data
-
-        inc_alert = PricePercentageChange.objects.filter(owner=self.request.user, increase=True).first()
-        if inc_alert is not None:
-            resp['percent']['increase'] = PercentageSerializer(inc_alert).data
-        dec_alert = PricePercentageChange.objects.filter(owner=self.request.user, increase=False).first()
-        if dec_alert is not None:
-            resp['percent']['decrease'] = PercentageSerializer(dec_alert).data
-
-        return JsonResponse(resp)
+        return JsonResponse(self.get_alerts())
 
     def patch(self, request, *args, **kwargs):
-        alert = PriceThresholdChange.objects.filter(owner=self.request.user, increase=True).first()
-        serializer = ThresholdSerializer(alert,
-                                         data=dict(request.data['threshold']['increase'], owner=self.request.user.pk))
-        if serializer.is_valid():
-            serializer.save()
-            logger.info('User(%s) adds a increasing threshold remind(%s)', self.request.user.nickname, serializer.data['threshold'])
+        queryset = PriceThresholdChange.objects.filter(owner=self.request.user)
+        for alert_json in request.data.get('threshold', []):
+            if alert_json.get('id'):
+                alert = queryset.filter(id=alert_json['id']).first()
+                if not alert:
+                    logger.warning('Cannot find id(%s) from database', alert_json['id'])
+                    continue
+                if alert_json.get('threshold'):
+                    # Have id and threshold -> update
+                    serializer = ThresholdSerializer(alert, data=dict(alert_json, owner=self.request.user.pk))
+                    if serializer.is_valid():
+                        logger.info('User(%s) updates a %s threshold remind(from %s to %s)',
+                                    self.request.user.nickname, 'increasing' if alert_json['increase'] else 'decreasing',
+                                    alert.threshold, alert_json['threshold'])
+                        serializer.save()
+                else:
+                    # Have id and no threshold -> delete
+                    logger.info('User(%s) deletes a %s threshold remind(%s)',
+                                self.request.user.nickname, 'increasing' if alert_json['increase'] else 'decreasing',
+                                alert.threshold)
+                    alert.delete()
+                    del alert_json['id']
+            else:
+                if alert_json.get('threshold'):
+                    if queryset.count() > 100:
+                        return JsonResponse({'errMsg': '保存失败，你的提醒数超过100啦~'})
+                    # Have no id and threshold -> insert
+                    serializer = ThresholdSerializer(data=dict(alert_json, owner=self.request.user.pk))
+                    if serializer.is_valid():
+                        logger.info('User(%s) adds a %s threshold remind(%s)',
+                                    self.request.user.nickname, 'increasing' if alert_json['increase'] else 'decreasing',
+                                    alert_json['threshold'])
+                        serializer.save()
+                        alert_json['id'] = serializer.instance.id
+                # Have no id and no threshold -> noop
 
-        alert = PriceThresholdChange.objects.filter(owner=self.request.user, increase=False).first()
-        serializer = ThresholdSerializer(alert,
-                                         data=dict(request.data['threshold']['decrease'], owner=self.request.user.pk))
-        if serializer.is_valid():
-            serializer.save()
-            logger.info('User(%s) adds a decreasing threshold remind(%s)', self.request.user.nickname, serializer.data['threshold'])
-
-        alert = PricePercentageChange.objects.filter(owner=self.request.user, increase=True).first()
-        serializer = PercentageSerializer(alert,
-                                         data=dict(request.data['percent']['increase'], owner=self.request.user.pk))
-        if serializer.is_valid():
-            serializer.save()
-            logger.info('User(%s) adds a increasing percent remind(%s)', self.request.user.nickname, serializer.data['threshold'])
-
-        alert = PricePercentageChange.objects.filter(owner=self.request.user, increase=False).first()
-        serializer = PercentageSerializer(alert,
-                                         data=dict(request.data['percent']['decrease'], owner=self.request.user.pk))
-        if serializer.is_valid():
-            serializer.save()
-            logger.info('User(%s) adds a decreasing percent remind(%s)', self.request.user.nickname, serializer.data['threshold'])
+        queryset = PricePercentageChange.objects.filter(owner=self.request.user)
+        for alert_json in request.data.get('percent', []):
+            if alert_json.get('id'):
+                alert = queryset.filter(id=alert_json['id']).first()
+                if not alert:
+                    logger.warning('Cannot find id(%s) from database', alert_json['id'])
+                    continue
+                if alert_json.get('threshold'):
+                    # Have id and threshold -> update
+                    serializer = PercentageSerializer(alert, data=dict(alert_json, owner=self.request.user.pk))
+                    if serializer.is_valid():
+                        logger.info('User(%s) updates a %s percent remind(from %s to %s)',
+                                    self.request.user.nickname, 'increasing' if alert_json['increase'] else 'decreasing',
+                                    alert.threshold, alert_json['threshold'])
+                        serializer.save()
+                else:
+                    # Have id and no threshold -> delete
+                    logger.info('User(%s) deletes a %s percent remind(%s)',
+                                self.request.user.nickname, 'increasing' if alert_json['increase'] else 'decreasing',
+                                alert.threshold)
+                    alert.delete()
+                    del alert_json['id']
+            else:
+                if alert_json.get('threshold'):
+                    if queryset.count() > 100:
+                        return JsonResponse({'errMsg': '保存失败，你的提醒数超过100啦~'})
+                    # Have no id and threshold -> insert
+                    serializer = PercentageSerializer(data=dict(alert_json, owner=self.request.user.pk))
+                    if serializer.is_valid():
+                        logger.info('User(%s) adds a %s percent remind(%s)',
+                                    self.request.user.nickname, 'increasing' if alert_json['increase'] else 'decreasing',
+                                    alert_json['threshold'])
+                        serializer.save()
+                        alert_json['id'] = serializer.instance.id
+                # Have no id and no threshold -> noop
 
         return JsonResponse(request.data)

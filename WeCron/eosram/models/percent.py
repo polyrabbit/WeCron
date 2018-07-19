@@ -17,6 +17,6 @@ class PricePercentageChange(models.Model):
                               related_name='percent_change', on_delete=models.CASCADE)
     period = models.IntegerField('分钟', default=60, db_index=True)
 
-
     class Meta:
+        ordering = ["-threshold"]
         db_table = 'eosram_price_percent_change'

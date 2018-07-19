@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 def generate_memo():
-    return random_string(20)
+    return random_string(16)
 
 
 class Profile(models.Model):
@@ -51,9 +51,10 @@ class Profile(models.Model):
         if not self.has_quota():
             logger.info('User(%s) has no sufficient quota for this notification, charged %f EOS',
                         uname, (self.recharge - Profile._meta.get_field('recharge').get_default()))
+            return
 
         if self.available_quota() < 10:
-            additional += '\n剩余提醒：%s次\n\n为避免接受不到提醒，请点击详情尽快充值EOS' % self.available_quota()
+            additional += '\n剩余提醒：%d次\n\n为避免接受不到提醒，请点击详情尽快充值EOS' % self.available_quota()
         else:
             additional += '\n\n点击详情更改提醒价格'
         message_params = {
@@ -76,7 +77,6 @@ class Profile(models.Model):
                     "value": additional,
                 }
             }
-
         }
 
         try:
