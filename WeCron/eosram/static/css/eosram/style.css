@@ -26,6 +26,10 @@ ul.ram-note li {
     padding-right: 0;
 }
 
+.popup-container.recharge .popup {
+    width: 300px;
+}
+
 /**
  * Action Sheets for Android
  * --------------------------------------------------

@@ -3,6 +3,7 @@ from __future__ import unicode_literals, absolute_import
 import logging
 import requests
 import time
+import random
 
 from django.db.models import Q
 from django.core.management import BaseCommand
@@ -16,15 +17,11 @@ EOS_ACCOUNT = 'bitcoinrocks'
 UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) ' \
      'Chrome/67.0.3396.99 Safari/537.36'
 # BP_API = 'http://api1.eosasia.one'
-BP_API = 'http://api.eosnewyork.io'
+BP_API_POOL = ['https://api.eosnewyork.io', 'https://api1.eosasia.one', 'https://publicapi-mainnet.eosauthority.com']
 
 
 def update_recharge_history():
-    # resp = requests.post('https://api.eosflare.io/chain/get_actions',
-    #                      {"_url": "/chain/get_actions", "_method": "POST",
-    #                       "_headers": {"content-type": "application/json"}, "account": EOS_ACCOUNT, "lang": "zh-CN"},
-    #                      headers={'User-Agent': UA, 'Referer': 'https://eosflare.io/account/%s' % EOS_ACCOUNT})
-    # resp.raise_for_status()
+    BP_API = random.choice(BP_API_POOL)
     resp = requests.post(BP_API + '/v1/history/get_actions',
                          json={"account_name": EOS_ACCOUNT},
                          headers={'User-Agent': UA}, timeout=10)
@@ -44,21 +41,22 @@ def update_recharge_history():
         block_time = parse_datetime(action.get('block_time', '') + 'Z')
         if user_profile.last_update >= block_time:
             continue
+        # Recharge happened
         quantity = act.get('data', {}).get('quantity', '').replace(' EOS', '')
         if not quantity.replace('.', '', 1).isdigit():
             continue
         user_profile.last_update = block_time
+        user_profile.eos_account = act.get('data', {}).get('from')
         user_profile.recharge += float(quantity)
         user_profile.save()
-        logger.info('User(%s) recharges %s EOS', user_profile.owner.get_full_name(), quantity)
+        logger.info('User(%s) recharges %s EOS', user_profile.get_name(), quantity)
 
 
 def alert_user(user, title, content, additional=''):
-    user_profile = Profile.objects.filter(owner=user).first()
+    user_profile = Profile.objects.filter(owner_id=user.pk).first()
     if not user_profile:
-        user_profile = Profile(owner=user)
-        user_profile.save()
-    user_profile.send_wechat_notification(title, content, additional)
+        user_profile = Profile.objects.create(owner_id=user.pk)
+    user_profile.send_wechat_alert(title, content, additional)
 
 
 def get_ram_price():

@@ -11,7 +11,7 @@ from rest_framework.generics import RetrieveUpdateAPIView
 from django.http import JsonResponse
 
 from common import wechat_client
-from eosram.models import PriceThresholdChange, PricePercentageChange
+from eosram.models import PriceThresholdChange, PricePercentageChange, Profile
 from eosram.serializers import ThresholdSerializer, PercentageSerializer
 from remind.views import WWWAuthenticateHeaderMixIn
 from eosram.management.commands.checkPrice import EOS_ACCOUNT
@@ -35,6 +35,7 @@ class IndexView(TemplateView):
             nonce_str, ticket, timestamp, self.request.build_absolute_uri())
 
         ctx['EOS_ACCOUNT'] = EOS_ACCOUNT
+        ctx['eosram_profile'] = Profile.objects.filter(owner_id=self.request.user.pk).first()
         return ctx
 
 
@@ -57,6 +58,7 @@ class EosRamAlertView(WWWAuthenticateHeaderMixIn, RetrieveUpdateAPIView):
         return JsonResponse(self.get_alerts())
 
     def patch(self, request, *args, **kwargs):
+
         queryset = PriceThresholdChange.objects.filter(owner=self.request.user)
         for alert_json in request.data.get('threshold', []):
             if alert_json.get('id'):
@@ -128,5 +130,17 @@ class EosRamAlertView(WWWAuthenticateHeaderMixIn, RetrieveUpdateAPIView):
                         serializer.save()
                         alert_json['id'] = serializer.instance.id
                 # Have no id and no threshold -> noop
+
+        try:
+            user_profile = Profile.objects.filter(owner_id=request.user.pk).first()
+            if not user_profile:
+                ref = request.GET.get('ref')
+                user_profile = Profile.objects.create(owner_id=request.user.pk, ref=ref)
+                if ref:
+                    invitor = Profile.objects.filter(memo=ref).first()
+                    if invitor:
+                        invitor.add_reward(user_profile)
+        except:
+            logger.exception('Failed to set user reference')
 
         return JsonResponse(request.data)

@@ -24,11 +24,11 @@
         var userAvatar = "{{ request.user.headimgurl }}";
         var subscribed = {{ request.user.subscribe|lower }};
         var availableQuota = null;
-        {% if request.user.eosram_profile.first.available_quota != None %}
-          availableQuota = {{ request.user.eosram_profile.first.available_quota }};
+        {% if eosram_profile.available_quota != None %}
+          availableQuota = {{ eosram_profile.available_quota }};
         {% endif %}
         var eosAccount = "{{ EOS_ACCOUNT }}";
-        var eosMemo = "{{ request.user.eosram_profile.first.memo }}";
+        var eosMemo = "{{ eosram_profile.memo }}";
         // handle hijack by ISP
         if (window !== top) top.location.href = window.location.href;
     </script>
@@ -84,11 +84,6 @@
     <ion-footer-bar align-title="center" class="bar-balanced item-remove-animate" ng-if="message">
         <h1 class="title"> [[ message ]]</h1>
     </ion-footer-bar>
-
-    <div id="weixinTip" onclick="this.style.display='none'">
-        <!-- ng-src for lazy load -->
-        <img ng-src="{% static "img/weixin-share.png" %}" />
-    </div>
 
     <script id="loading-toast" type="text/ng-template">
         <div class="weui-mask_transparent"></div>

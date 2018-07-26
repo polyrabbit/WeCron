@@ -93,7 +93,7 @@ angular.module('eosram', ['ionic'])
         return;
       }
       lastUpdate = angular.copy($scope.remind);
-      httpRequest('/eosram/api/', 'patch', null, $scope.remind).then(function (resp) {
+      httpRequest('/eosram/api/' + location.search, 'patch', null, $scope.remind).then(function (resp) {
         updateRemind(resp.data);
         indicator.show(resp.data.errMsg || '更新成功', 2000);
       });
@@ -149,6 +149,7 @@ angular.module('eosram', ['ionic'])
     $scope.showRechargeDialog = function() {
       $ionicPopup.alert({
           title: 'EOS充值信息',
+          cssClass: 'recharge',
           template: '' +
             '<div class="list recharge-dialog">\n' +
           '  <label class="item item-input">\n' +
@@ -160,17 +161,24 @@ angular.module('eosram', ['ionic'])
           '    <input type="text" readonly value="' + eosMemo + '">\n' +
           '  </label>\n' +
           '</div>' +
-          '<ul class="ram-note"><li>目前价格：1EOS=500次提醒（即10次提醒只需充值0.02EOS）。</li>' +
-          '<li>为什么收费：少量的费用一方面可以让这个项目持续下去，另一方面也可以减少一些滥用。</li></ul>'
+          '<ul class="ram-note">' +
+          '<li>推广期间价格：1EOS=500次提醒（即10次提醒只需充值0.02EOS），充值的提醒次数将在1分钟内自动反应到您的账户上。</li>' +
+          '<li>为什么收费：少量的费用一方面可以让这个项目持续下去，另一方面也可以减少一些<b>滥用</b>。</li>' +
+          '<li>实在没钱：请帮助我把这个页面分享出去，每一个被邀请并<b>真正使用</b>的好友都将为您增加10次提醒。</li>' +
+          '</ul>'
       });
     };
 
     $scope.availableQuota = availableQuota;
 
+    var searchParams = new URLSearchParams(window.location.search);
+    if (eosMemo) {
+      searchParams.set('ref', eosMemo);
+    }
     var shareCfg = {
             title: '微信中的EOS Ram价格提醒',
             desc: '盯盘伤身，要巧用工具！',
-            link: $location.absUrl(),
+            link: location.toString().split('?')[0] +'?'+searchParams.toString(),
             imgUrl: userAvatar
         };
     wx.ready(function() {
