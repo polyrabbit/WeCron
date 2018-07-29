@@ -17,7 +17,10 @@ EOS_ACCOUNT = 'bitcoinrocks'
 UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) ' \
      'Chrome/67.0.3396.99 Safari/537.36'
 # BP_API = 'http://api1.eosasia.one'
-BP_API_POOL = ['https://api.eosnewyork.io', 'https://api1.eosasia.one', 'https://publicapi-mainnet.eosauthority.com']
+BP_API_POOL = ['https://api.eosnewyork.io',
+               'https://api1.eosasia.one',
+               'https://publicapi-mainnet.eosauthority.com',
+               'https://eos.greymass.com']
 
 
 def update_recharge_history():
@@ -58,13 +61,25 @@ def alert_user(user, title, content, additional=''):
         user_profile = Profile.objects.create(owner_id=user.pk)
     user_profile.send_wechat_alert(title, content, additional)
 
-
-def get_ram_price():
+# Back up
+def get_ram_price2():
     resp = requests.post('http://35.227.201.66/v1/getram/ramprices',
                          headers={'User-Agent': UA, 'Referer': 'http://southex.com/'},
                          timeout=10)
     resp.raise_for_status()
-    return resp.json()
+    return resp.json()['p']
+
+
+def get_ram_price():
+    BP_API = random.choice(BP_API_POOL)
+    resp = requests.post(BP_API + '/v1/chain/get_table_rows',
+                         json={"json":"true","code":"eosio","scope":"eosio","table":"rammarket","limit":"10"},
+                         headers={'User-Agent': UA}, timeout=10)
+    resp.raise_for_status()
+    ram_market = resp.json()['rows'][0]
+    base = float(ram_market['base']['balance'].split(' ')[0])
+    quote = float(ram_market['quote']['balance'].split(' ')[0])
+    return quote / base * 1024
 
 
 def toggle_abs_price_alert(price):
@@ -115,10 +130,9 @@ def toggle_price_percent_change(price):
 
 def check_price():
     price = get_ram_price()
-    current_price = float(price['p'])
-    logger.info('Current price is %f' % current_price)
-    toggle_abs_price_alert(current_price)
-    toggle_price_percent_change(current_price)
+    logger.info('Current price is %f' % price)
+    toggle_abs_price_alert(price)
+    toggle_price_percent_change(price)
 
 
 class Command(BaseCommand):

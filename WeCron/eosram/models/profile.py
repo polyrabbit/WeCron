@@ -129,4 +129,4 @@ class Profile(models.Model):
         try:
             return UserModel.objects.get(pk=self.owner_id).get_full_name()
         except UserModel.DoesNotExist:
-            return 'unknown~'
+            return '未知'
