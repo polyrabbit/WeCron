@@ -128,7 +128,7 @@ def toggle_price_percent_change(price):
                 change.save(update_fields=['done'])
 
 
-def check_price():
+def check_ram_price():
     price = get_ram_price()
     logger.info('Current price is %f' % price)
     toggle_abs_price_alert(price)
@@ -139,6 +139,6 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         while True:
-            check_price()
+            check_ram_price()
             update_recharge_history()
             time.sleep(12)

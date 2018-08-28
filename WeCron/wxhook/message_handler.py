@@ -2,6 +2,7 @@
 from __future__ import unicode_literals, absolute_import
 import logging
 import json
+import re
 
 from datetime import timedelta
 from django.utils import timezone
@@ -47,6 +48,9 @@ class WechatMessage(object):
     def handle_text(self, reminder=None):
         try:
             if not reminder:
+                if re.search('(^eos\s*ram$)|(^ram$)', self.message.content, re.I):
+                    return self.text_reply('EOS Ram价格提醒<a href="http://wecron.betacat.io/eosram/">请点击这里</a>')
+
                 reminder = parse(self.message.content, uid=self.message.source)
                 reminder.owner = self.user
                 if hasattr(self.message, 'media_id'):
