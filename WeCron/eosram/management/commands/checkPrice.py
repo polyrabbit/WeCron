@@ -16,11 +16,17 @@ logger = logging.getLogger(__name__)
 EOS_ACCOUNT = 'bitcoinrocks'
 UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) ' \
      'Chrome/67.0.3396.99 Safari/537.36'
-# BP_API = 'http://api1.eosasia.one'
-BP_API_POOL = ['https://api.eosnewyork.io',
-               'https://api1.eosasia.one',
-               'https://publicapi-mainnet.eosauthority.com',
-               'https://eos.greymass.com']
+
+# See https://www.eosdocs.io/resources/apiendpoints/
+BP_API_POOL = [
+    # 'https://api.eosnewyork.io',
+    # 'https://api1.eosasia.one',
+    'http://api.hkeos.com:80',
+    'https://api.eosdetroit.io:443',
+    'https://publicapi-mainnet.eosauthority.com',
+    'http://api1.eosdublin.io:80',
+    'https://eos.greymass.com',
+]
 
 
 def update_recharge_history():
@@ -141,4 +147,4 @@ class Command(BaseCommand):
         while True:
             check_ram_price()
             update_recharge_history()
-            time.sleep(12)
+            time.sleep(30)
