@@ -13,6 +13,38 @@
 </a>
 </p>
 
+## 本地运行
+
+1. Clone代码
+
+```bash
+git clone https://github.com/polyrabbit/WeCron.git
+```
+
+2. 安装依赖包
+
+```bash
+cd WeCron
+pip install -r requirements.txt
+```
+
+3. 初始化数据库
+
+```bash
+# 创建数据库
+psql -c 'CREATE DATABASE "wecron" WITH OWNER "postgres" TEMPLATE template0 ENCODING="UTF8" CONNECTION LIMIT=-1;'
+psql -c 'GRANT ALL PRIVILEGES ON DATABASE "wecron" to "postgres";'
+
+# 建表
+python WeCron/manage.py migrate
+```
+
+4. 启动本地Server
+
+```bash
+python WeCron/manage.py runserver
+```
+
 ### 扫码关注微定时公众号，体验一下吧
 <p>
 <a href="http://wecron.betacat.io" class="rich-diff-level-one">
@@ -20,4 +52,8 @@
 </a>
 </p>
 
-_致谢 [wechatpy](http://docs.wechatpy.org)!_
+## 关于
+
+* 文档：[WeCron是怎样处理定时任务的
+](http://blog.betacat.io/post/how-wecron-schedules/)
+* 感谢[@messense](https://github.com/messense)贡献的微信公众平台SDK [wechatpy](http://docs.wechatpy.org)！
