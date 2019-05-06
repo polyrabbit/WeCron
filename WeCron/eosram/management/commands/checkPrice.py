@@ -21,10 +21,10 @@ UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML,
 BP_API_POOL = [
     # 'https://api.eosnewyork.io',
     # 'https://api1.eosasia.one',
-    'http://api.hkeos.com:80',
+    # 'http://api.hkeos.com:80',
     'https://api.eosdetroit.io:443',
     'https://publicapi-mainnet.eosauthority.com',
-    'http://api1.eosdublin.io:80',
+    # 'http://api1.eosdublin.io:80',
     'https://eos.greymass.com',
 ]
 
