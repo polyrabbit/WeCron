@@ -141,7 +141,7 @@ angular.module('eosram', ['ionic'])
       $ionicPopup.alert({
           title: '扫码加我微信，欢迎提供建议及反馈',
           template: '<div class="text-center">' +
-          '<img class="qrcode" src="http://wx1.sinaimg.cn/thumb150/ac472348ly1ftbw0wzpjzj20e80e8glx.jpg" />' +
+          '<img class="qrcode" src="/static/img/my_qrcode.jpg" />' +
           '</div>'
       });
     };
