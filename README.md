@@ -1,6 +1,6 @@
 # WeCron
 
-[![license](https://img.shields.io/aur/license/yaourt.svg?style=flat-square)](https://github.com/polyrabbit/WeCron/blob/master/LICENSE)
+[![license](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://github.com/polyrabbit/WeCron/blob/master/LICENSE)
 [![Build Status](https://api.travis-ci.org/polyrabbit/WeCron.svg)](https://travis-ci.org/polyrabbit/WeCron)
 [![codecov](https://codecov.io/gh/polyrabbit/WeCron/branch/master/graph/badge.svg)](https://codecov.io/gh/polyrabbit/WeCron)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/polyrabbit/WeCron/pulls)

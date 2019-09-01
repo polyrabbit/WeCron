@@ -31,7 +31,7 @@ Authorization: Token <my_secret_token>
 认证凭证目前是手动生成的，有需求的小伙伴可以通过邮箱与我取得联系：
 
 <a href="http://wecron.betacat.io" class="rich-diff-level-one">
-  <img src="https://wx4.sinaimg.cn/mw1024/ac472348gy1fjd7kfoir5j208y01g3yh.jpg" alt="我的微信是polyethene-" height="30">
+  <img src="/img/my-email.jpg" alt="我的微信是polyethene-" height="30">
 </a>
 
 
