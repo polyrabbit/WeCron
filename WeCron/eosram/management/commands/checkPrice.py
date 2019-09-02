@@ -22,10 +22,11 @@ BP_API_POOL = [
     # 'https://api.eosnewyork.io',
     # 'https://api1.eosasia.one',
     # 'http://api.hkeos.com:80',
-    'https://api.eosdetroit.io:443',
-    'https://publicapi-mainnet.eosauthority.com',
+    # 'https://api.eosdetroit.io:443',
+    # 'https://publicapi-mainnet.eosauthority.com',
     # 'http://api1.eosdublin.io:80',
     'https://eos.greymass.com',
+    'https://public.eosinfra.io',
 ]
 
 
@@ -147,4 +148,4 @@ class Command(BaseCommand):
         while True:
             check_ram_price()
             update_recharge_history()
-            time.sleep(30)
+            time.sleep(80)
