@@ -106,6 +106,7 @@ DATABASES = {
         'USER': os.environ.get('WECRON_DB_USER', 'postgres'),
         # GRANT ALL PRIVILEGES ON DATABASE "___" to "__";
         'PASSWORD': os.environ.get('WECRON_DB_PASSWORD', ''),
+        'CONN_MAX_AGE': 60*60*4,
     }
 }
 
