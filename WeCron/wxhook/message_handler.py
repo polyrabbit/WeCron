@@ -190,12 +190,12 @@ class WechatMessage(object):
                                                               u'请使劲儿用赞赏来支持。')
             # http://mmbiz.qpic.cn/mmbiz_png/U4AEiaplkjQ2mLxVZTECsibyWGB2Jtxs1JRvLVuEmYuW8TWvjiawPicfllfMbCxbEkUaasffkREJuG6OB4czIKpqAA/0?wx_fmt=png
             return ImageReply(message=self.message, media_id='S8Jjk9aHXZ7wXSwK1qqu2dpiYj7y7uD_WPbIh8FRKCw').render()
-        elif self.message.key.lower() == 'donate_geizang':
-            logger.info('Sending donation GeiZang QR code to %s', self.user.get_full_name())
-            wechat_client.message.send_text(self.user.openid, u'好的服务离不开大家的鼓励和支持，如果觉得微定时给你的生活带来了一丝便利，'
-                                                              u'请使劲儿用赞赏来支持。')
-            # http://mmbiz.qpic.cn/mmbiz_png/U4AEiaplkjQ0DypiahsELePfHTh2NysKvQmqTBoqVTHabpPPJiaqg5aFunCUdVwraGMdcCo2Tz9GngWccoch3YWow/0?wx_fmt=png
-            return ImageReply(message=self.message, media_id='S8Jjk9aHXZ7wXSwK1qqu2d1M_OVm4CoEECgdDlrG0mQ').render()
+        # elif self.message.key.lower() == 'donate_geizang': # geizang is dead
+        #     logger.info('Sending donation GeiZang QR code to %s', self.user.get_full_name())
+        #     wechat_client.message.send_text(self.user.openid, u'好的服务离不开大家的鼓励和支持，如果觉得微定时给你的生活带来了一丝便利，'
+        #                                                       u'请使劲儿用赞赏来支持。')
+        #     # http://mmbiz.qpic.cn/mmbiz_png/U4AEiaplkjQ0DypiahsELePfHTh2NysKvQmqTBoqVTHabpPPJiaqg5aFunCUdVwraGMdcCo2Tz9GngWccoch3YWow/0?wx_fmt=png
+        #     return ImageReply(message=self.message, media_id='S8Jjk9aHXZ7wXSwK1qqu2d1M_OVm4CoEECgdDlrG0mQ').render()
         elif self.message.key.lower() == 'add_friend':
             logger.info('Sending personal QR code to %s', self.user.get_full_name())
             wechat_client.message.send_text(self.user.openid, u'长按下面的二维码，添加作者个人微信，等你来撩~')
