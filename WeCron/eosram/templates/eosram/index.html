@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+{% load staticfiles %}
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <title>EOS Ram价格提醒</title>
+    <link rel="canonical" href="http://wecron.betacat.io/"/>
+    <link rel="shortcut icon" href="{% static "img/favicon.jpeg" %}">
+    <link rel="bookmark" href="{% static "img/favicon.jpeg" %}" >
+    <link href="https://res.wx.qq.com/open/libs/weui/1.1.0/weui.min.css" rel="stylesheet">
+    <link href="https://cdn.bootcss.com/ionic/1.3.2/css/ionic.min.css" rel="stylesheet">
+    <link href="{% static "css/remind.css" %}" rel="stylesheet">
+    <link href="{% static "css/eosram/style.css" %}" rel="stylesheet">
+
+    <script src="https://cdn.bootcss.com/ionic/1.3.2/js/ionic.bundle.min.js"></script>
+    <script src="https://cdn.bootcss.com/angular-i18n/1.5.3/angular-locale_zh-cn.min.js" defer></script>
+    <script src="https://res.wx.qq.com/open/libs/weuijs/1.0.0/weui.min.js" defer></script>
+    <script>
+        var userAvatar = "{{ request.user.headimgurl }}";
+        var subscribed = {{ request.user.subscribe|lower }};
+        var availableQuota = null;
+        {% if eosram_profile.available_quota != None %}
+          availableQuota = {{ eosram_profile.available_quota }};
+        {% endif %}
+        var eosAccount = "{{ EOS_ACCOUNT }}";
+        var eosMemo = "{{ eosram_profile.memo }}";
+        // handle hijack by ISP
+        if (window !== top) top.location.href = window.location.href;
+    </script>
+    <script src="{% static "js/eosram/app.js" %}"></script>
+</head>
+
+<body ng-app="eosram" ng-controller="RamRemindCtrl">
+
+    <ion-header-bar class="bar-positive" align-title="center">
+      <h1 class="title">设置EOS Ram价格提醒</h1>
+    </ion-header-bar>
+
+    <ion-content>
+
+        <ion-list>
+
+            <label class="item item-input" ng-repeat="rem in remind.threshold">
+                <span class="input-label">[[ rem.increase ? '上涨到 (EOS/KB)' : '下跌到 (EOS/KB)' ]]</span>
+                <input type="number" placeholder="[[ rem.increase ? 0.9 : 0.1 ]]" ng-change="rem.done=false"
+                       ng-model="rem.threshold">
+            </label>
+
+            <label class="item item-input" ng-repeat="rem in remind.percent">
+                <span class="input-label">[[ formatRemindText(rem) ]]</span>
+                <input type="number" placeholder="9.99" ng-change="rem.done=false"
+                       ng-model="rem.threshold">
+            </label>
+
+        </ion-list>
+
+        <div class="padding">
+
+            <button class="button button-block button-outline button-positive" ng-click="addAnotherRemind()">
+                <i class="icon ion-ios-plus-outline"></i>
+                增加提醒项
+            </button>
+
+            <button class="button button-block button-positive" ng-click="updateAlert()">
+                <i class="icon ion-ios-checkmark-outline"></i>
+                保存
+            </button>
+
+        </div>
+
+        <ul class="padding ram-note">
+            <li ng-if="availableQuota!==null">当前可用提醒额度<b class="positive">[[availableQuota - availableQuota%1]]</b>次，<a href="#" ng-click="showRechargeDialog()">点击这里充值EOS</a>可购买提醒额度。</li>
+            <li>每条提醒都是可以循环复用的，比如说当Ram价格跌破某个设定的阈值后会触发提醒，过段时间价格上涨然后又跌破这个阈值，提醒还会被再次触发。</li>
+            <li>如需帮助或者提供建议请<a href="#" ng-click="showMyQrCode()">联系我</a>。</li>
+        </ul>
+
+    </ion-content>
+
+    <ion-footer-bar align-title="center" class="bar-balanced item-remove-animate" ng-if="message">
+        <h1 class="title"> [[ message ]]</h1>
+    </ion-footer-bar>
+
+    <script id="loading-toast" type="text/ng-template">
+        <div class="weui-mask_transparent"></div>
+        <div class="weui-toast">
+            <i class="weui-loading weui-icon_toast"></i>
+            <p class="weui-toast__content">数据加载中</p>
+        </div>
+    </script>
+
+    <script src="https://res.wx.qq.com/open/js/jweixin-1.2.0.js"></script>
+    <script>
+        wx.config({
+            debug: false,
+            appId: '{{ appId }}',
+            timestamp: {{ timestamp }},
+            nonceStr: '{{ nonce_str }}',
+            signature: '{{ signature }}',
+            jsApiList: ['onMenuShareTimeline', 'onMenuShareAppMessage', 'onMenuShareQQ', 'onMenuShareWeibo', 'onMenuShareQZone']
+        });
+    </script>
+
+</body>
+</html>

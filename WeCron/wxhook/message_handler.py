@@ -2,6 +2,7 @@
 from __future__ import unicode_literals, absolute_import
 import logging
 import json
+import re
 
 from datetime import timedelta
 from django.utils import timezone
@@ -47,6 +48,9 @@ class WechatMessage(object):
     def handle_text(self, reminder=None):
         try:
             if not reminder:
+                if re.search('(^eos\s*ram$)|(^ram$)', self.message.content, re.I):
+                    return self.text_reply('EOS Ram价格提醒<a href="http://wecron.betacat.io/eosram/">请点击这里</a>')
+
                 reminder = parse(self.message.content, uid=self.message.source)
                 reminder.owner = self.user
                 if hasattr(self.message, 'media_id'):
@@ -101,6 +105,11 @@ class WechatMessage(object):
             subscribe_remind = Remind.objects.filter(
                 id__gt='%s-0000-0000-0000-000000000000' % (hex(int(self.message.scene_id)).replace('0x', ''))
             ).order_by('id').first()
+        elif self.message.scene_id == 'eos_ram_price':
+            logger.info('Get an EOS ram price subscription from %s', self.user.get_full_name())
+            return self.text_reply('亲爱的 %s，欢迎订阅EOS Ram价格变动提醒！\n\n'
+                                   '点击<a href="http://wecron.betacat.io/eosram/">\U0001F449这里</a>'
+                                   '设置你的提醒' % (self.user.get_full_name()))
         else:
             subscribe_remind = Remind.objects.filter(id=self.message.scene_id).first()
         if subscribe_remind:
@@ -178,13 +187,13 @@ class WechatMessage(object):
         elif self.message.key.lower() == 'donate':
             logger.info('Sending donation QR code to %s', self.user.get_full_name())
             wechat_client.message.send_text(self.user.openid, u'好的服务离不开大家的鼓励和支持，如果觉得微定时给你的生活带来了一丝便利，'
-                                                              u'请使劲用赞赏来支持(别忘了备注微信名，否则微信不让我看到是谁赞赏的)。')
-            # http://mmbiz.qpic.cn/mmbiz_png/U4AEiaplkjQ26gI5kMFhaBda9CAcI5uxE4FDwWp8pOduoyBDDuWXtdgxx9UMH3GxUgrRoqibsqDHtwMMNjHJkjVg/0?wx_fmt=png
-            return ImageReply(message=self.message, media_id='S8Jjk9aHXZ7wXSwK1qqu2b6yDboZT6UIvYWF4dKLyQs').render()
+                                                              u'请使劲儿用赞赏来支持。')
+            # http://mmbiz.qpic.cn/mmbiz_png/U4AEiaplkjQ2mLxVZTECsibyWGB2Jtxs1JRvLVuEmYuW8TWvjiawPicfllfMbCxbEkUaasffkREJuG6OB4czIKpqAA/0?wx_fmt=png
+            return ImageReply(message=self.message, media_id='S8Jjk9aHXZ7wXSwK1qqu2dpiYj7y7uD_WPbIh8FRKCw').render()
         elif self.message.key.lower() == 'donate_geizang':
             logger.info('Sending donation GeiZang QR code to %s', self.user.get_full_name())
             wechat_client.message.send_text(self.user.openid, u'好的服务离不开大家的鼓励和支持，如果觉得微定时给你的生活带来了一丝便利，'
-                                                              u'请使劲用赞赏来支持。')
+                                                              u'请使劲儿用赞赏来支持。')
             # http://mmbiz.qpic.cn/mmbiz_png/U4AEiaplkjQ0DypiahsELePfHTh2NysKvQmqTBoqVTHabpPPJiaqg5aFunCUdVwraGMdcCo2Tz9GngWccoch3YWow/0?wx_fmt=png
             return ImageReply(message=self.message, media_id='S8Jjk9aHXZ7wXSwK1qqu2d1M_OVm4CoEECgdDlrG0mQ').render()
         elif self.message.key.lower() == 'add_friend':

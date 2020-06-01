@@ -8,7 +8,7 @@ run:
 
 run-in-prod: clean docs syncdb collectstatic
 	# uwsgi --ini=deploy/conf/uwsgi.ini.j2 --http :$(PORT) 
-	uwsgi --ini=deploy/conf/uwsgi.ini --http :$(PORT) 
+	exec uwsgi --ini=deploy/conf/uwsgi.ini --http :$(PORT)
 
 run-uwsgi-test:
 	uwsgi --chdir=WeCron \

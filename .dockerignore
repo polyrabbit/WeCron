@@ -1,0 +1,7 @@
+.git/
+.env
+.DS_Store
+.gitignore
+.pyc
+.idea/
+venv/

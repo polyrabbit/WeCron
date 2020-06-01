@@ -54,7 +54,7 @@ def nature_time(dt, precision=2, past_tense='{}前', future_tense='{}后'):
 def get_qrcode_url(scene_id):
     ticket = wechat_client.qrcode.create({
         'expire_seconds': 2592000,
-        'action_name': 'QR_LIMIT_STR_SCENE',
+        'action_name': 'QR_STR_SCENE',
         'action_info': {
             'scene': {'scene_str': scene_id},
         }
