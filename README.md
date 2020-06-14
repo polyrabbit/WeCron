@@ -57,3 +57,4 @@ python WeCron/manage.py runserver
 * 文档：[WeCron是怎样处理定时任务的
 ](http://blog.betacat.io/post/how-wecron-schedules/)
 * 感谢[@messense](https://github.com/messense)贡献的微信公众平台SDK [wechatpy](http://docs.wechatpy.org)！
+* WeCron开始于2015年，一直稳定运行着，并将持续维护下去（因为我个人也是重度用户）
