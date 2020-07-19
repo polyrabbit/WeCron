@@ -15,6 +15,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . $WORKDIR
 
-RUN make docs
+#RUN make docs
 
 CMD ["make", "run-in-prod"]

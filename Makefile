@@ -6,7 +6,7 @@ PORT ?= $(VCAP_APP_PORT)
 run:
 	python WeCron/manage.py runserver 0.0.0.0:$(PORT)
 
-run-in-prod: clean docs syncdb collectstatic
+run-in-prod: clean syncdb collectstatic
 	# uwsgi --ini=deploy/conf/uwsgi.ini.j2 --http :$(PORT) 
 	exec uwsgi --ini=deploy/conf/uwsgi.ini --http :$(PORT)
 

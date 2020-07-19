@@ -31,9 +31,11 @@ class RemindScheduler(BackgroundScheduler):
                     remind_list = list(Remind.objects.select_for_update().filter(
                         done=False, notify_time__range=(now - grace_time, now)).all())
                     for rem in remind_list:
-                        rem.notify_users()
-                        rem.done = True
-                        rem.save()
+                        try:
+                            rem.notify_users()
+                        finally:
+                            rem.done = True
+                            rem.save()
                     next_remind = Remind.objects.filter(
                         done=False, notify_time__gt=now-grace_time).order_by('notify_time').first()
                     wait_seconds = None
