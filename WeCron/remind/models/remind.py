@@ -176,7 +176,13 @@ class Remind(models.Model):
         self.save(update_fields=['participants'])
 
     def has_repeat(self):
-        return bool(self.repeat)
+        if not self.repeat:
+            return False
+        has_positive = False
+        for key in self.repeat:
+            if self.repeat[key] > 0:
+                has_positive = True
+        return has_positive
 
     def get_repeat_text(self):
         # TODO: we don't support hour and minute now
@@ -203,9 +209,14 @@ class Remind(models.Model):
         delta = {}
         for key in self.repeat:
             delta[delta_params_map[key]] = self.repeat[key]
+
+        last_notify_time = self.notify_time
         while self.notify_time <= _now:
             self.time += relativedelta(**delta)
             self.update_notify_time()
+            if self.notify_time <= last_notify_time:
+                logger.warn('Dead loop when rescheduling %s', self)
+                return False
         return True
 
     def update_notify_time(self):

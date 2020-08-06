@@ -1,6 +1,6 @@
 Django==1.9.1
 djangorestframework==3.6.4
-uWSGI==2.0.15
+uWSGI==2.0.19
 wechatpy==1.3.1
 requests==2.8.1
 psycopg2==2.7.3.1

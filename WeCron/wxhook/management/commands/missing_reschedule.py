@@ -16,3 +16,4 @@ class Command(BaseCommand):
                 rem.done = False
                 print rem
                 rem.save()
+        print 'Reschedule done'
