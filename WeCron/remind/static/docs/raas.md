@@ -53,7 +53,7 @@ Content-Type: application/json
 
 |       参数       |   类型  | 必须 |     说明       |
 | --------------- | ------- | --- | ------------- |
-| `<remind_time>` |  long   |  是 | unix timestamp形式的提醒时间，例如：1507695258535 |
+| `<remind_time>` |  long   |  是 | unix timestamp形式的提醒时间，**单位是毫秒(ms)**，例如：1507695258535 |
 | `<title>`       |  string |  否 | 提醒显示的标题，例如：还信用卡  |
 | `<description>` |  string |  是 | 提醒的描述，例如：每月25号提醒我还信用卡 |
 | `<defer>`       |  int    |  否 | 提醒提前/延后时间，以分钟为单位，例如：`-60`代表提前1小时，`60`代表延后1小时提醒 |
