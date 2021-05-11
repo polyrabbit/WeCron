@@ -13,10 +13,6 @@
 </a>
 </p>
 
-*WeCron is being sponsored by the following tool; please help to support us by taking a look and signing up to a free trial.*
-
-<a href="https://tracking.gitads.io/?repo=WeCron"> <img src="https://images.gitads.io/WeCron" alt="GitAds"/> </a>
-
 ## 本地运行
 
 1. Clone代码
@@ -52,7 +48,7 @@ python WeCron/manage.py runserver
 ### 扫码关注微定时公众号，体验一下吧
 <p>
 <a href="http://wecron.betacat.io" class="rich-diff-level-one">
-  <img src="https://camo.githubusercontent.com/6f87c83d4bb324babcf1fd94751cf1ead16be13e/687474703a2f2f7778332e73696e61696d672e636e2f6d773639302f61633437323334386c793166696c646438686d677a6a323037363037366467612e6a7067" alt="微定时二维码" data-canonical-src="http://wx3.sinaimg.cn/mw690/ac472348ly1fildd8hmgzj2076076dga.jpg" height="150">
+  <img src="https://user-images.githubusercontent.com/2657334/117764620-64571d00-b25f-11eb-857a-d8c12932065f.png" alt="微定时二维码" data-canonical-src="https://mp.weixin.qq.com/misc/getqrcode?fakeid=3937213371&token=849973266" height="150">
 </a>
 </p>
 
