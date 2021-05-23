@@ -65,6 +65,7 @@ class WechatUser(AbstractBaseUser):
     morning_greeting = models.TimeField('早报时间', null=True, default='08:00')
     notify_subscription = models.NullBooleanField('提醒被订阅通知', default=True)
     timezone = models.CharField('默认时区', max_length=64, default=settings.TIME_ZONE)
+    source = models.CharField('用户来源，区分从那个公众号关注过来', max_length=32, null=True)
 
     objects = UserManager()
 

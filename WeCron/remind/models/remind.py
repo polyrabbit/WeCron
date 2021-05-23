@@ -68,8 +68,8 @@ class Remind(models.Model):
         units = [('周', 10080), ('天', 1440), ('小时', 60), ('分钟', 1)]
         for unit, minutes in units:
             if self.defer % minutes == 0:
-                return '%s %s %s' %('提前' if self.defer < 0 else '延后',
-                                    abs(self.defer/minutes), unit)
+                return '%s %s %s' % ('提前' if self.defer < 0 else '延后',
+                                     abs(self.defer / minutes), unit)
 
     def local_time_string(self, fmt=None):
         """
@@ -110,12 +110,12 @@ class Remind(models.Model):
         # TODO: test those parameters
         message_params = {
             'user_id': uid,
-            'template_id': 'IxUSVxfmI85P3LJciVVcUZk24uK6zNvZXYkeJrCm_48',
+            'template_id': 'gyMYkovrWmAWmKs8HGxU4Q6MiXZVxp3vOrKooY3x5uQ',
             'url': self.get_absolute_url(full=True),
             'top_color': '#459ae9',
             'data': {
                 "first": {
-                    "value": '\U0001F552 %s\n' % self.title(),
+                    "value": '\U0001F552 %s' % self.title(),
                     "color": "#459ae9"
                 },
                 "keyword1": {
@@ -126,9 +126,8 @@ class Remind(models.Model):
                 },
                 "remark": {
                     "value": "提醒时间：" + self.nature_time_defer()
-                             + (('\n重复周期：' + self.get_repeat_text() +
-                                '\n\n点击详情' + (
-                                '删除' if self.owner_id == uid else '退订') + '本提醒') if self.has_repeat() else ''),
+                             + (('\n重复周期：' + self.get_repeat_text()) if self.has_repeat() else '')
+                             + '\n\n点击详情可编辑本提醒',
                 }
             },
 
@@ -152,14 +151,14 @@ class Remind(models.Model):
                 logger.info('Successfully send notification(%s) to user %s in text mode', desc, uname)
                 return res
             except:
-                pass
+                logger.exception('Failed to send text notification(%s) to user %s', desc, uname)
         try:
             message_params.pop('raw_text', None)
             res = wechat_client.message.send_template(**message_params)
             logger.info('Successfully send notification(%s) to user %s in template mode', desc, uname)
             return res
         except:
-            logger.exception('Failed to send notification(%s) to user %s', desc, uname)
+            logger.exception('Failed to send template notification(%s) to user %s', desc, uname)
 
     def add_participant(self, uid):
         if uid == self.owner_id or uid in self.participants:
