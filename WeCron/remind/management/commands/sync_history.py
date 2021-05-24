@@ -1,5 +1,5 @@
 # coding: utf-8
-from __future__ import unicode_literals, absolute_import
+from __future__ import absolute_import
 from collections import namedtuple
 
 from django.core.management import BaseCommand
@@ -34,21 +34,26 @@ class Command(BaseCommand):
         if options['nickname'] is not None:
             self.sync_user_history(options['nickname'])
         elif options['since_yesterday'] == True:
-            yesterday = timezone.now() - timezone.timedelta(days=1)
-            recent_users = WechatUser.objects.filter(subscribe_time__gte=yesterday).all()
+            yesterday = timezone.now() - timezone.timedelta(days=2)
+            recent_users = WechatUser.objects.filter(subscribe_time__gte=yesterday, source__isnull=True).all()
             for u in recent_users:
-                self.sync_user_history(u.nickname)
+                self.sync_user_history(u.nickname, u.openid)
         else:
             raise ValueError("invalid arguments")
 
-    def sync_user_history(self, nickname):
+    def sync_user_history(self, nickname, openid=None):
         with connection.cursor() as cursor:
-            cursor.execute(twin_query, [nickname])
+            params = [nickname]
+            query = twin_query
+            if openid is not None:
+                query += ' and new_user.openid=%s'
+                params.append(openid)
+            cursor.execute(query, params)
             twins_qs = namedtuplefetchall(cursor)
             if len(twins_qs) == 0:
                 print 'no twins found matching nickname=%s' % nickname
             elif len(twins_qs) != 1:
-                raise RuntimeError('found %d twins, ambiguous!\nsql: \n%s' % (len(twins_qs), twin_query))
+                raise RuntimeError('found %d twins for %s, ambiguous!\nsql: \n%s' % (len(twins_qs), nickname, twin_query))
             else:
                 twins = twins_qs[0]
                 cursor.execute('update time_remind set owner_id=%s where owner_id=%s', [twins.new_id, twins.old_id])
