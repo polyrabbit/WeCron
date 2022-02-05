@@ -110,7 +110,7 @@ class Remind(models.Model):
         # TODO: test those parameters
         message_params = {
             'user_id': uid,
-            'template_id': 'gyMYkovrWmAWmKs8HGxU4Q6MiXZVxp3vOrKooY3x5uQ',
+            'template_id': '4Az0yqszw8TBJE9hLhjghZ4aA8HwYXM_VVr62wLnTUo',
             'url': self.get_absolute_url(full=True),
             'top_color': '#459ae9',
             'data': {
