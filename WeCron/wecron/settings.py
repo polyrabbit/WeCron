@@ -28,7 +28,7 @@ SECRET_KEY = os.environ['DJ_SECRET_KEY']
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = 'DJ_DEBUG' in os.environ
 
-ALLOWED_HOSTS = ['.weixin.at', 'localhost', '.hackernews.im', '.mybluemix.net', '.betacat.io']
+ALLOWED_HOSTS = ['wecron.fly.dev', 'localhost', '.hackernews.im', '.mybluemix.net', '.betacat.io']
 HOST_NAME = os.environ.get('HTTP_HOST', 'http://wecron.betacat.io')
 
 # Application definition

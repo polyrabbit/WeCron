@@ -1,4 +1,4 @@
-name: dockerhub
+name: build-deploy
 
 on:
   push:
@@ -8,6 +8,7 @@ on:
 
 jobs:
   docker-build-push:
+    name: Docker Build
     runs-on: ubuntu-latest
 
     steps:
@@ -31,3 +32,14 @@ jobs:
 
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
+
+  fly-deploy:
+    name: Fly Deploy
+    runs-on: ubuntu-latest
+    needs: docker-build-push
+    steps:
+      - uses: actions/checkout@v3
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - run: flyctl deploy --remote-only
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
