@@ -10,7 +10,7 @@ pycrypto==2.6.1
 ago==0.0.6
 tomorrow==0.2.4
 httmock==1.2.4
-jieba==0.38
+jieba==0.42.1
 python_dateutil==2.6.0
 shove==0.6.6
 coverage
