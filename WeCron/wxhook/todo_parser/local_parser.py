@@ -12,8 +12,13 @@ from remind.models.remind import REPEAT_KEY_YEAR, REPEAT_KEY_MONTH, \
     REPEAT_KEY_DAY, REPEAT_KEY_WEEK, REPEAT_KEY_HOUR, REPEAT_KEY_MINUTE
 from .exceptions import ParseError
 
-jieba.initialize()
 logger = logging.getLogger(__name__)
+
+small_dict = None
+if os.path.isfile(os.path.join(os.path.dirname(__file__), 'dict.txt')):
+    small_dict = os.path.join(os.path.dirname(__file__), 'dict.txt')
+    logger.info('Use dict file %s', small_dict)
+jieba.initialize(small_dict)
 
 CN_NUM = {
         u'〇': 0,
