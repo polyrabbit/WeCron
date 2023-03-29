@@ -37,7 +37,7 @@ def signals_receiver(sender, request, user, **kwargs):
 class ProfileViewSet(WWWAuthenticateHeaderMixIn, mixins.RetrieveModelMixin,
                    mixins.UpdateModelMixin, viewsets.GenericViewSet):
     http_method_names = ['patch', 'get']
-    authentication_classes = (authentication.SessionAuthentication, )
+    authentication_classes = (authentication.SessionAuthentication, authentication.TokenAuthentication)
     serializer_class = UserSerializer
 
     def get_object(self):
