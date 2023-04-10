@@ -2,6 +2,7 @@
 
 VCAP_APP_PORT ?= 8000
 PORT ?= $(VCAP_APP_PORT)
+UWSGI_WORKERS ?= 1
 
 run:
 	python WeCron/manage.py runserver 0.0.0.0:$(PORT)
