@@ -14,7 +14,6 @@ COPY requirements.txt $WORKDIR
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . $WORKDIR
-ADD https://github.com/downloads/fxsjy/jieba/dict.txt $WORKDIR/WeCron/wxhook/todo_parser/
 
 #RUN make docs
 

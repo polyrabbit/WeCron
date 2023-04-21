@@ -1,7 +1,7 @@
 # WeCron
 
 [![license](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://github.com/polyrabbit/WeCron/blob/master/LICENSE)
-[![Build Status](https://api.travis-ci.org/polyrabbit/WeCron.svg)](https://travis-ci.org/polyrabbit/WeCron)
+[![Build Status](https://github.com/polyrabbit/WeCron/actions/workflows/deploy.yml/badge.svg)](https://github.com/polyrabbit/WeCron/actions)
 [![codecov](https://codecov.io/gh/polyrabbit/WeCron/branch/master/graph/badge.svg)](https://codecov.io/gh/polyrabbit/WeCron)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/polyrabbit/WeCron/pulls)
 
@@ -54,7 +54,6 @@ python WeCron/manage.py runserver
 
 ## 关于
 
-* 文档：[WeCron是怎样处理定时任务的
-](http://blog.betacat.io/post/how-wecron-schedules/)
+* 文档：[WeCron是怎样处理定时任务的](https://blog.betacat.io/post/how-wecron-schedules/)
 * 感谢[@messense](https://github.com/messense)贡献的微信公众平台SDK [wechatpy](http://docs.wechatpy.org)！
 * WeCron开始于2015年，一直稳定运行着，并将持续维护下去（因为我个人也是重度用户）
