@@ -2,6 +2,7 @@
 from __future__ import unicode_literals, absolute_import
 from datetime import datetime
 import pytz
+import six
 
 from django.db import models
 from django.core.urlresolvers import reverse
@@ -35,6 +36,8 @@ class UserManager(BaseUserManager):
         field_list = WechatUser._meta.get_all_field_names()
         for field in params.keys():
             if field not in field_list:
+                params.pop(field)
+            elif isinstance(params[field], six.string_types) and len(params[field]) == 0:
                 params.pop(field)
         return params
 

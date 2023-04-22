@@ -16,6 +16,9 @@ class LocalParserTestCase(TestCase):
         self.parser = LocalParser()
         self.parse = self.parser.parse_by_rules
 
+    def tearDown(self):
+        remind.now = timezone.now
+
     def test_cn_parser(self):
         test_dig = [u'九',
                     u'十一',
