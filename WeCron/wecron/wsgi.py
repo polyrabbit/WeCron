@@ -18,6 +18,9 @@ application = get_wsgi_application()
 # Start scheduler here so it only gets started when running server
 from remind.models.scheduler import RemindScheduler
 from django.db.models.signals import post_save
+from wxhook.todo_parser.local_parser import init_jieba
+
+init_jieba()
 
 # Remind = self.get_model('Remind')
 scheduler = RemindScheduler()

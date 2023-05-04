@@ -14,8 +14,6 @@ from .exceptions import ParseError
 
 logger = logging.getLogger(__name__)
 
-jieba.initialize()
-
 CN_NUM = {
         u'〇': 0,
         u'一': 1,
@@ -57,6 +55,17 @@ CN_UNIT = {
     }
 
 
+def init_jieba():
+    if jieba.dt.initialized:
+        return
+    jieba.initialize()
+    for word in open(os.path.join(os.path.dirname(__file__), 'ignore_words.txt')):
+        if word.strip():
+            # Wait until #350 of jieba is fixed
+            jieba.add_word(word.strip(), 1e-9)
+    jieba.add_word(u'下月', 9999)
+
+
 # 三百八十二 => 382
 def parse_cn_number(cn_sentence):
     # First, convert different parts
@@ -84,11 +93,6 @@ def parse_cn_number(cn_sentence):
             words_with_digit2.append(word)
     return ''.join(map(unicode, words_with_digit2[1:]))
 
-for word in open(os.path.join(os.path.dirname(__file__), 'ignore_words.txt')):
-    if word.strip():
-        # Wait until #350 of jieba is fixed
-        jieba.add_word(word.strip(), 1e-9)
-jieba.add_word(u'下月', 9999)
 
 DEFAULT_HOUR = 8
 DEFAULT_MINUTE = 0

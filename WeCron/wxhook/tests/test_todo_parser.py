@@ -5,11 +5,15 @@ from dateutil.relativedelta import relativedelta
 from django.utils import timezone
 from django.test import TestCase
 
-from ..todo_parser.local_parser import LocalParser, parse_cn_number, DEFAULT_HOUR, ParseError
+from ..todo_parser.local_parser import LocalParser, parse_cn_number, DEFAULT_HOUR, ParseError, init_jieba
 from remind.models import remind
 
 
 class LocalParserTestCase(TestCase):
+
+    @classmethod
+    def setUpTestData(cls):
+        init_jieba()
 
     def setUp(self):
         self.now = timezone.localtime(timezone.now())
