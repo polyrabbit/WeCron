@@ -3,8 +3,6 @@ from __future__ import unicode_literals, absolute_import
 import os
 import re
 import logging
-import jieba
-import jieba.posseg as pseg
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
 from remind.models import Remind
@@ -56,6 +54,9 @@ CN_UNIT = {
 
 
 def init_jieba():
+    # jieba and jieba.posseg load a lot of data on init, import them here to load on demand
+    import jieba
+    import jieba.posseg as pseg
     if jieba.dt.initialized:
         return
     jieba.initialize()
@@ -113,6 +114,7 @@ class LocalParser(object):
         self.repeat = {}
 
     def parse_by_rules(self, text):
+        import jieba.posseg as pseg # already imported in `init_jieba`
         # TODO: refine me, here is an ad-hoc patch to distinguish weekday and hour
         _text = re.sub(ur'([周|星期]\w)(\d)', r'\1 \2', text, flags=re.U)
         self.words = pseg.lcut(parse_cn_number(_text), HMM=False)

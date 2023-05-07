@@ -20,22 +20,22 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         now = timezone.now()
-        today_reminds = Remind.objects.filter(time__date=now).all()
+        today_reminds = Remind.objects.filter(time__date=now).values("owner_id", "participants")
         users_to_notify = set()
         for rem in today_reminds:
-            users_to_notify.add(rem.owner_id)
-            users_to_notify.update(rem.participants)
+            users_to_notify.add(rem['owner_id'])
+            users_to_notify.update(rem['participants'])
 
         # Wechat only allows replying users active in the last 48 hours
         time_threshold = now - timezone.timedelta(hours=48)
-        for uid in users_to_notify:
-            user = get_user_model().objects.filter(pk=uid, subscribe=True, last_login__gt=time_threshold,
-                                                   morning_greeting__isnull=False).first()
+        needs_notify = get_user_model().objects.filter(pk__in=users_to_notify, subscribe=True,
+                                                       last_login__gt=time_threshold, morning_greeting__isnull=False)
+        for user in needs_notify:
             if not user:
                 continue
             user.activate_timezone()
-            # Get today's reminds of a user
-            user_today_reminds = list(user.get_time_reminds().filter(time__date=now).order_by('time').all())
+            # Get today's reminds of a user, TODO: use `join` to avoid so much sql queries
+            user_today_reminds = list(user.get_time_reminds().filter(time__date=now).order_by('time'))
             for rem in user_today_reminds:
                 # Add 2 minutes delta so user won't get two consecutive notice
                 if rem.time > now + timezone.timedelta(minutes=5):
