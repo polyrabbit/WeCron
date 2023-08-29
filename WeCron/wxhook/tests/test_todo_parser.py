@@ -389,6 +389,13 @@ class LocalParserTestCase(TestCase):
         self.assertEquals(reminder.time.hour, 20)
         self.assertEquals(reminder.time.minute, 0)
 
+    def test_parse_ignored_words(self):
+        text = '明早10点中意'
+        reminder = self.parse(text)
+        self.assertEqual(reminder.desc, text)
+        self.assertEqual(reminder.title(), '中意')
+        self.assertEquals(reminder.time.hour, 10)
+
     def test_parse_repeat_day_with_implict_afternoon(self):
         text = '每天七点半提醒我起床'
         reminder = self.parse(text)

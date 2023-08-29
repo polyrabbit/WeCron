@@ -22,6 +22,7 @@ class Command(BaseCommand):
             {"name": "亲友团",   "sub_button": [
                 {"type": "view", "name": "\U0001F60A意见反馈", "url": "https://www.wjx.top/jq/15914889.aspx"},
                 {"type": "view", "name": "©源代码", "url": "https://github.com/polyrabbit/WeCron"},
+                {"type": "view", "name": "📰 Hacker News", "url": "https://hackernews.betacat.io/zh.html?utm_source=wecron"},
                 {"type": "view", "name": "RaaS", "url": "https://github.com/polyrabbit/WeCron/blob/master/WeCron/remind/static/docs/raas.md"},
                 # {"type": "click", "name": "小密圈", "key": "join_group"},
                 # {"type": "click", "name": "作者微信", "key": "add_friend"},
