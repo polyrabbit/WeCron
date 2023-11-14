@@ -17,6 +17,7 @@ from django.dispatch import receiver
 from common import wechat_client
 from remind.utils import nature_time
 from remind.signals import participant_modified
+from wechatpy import WeChatException
 
 logger = logging.getLogger(__name__)
 
@@ -141,15 +142,20 @@ class Remind(models.Model):
                 ('重复：' + self.get_repeat_text() + '\n') if self.has_repeat() else '',
                 '<a href="%s">详情</a>' % self.get_absolute_url(True))
             message_params['raw_text'] = raw_text
-        self.send_template_message_async(message_params, self.desc, name)
+        self.send_template_message_async(message_params, self.desc, user)
 
     @threads(10, timeout=60)
-    def send_template_message_async(self, message_params, desc, uname):
+    def send_template_message_async(self, message_params, desc, user):
+        uname = user.get_full_name()
         if 'raw_text' in message_params:
             try:
                 res = wechat_client.message.send_text(message_params['user_id'], message_params['raw_text'])
                 logger.info('Successfully send notification(%s) to user %s in text mode', desc, uname)
                 return res
+            except WeChatException as e:
+                if e.errcode == 45015:
+                    user.last_login = now() - timedelta(hours=49)
+                    user.save(update_fields=['last_login'])
             except:
                 logger.exception('Failed to send text notification(%s) to user %s', desc, uname)
         try:

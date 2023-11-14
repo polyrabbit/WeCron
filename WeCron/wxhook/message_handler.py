@@ -1,7 +1,8 @@
-#coding: utf-8
+# coding: utf-8
 from __future__ import unicode_literals, absolute_import
 import logging
 import json
+import os
 import re
 
 from datetime import timedelta
@@ -10,6 +11,7 @@ from django.contrib.auth import get_user_model
 from wechatpy.replies import TextReply, TransferCustomerServiceReply, ImageReply
 from wechatpy.exceptions import WeChatClientException
 from shove import Shove
+from pydub import AudioSegment
 
 from common import wechat_client
 from remind.models import Remind
@@ -73,9 +75,14 @@ class WechatMessage(object):
             pass
         except Exception as e:  # Catch all kinds of wired errors
             logger.exception('Semantic parse error')
+        if hasattr(self.message, 'media_id'):  # speech to text has a low recognition rate...
+            return self.text_reply(
+                '\U0001F648微信的语音转文字功能识别出来的是：\n\n“%s”\n\n'
+                '是不是它又识别错了。。。要不直接发文字给我吧~' % self.message.content
+            )
         return self.text_reply(
             '\U0001F648抱歉，我还只是一个比较初级的定时机器人，理解不了您刚才所说的话：\n\n“%s”\n\n'
-            '或者您可以换个姿势告诉我该怎么定时，比如这样：\n\n' 
+            '或者您可以换个姿势告诉我该怎么定时，比如这样：\n\n'
             '“两个星期后提醒我去复诊”。\n'
             '“周五晚上提醒我打电话给老妈”。\n'
             '“每月20号提醒我还信用卡[捂脸]”。' % self.message.content
@@ -133,7 +140,7 @@ class WechatMessage(object):
 
     def handle_unknown(self):
         return self.text_reply(
-            '/:jj如需设置提醒，只需用语音或文字告诉我就行了，比如这样：\n\n' 
+            '/:jj如需设置提醒，只需用语音或文字告诉我就行了，比如这样：\n\n'
             '“两个星期后提醒我去复诊”。\n'
             '“周五晚上提醒我打电话给老妈”。\n'
             '“每月20号提醒我还信用卡[捂脸]”。'
@@ -149,6 +156,9 @@ class WechatMessage(object):
     def handle_voice(self):
         self.message.content = getattr(self.message, 'recognition', '')
         if not self.message.content:
+            self.message.content = speech_to_text(getattr(self.message, 'media_id', ''))
+        if not self.message.content:
+            logger.info('No "recognition" field for media_id "%s" and speech_to_text returns nothing', getattr(self.message, 'media_id', 'NOT_EXIST'))
             return self.text_reply(
                 '\U0001F648哎呀，看起来微信的语音转文字功能又双叒叕罬蝃抽风了，请重试一遍，或者直接发文字给我~'
             )
@@ -166,15 +176,15 @@ class WechatMessage(object):
             remind_text_list = self.format_remind_list(time_reminds)
             if remind_text_list:
                 return self.text_reply('/:sunHi %s, 你今天的提醒有:\n\n%s' % (self.user.get_full_name(),
-                                                                       '\n'.join(remind_text_list)))
+                                                                              '\n'.join(remind_text_list)))
             return self.text_reply('/:coffee今天没有提醒，休息一下吧！')
         elif self.message.key.lower() == 'time_remind_tomorrow':
-            tomorrow = timezone.now()+timedelta(days=1)
+            tomorrow = timezone.now() + timedelta(days=1)
             time_reminds = self.user.get_time_reminds().filter(time__date=tomorrow).order_by('time').all()
             remind_text_list = self.format_remind_list(time_reminds, True)
             if remind_text_list:
                 return self.text_reply('/:sunHi %s, 你明天的提醒有:\n\n%s' % (self.user.get_full_name(),
-                                                                       '\n'.join(remind_text_list)))
+                                                                              '\n'.join(remind_text_list)))
             return self.text_reply('/:coffee明天还没有提醒，休息一下吧！')
         elif self.message.key.lower() == 'customer_service':
             logger.info('Transfer to customer service for %s', self.user.get_full_name())
@@ -211,10 +221,10 @@ class WechatMessage(object):
             emoji = '\U0001F552'  # Clock
             # takewhile is too aggressive
             if rem.time < now:
-                emoji = '\U00002713 ' # Done
+                emoji = '\U00002713 '  # Done
             elif not next_run_found:
                 next_run_found = True
-                emoji = '\U0001F51C' # Soon
+                emoji = '\U0001F51C'  # Soon
             remind_text_list.append('%s %s - <a href="%s">%s</a>' %
                                     (emoji, rem.local_time_string('G:i'), rem.get_absolute_url(True), rem.title()))
         return remind_text_list
@@ -234,3 +244,40 @@ def handle_message(msg):
     # shove['last_msgid'] = msgid
     return resp_msg
 
+
+def speech_to_text(media_id):
+    if not media_id:
+        return None
+    media_url = wechat_client.media.get_url(media_id).replace('http://', 'https://')
+    media_resp = wechat_client.get(media_url)
+    if len(media_resp.content) == 0:
+        logger.warn('Failed to download media id %s', media_id)
+        return ''
+
+    fname = 'audio.amr'
+    d = media_resp.headers['content-disposition']
+    matches = re.findall("filename=(.+)", d)
+    if matches and len(matches) > 0:
+        fname = matches[0].strip('"')
+    fpath = '/tmp/' + fname
+    with open(fpath, 'wb') as f:
+        f.write(media_resp.content)
+
+    try:
+        audio = AudioSegment.from_file(fpath)
+        out_file = audio.export(format='mp3')
+        mp3_content = out_file.read()
+        out_file.close()
+    finally:
+        os.remove(fpath)
+
+    submit_url = 'https://api.weixin.qq.com/cgi-bin/media/voice/addvoicetorecofortext?access_token=%s&format=mp3&voice_id=%s' % (wechat_client.access_token, media_id)
+    submit_json = wechat_client.post(submit_url, files={fname: mp3_content})
+    if submit_json.get('errcode') != 0 and submit_json.get('errcode') != '0':
+        logger.warn('Failed to submit media id %s: %s', media_id, submit_json)
+        return ''
+
+    text_url = 'https://api.weixin.qq.com/cgi-bin/media/voice/queryrecoresultfortext?access_token=%s&voice_id=%s&lang=zh_CN' % (wechat_client.access_token, media_id)
+    text_json = wechat_client.post(text_url)
+    logger.info('Speech to text result: "%s"', text_json.get('result'))
+    return text_json.get('result')

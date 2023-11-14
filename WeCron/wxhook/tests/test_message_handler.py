@@ -12,6 +12,7 @@ from common.tests import access_token_mock
 from ..message_handler import handle_message
 from wechat_user.models import WechatUser
 from remind.models import Remind
+from wxhook.todo_parser.local_parser import init_jieba
 
 
 @urlmatch(netloc=r'(.*\.)?api\.weixin\.qq\.com$', path='.*semantic')
@@ -66,6 +67,7 @@ class MessageHandlerTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.mock.__enter__()
+        init_jieba()
 
     def setUp(self):
         self.user = WechatUser(openid='FromUser', nickname='UserName')
@@ -163,6 +165,23 @@ class MessageHandlerTestCase(TestCase):
         r = self.user.get_time_reminds().first()
         self.assertEqual(media_id, r.media_id)
         r.delete()
+
+    def test_speech_to_text(self):
+        media_id = 'aZCOJETyQl-PVZhye4aKMb6V89gmsiGX9sCyiWpAwjd9dvEYwXxgXAZY3G29nc2b'
+        req_text = """
+        <xml>
+        <ToUserName><![CDATA[toUser]]></ToUserName>
+        <FromUserName><![CDATA[FromUser]]></FromUserName>
+        <CreateTime>1357290913</CreateTime>
+        <MsgType><![CDATA[voice]]></MsgType>
+        <MediaId><![CDATA[%s]]></MediaId>
+        <Format><![CDATA[Format]]></Format>
+        <MsgId>12345678901234565</MsgId>
+        </xml>
+        """ % (media_id)
+        wechat_msg = self.build_wechat_msg(req_text)
+        resp_xml = handle_message(wechat_msg)  # Should have no exception
+        self.assertIn('识别错了', resp_xml)
 
     def test_video(self):
         req_text = """

@@ -14,6 +14,7 @@ jieba==0.42.1
 python_dateutil==2.6.0
 shove==0.6.6
 coverage
-Pillow==4.3.0
+Pillow==6.2.2
 py-lru-cache==0.1.4
-grip
+grip==4.6.2
+pydub==0.25.1

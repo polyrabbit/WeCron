@@ -10,6 +10,9 @@ EXPOSE $VCAP_APP_PORT
 
 HEALTHCHECK CMD curl --fail http://localhost:$VCAP_APP_PORT/?healthy || exit 1
 
+RUN apt-get update
+RUN apt-get install -y ffmpeg libavcodec-extra
+
 COPY requirements.txt $WORKDIR
 RUN pip install --no-cache-dir -r requirements.txt
 

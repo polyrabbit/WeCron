@@ -29,6 +29,7 @@ def parse(text, **kwargs):
 
 
 def parse_by_wechat_api(text, **kwargs):
+    raise WeChatClientException(errcode=-111, errmsg='semantic no longer works')
     """
     {
         "errcode": 0,
