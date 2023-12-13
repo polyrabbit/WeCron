@@ -13,12 +13,12 @@
     <link rel="shortcut icon" href="{% static "img/favicon.jpeg" %}">
     <link rel="bookmark" href="{% static "img/favicon.jpeg" %}" >
     <link href="https://res.wx.qq.com/open/libs/weui/1.1.0/weui.min.css" rel="stylesheet">
-    <link href="https://cdn.staticfile.org/ionic/1.3.2/css/ionic.min.css" rel="stylesheet">
+    <link href="{% static "css/ionic.min.css" %}" rel="stylesheet">
     <link href="{% static "css/remind.css" %}" rel="stylesheet">
 
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9393129008813908" crossorigin="anonymous"></script>
-    <script src="https://cdn.staticfile.org/ionic/1.3.2/js/ionic.bundle.min.js"></script>
-    <script src="https://cdn.staticfile.org/angular-i18n/1.5.3/angular-locale_zh-cn.min.js" defer></script>
+    <script src="{% static "js/ionic.bundle.min.js" %}"></script>
+    <script src="{% static "js/angular-locale_zh-cn.min.js" %}" defer></script>
     <script src="https://res.wx.qq.com/open/libs/weuijs/1.0.0/weui.min.js" defer></script>
     <script>
         var userID = "{{ request.user.pk }}";
@@ -29,15 +29,6 @@
         if (window !== top) top.location.href = window.location.href;
     </script>
     <script src="{% static "js/remind.js" %}"></script>
-    <script>
-        var _hmt = _hmt || [];
-        (function() {
-          var hm = document.createElement("script");
-          hm.src = "https://hm.baidu.com/hm.js?8e44abe7851728334fe213346c9bec1f";
-          var s = document.getElementsByTagName("script")[0];
-          s.parentNode.insertBefore(hm, s);
-        })();
-    </script>
 </head>
 
 <body ng-app="remind">
