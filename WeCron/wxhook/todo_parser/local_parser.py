@@ -3,6 +3,7 @@ from __future__ import unicode_literals, absolute_import
 import os
 import re
 import logging
+import random
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
 from remind.models import Remind
@@ -439,7 +440,9 @@ class LocalParser(object):
         # 两天后下午三点
         if not has_hour and not self.consume_hour():
             self.time_fields['hour'] = hour
-            self.time_fields['minute'] = DEFAULT_MINUTE
+            # self.time_fields['minute'] = DEFAULT_MINUTE
+            # In case of intensive fire at 8:00 a.m.
+            self.time_fields['minute'] = random.randint(0, 3)
         return self.get_index() - beginning
 
     def consume_weekday_period(self):

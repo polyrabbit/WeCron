@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 class RemindScheduler(BackgroundScheduler):
-    misfire_grace_time = 60
+    misfire_grace_time = 5 * 60
     MAX_WAIT_TIME = 60*60  # wake up every hour
 
     def _process_jobs(self):
@@ -29,7 +29,7 @@ class RemindScheduler(BackgroundScheduler):
                     # Statically store the select result, in case of modifying the result in selection,
                     # which will results in a infinite selection.
                     remind_list = list(Remind.objects.select_for_update().filter(
-                        done=False, notify_time__range=(now - grace_time, now)).all())
+                        done=False, notify_time__range=(now - grace_time, now)).order_by('notify_time').all())
                     for rem in remind_list:
                         try:
                             rem.notify_users()
