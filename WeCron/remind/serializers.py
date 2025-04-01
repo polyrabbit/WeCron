@@ -61,7 +61,7 @@ class ParticipantSerializer(serializers.Field):
 
     def to_internal_value(self, participants):
         logger.info('User(%s) subscribes a remind(%s)',
-                    self.parent.context['request'].user.nickname, unicode(self.parent.instance))
+                    self.parent.context['request'].user.get_full_name(), unicode(self.parent.instance))
         participant_modified.send(sender=self.parent.instance, participant=self.parent.context['request'].user, add=True)
         return list(set(p['id'] for p in participants if UserModel.objects.filter(pk=p['id'], subscribe=True).first()))
 
@@ -99,7 +99,7 @@ class RemindSerializer(serializers.ModelSerializer):
         # for token authentication is used for API, when doing an API request, the QR code should be returned.
         if user.subscribe and not self._created:
             return None
-        logger.info('%s requests QR code for %s', user.nickname, unicode(remind))
+        logger.info('%s requests QR code for %s', user.get_full_name(), unicode(remind))
         return get_qrcode_url(remind.id.hex)
 
     def create(self, validated_data):

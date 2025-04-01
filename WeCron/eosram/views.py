@@ -71,13 +71,13 @@ class EosRamAlertView(WWWAuthenticateHeaderMixIn, RetrieveUpdateAPIView):
                     serializer = ThresholdSerializer(alert, data=dict(alert_json, owner=self.request.user.pk))
                     if serializer.is_valid():
                         logger.info('User(%s) updates a %s threshold remind(from %s to %s)',
-                                    self.request.user.nickname, 'increasing' if alert_json['increase'] else 'decreasing',
+                                    self.request.user.get_full_name(), 'increasing' if alert_json['increase'] else 'decreasing',
                                     alert.threshold, alert_json['threshold'])
                         serializer.save()
                 else:
                     # Have id and no threshold -> delete
                     logger.info('User(%s) deletes a %s threshold remind(%s)',
-                                self.request.user.nickname, 'increasing' if alert_json['increase'] else 'decreasing',
+                                self.request.user.get_full_name(), 'increasing' if alert_json['increase'] else 'decreasing',
                                 alert.threshold)
                     alert.delete()
                     del alert_json['id']
@@ -89,7 +89,7 @@ class EosRamAlertView(WWWAuthenticateHeaderMixIn, RetrieveUpdateAPIView):
                     serializer = ThresholdSerializer(data=dict(alert_json, owner=self.request.user.pk))
                     if serializer.is_valid():
                         logger.info('User(%s) adds a %s threshold remind(%s)',
-                                    self.request.user.nickname, 'increasing' if alert_json['increase'] else 'decreasing',
+                                    self.request.user.get_full_name(), 'increasing' if alert_json['increase'] else 'decreasing',
                                     alert_json['threshold'])
                         serializer.save()
                         alert_json['id'] = serializer.instance.id
@@ -107,13 +107,13 @@ class EosRamAlertView(WWWAuthenticateHeaderMixIn, RetrieveUpdateAPIView):
                     serializer = PercentageSerializer(alert, data=dict(alert_json, owner=self.request.user.pk))
                     if serializer.is_valid():
                         logger.info('User(%s) updates a %s percent remind(from %s to %s)',
-                                    self.request.user.nickname, 'increasing' if alert_json['increase'] else 'decreasing',
+                                    self.request.user.get_full_name(), 'increasing' if alert_json['increase'] else 'decreasing',
                                     alert.threshold, alert_json['threshold'])
                         serializer.save()
                 else:
                     # Have id and no threshold -> delete
                     logger.info('User(%s) deletes a %s percent remind(%s)',
-                                self.request.user.nickname, 'increasing' if alert_json['increase'] else 'decreasing',
+                                self.request.user.get_full_name(), 'increasing' if alert_json['increase'] else 'decreasing',
                                 alert.threshold)
                     alert.delete()
                     del alert_json['id']
@@ -125,7 +125,7 @@ class EosRamAlertView(WWWAuthenticateHeaderMixIn, RetrieveUpdateAPIView):
                     serializer = PercentageSerializer(data=dict(alert_json, owner=self.request.user.pk))
                     if serializer.is_valid():
                         logger.info('User(%s) adds a %s percent remind(%s)',
-                                    self.request.user.nickname, 'increasing' if alert_json['increase'] else 'decreasing',
+                                    self.request.user.get_full_name(), 'increasing' if alert_json['increase'] else 'decreasing',
                                     alert_json['threshold'])
                         serializer.save()
                         alert_json['id'] = serializer.instance.id

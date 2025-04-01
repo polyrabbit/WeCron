@@ -39,7 +39,7 @@ class WechatMessage(object):
 
     def handle(self):
         logger.info('Get a %s %s from %s', getattr(self.message, 'event', ''),
-                    self.message.type, self.user.nickname)
+                    self.message.type, self.user.get_full_name())
         handler = getattr(self, 'handle_%s' % self.message.type.lower(), self.handle_unknown)
         return handler()
 
@@ -121,7 +121,7 @@ class WechatMessage(object):
             subscribe_remind = Remind.objects.filter(id=self.message.scene_id).first()
         if subscribe_remind:
             if subscribe_remind.add_participant(self.user.openid):
-                logger.info('User(%s) participants a remind(%s)', self.user.nickname, unicode(subscribe_remind))
+                logger.info('User(%s) participants a remind(%s)', self.user.get_full_name(), unicode(subscribe_remind))
             return self.handle_text(subscribe_remind)
         logger.warning('Cannot find remind from scene id %s', self.message.scene_id)
         return self.text_reply('处理不了的scene id呢: %s' % self.message.scene_id)
@@ -129,13 +129,7 @@ class WechatMessage(object):
     handle_scan_event = handle_subscribe_scan_event
 
     def handle_unsubscribe_event(self):
-        self.user.subscribe = False
-        existing_count = self.user.time_reminds_created.count()
-        if existing_count <= 10:
-            self.user.time_reminds_created.all().delete()
-            self.user.delete()
-        else:
-            self.user.save(update_fields=['subscribe'])
+        self.user.unsubscribe()
         return self.text_reply("Bye")
 
     def handle_unknown(self):

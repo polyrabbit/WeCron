@@ -163,8 +163,10 @@ class Remind(models.Model):
             res = wechat_client.message.send_template(**message_params)
             logger.info('Successfully send notification(%s) to user %s in template mode', desc, uname)
             return res
-        except:
+        except WeChatException as e:
             logger.exception('Failed to send template notification(%s) to user %s', desc, uname)
+            if e.errcode == 43101:
+                user.unsubscribe()
 
     def add_participant(self, uid):
         if uid == self.owner_id or uid in self.participants:
@@ -244,7 +246,7 @@ class Remind(models.Model):
         return reverse('remind-detail', kwargs={'pk': self.pk.hex})
 
     def __unicode__(self):
-        return '%s: %s (%s)' % (self.owner.nickname, self.desc or self.event,
+        return '%s: %s (%s)' % (self.owner.get_full_name(), self.desc or self.event,
                                 self.local_time_string('Y/n/j G:i:s'))
 
 

@@ -88,7 +88,7 @@ class WechatUser(AbstractBaseUser):
         return self.nickname
 
     def get_full_name(self):
-        return self.nickname or ''  # avoid 'None', Wechat no longer sends nickname...
+        return self.nickname or self.openid or ''  # avoid 'None', Wechat no longer sends nickname...
 
     get_short_name = get_full_name
 
@@ -108,6 +108,15 @@ class WechatUser(AbstractBaseUser):
 
     def activate_timezone(self):
         timezone.activate(self.get_timezone())
+
+    def unsubscribe(self):
+        self.subscribe = False
+        existing_count = self.time_reminds_created.count()
+        if existing_count <= 100:
+            self.time_reminds_created.all().delete()
+            self.delete()
+        else:
+            self.save(update_fields=['subscribe'])
 
 # A hack around django's not allowing override a parent model's attribute
 WechatUser._meta.get_field('password').null = True

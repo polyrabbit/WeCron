@@ -107,11 +107,11 @@ class RemindViewSet(WWWAuthenticateHeaderMixIn, viewsets.ModelViewSet):
         user = self.request.user
         if instance.owner_id == user.pk:
             instance.delete()
-            logger.info('User(%s) deletes a remind(%s)', user.nickname, unicode(instance))
+            logger.info('User(%s) deletes a remind(%s)', user.get_full_name(), unicode(instance))
         elif user.pk in instance.participants:
             instance.participants.remove(self.request.user.pk)
             instance.save(update_fields=['participants'])
-            logger.info('User(%s) quites a remind(%s)', user.nickname, unicode(instance))
+            logger.info('User(%s) quites a remind(%s)', user.get_full_name(), unicode(instance))
             participant_modified.send(sender=instance, participant=user, add=False)
         else:
             self.permission_denied(self.request, message=u'Unauthorized!')
@@ -120,8 +120,6 @@ class RemindViewSet(WWWAuthenticateHeaderMixIn, viewsets.ModelViewSet):
 def media_proxy(request, media_id):
     try:
         resp = wechat_client.media.download(media_id)
-        # import requests
-        # resp = requests.get('http://b.hackernews.im/dl/song.mp3')
     except WeChatClientException as e:
         raise Http404(e)
 
