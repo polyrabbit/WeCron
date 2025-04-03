@@ -396,6 +396,14 @@ class LocalParserTestCase(TestCase):
         self.assertEqual(reminder.title(), '中意')
         self.assertEquals(reminder.time.hour, 10)
 
+    def test_parse_o_clock(self):
+        for text in ('请提醒我13点钟坐高铁', '请提醒我13点整坐高铁'):
+            self.setUp()
+            reminder = self.parse(text)
+            self.assertEqual(reminder.desc, text)
+            self.assertEqual(reminder.title(), '坐高铁')
+            self.assertEquals(reminder.time.hour, 13)
+
     def test_parse_repeat_day_with_implict_afternoon(self):
         text = '每天七点半提醒我起床'
         reminder = self.parse(text)
