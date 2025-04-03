@@ -88,7 +88,7 @@ class WechatUser(AbstractBaseUser):
         return self.nickname
 
     def get_full_name(self):
-        return self.nickname or self.openid or ''  # avoid 'None', Wechat no longer sends nickname...
+        return self.nickname or ''  # avoid 'None', Wechat no longer sends nickname...
 
     get_short_name = get_full_name
 

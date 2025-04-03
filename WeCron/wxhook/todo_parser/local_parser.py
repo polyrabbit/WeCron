@@ -293,7 +293,7 @@ class LocalParser(object):
 
         beginning2 = self.get_index()
         hour = self.consume_digit()
-        if hour is None or not self.consume_word(u'点', u'点钟', ':', u'：', u'.', u'時', u'时'):
+        if hour is None or not self.consume_word(u'点', u'点钟', u'点整',':', u'：', u'.', u'時', u'时'):
             self.set_index(beginning2)
             # Assert fails
             return self.get_index() - beginning1
