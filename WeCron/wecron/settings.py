@@ -110,6 +110,24 @@ DATABASES = {
     }
 }
 
+# cleanup db
+# Show table size:
+# SELECT
+#     schemaname,
+#     relname AS table_name,
+#     pg_size_pretty(pg_total_relation_size(relid)) AS total_size,
+#     pg_size_pretty(pg_relation_size(relid)) AS table_size,
+#     pg_size_pretty(pg_total_relation_size(relid) - pg_relation_size(relid)) AS index_size
+# FROM pg_catalog.pg_statio_user_tables
+# ORDER BY pg_total_relation_size(relid) DESC;
+
+# If index bloats:
+# REINDEX TABLE time_remind;
+# VACUUM FULL time_remind;
+
+# cleanup obsolete:
+# delete from time_remind where done=true and notify_time <'2024-01-01' and repeat='{}';
+
 from django.conf.global_settings import DATETIME_INPUT_FORMATS
 DATETIME_INPUT_FORMATS += (
     '%Y-%m-%dT%H:%M:%S',

@@ -21,12 +21,13 @@ from wechatpy import WeChatException
 
 logger = logging.getLogger(__name__)
 
-REPEAT_KEY_YEAR     = 'year'
-REPEAT_KEY_MONTH    = 'month'
-REPEAT_KEY_DAY      = 'day'
-REPEAT_KEY_WEEK     = 'week'
-REPEAT_KEY_HOUR     = 'hour'
-REPEAT_KEY_MINUTE   = 'minute'
+REPEAT_KEY_YEAR = 'year'
+REPEAT_KEY_MONTH = 'month'
+REPEAT_KEY_DAY = 'day'
+REPEAT_KEY_WEEK = 'week'
+REPEAT_KEY_HOUR = 'hour'
+REPEAT_KEY_MINUTE = 'minute'
+repeat_keys = (REPEAT_KEY_YEAR, REPEAT_KEY_MONTH, REPEAT_KEY_DAY, REPEAT_KEY_WEEK, REPEAT_KEY_HOUR, REPEAT_KEY_MINUTE)
 
 
 class Remind(models.Model):
@@ -189,6 +190,7 @@ class Remind(models.Model):
         for key in self.repeat:
             if self.repeat[key] > 0:
                 has_positive = True
+                break
         return has_positive
 
     def get_repeat_text(self):
@@ -196,17 +198,20 @@ class Remind(models.Model):
         repeat_chinese_names = {REPEAT_KEY_YEAR: '年', REPEAT_KEY_MONTH: '月', REPEAT_KEY_DAY: '天',
                                 REPEAT_KEY_WEEK: '周', REPEAT_KEY_HOUR: '小时', REPEAT_KEY_MINUTE: '分钟'}
         for key in self.repeat:
+            if key not in repeat_chinese_names:
+                continue
             repeat_count = self.repeat[key]
             if repeat_count:
                 # First one wins
                 return '每%s%s' % (
-                        '' if repeat_count == 1 else repeat_count, repeat_chinese_names[key])
+                    '' if repeat_count == 1 else repeat_count, repeat_chinese_names[key])
 
-    def reschedule(self):
+    def reschedule(self, _now=None):
         # This method is idempotent
         if not self.has_repeat():
             return False
-        _now = now()
+        if _now is None:
+            _now = now()
         self.update_notify_time()
         if _now < self.notify_time:
             return False
@@ -215,11 +220,21 @@ class Remind(models.Model):
                             REPEAT_KEY_WEEK: 'weeks', REPEAT_KEY_HOUR: 'hours', REPEAT_KEY_MINUTE: 'minutes'}
         delta = {}
         for key in self.repeat:
-            delta[delta_params_map[key]] = self.repeat[key]
+            if key in delta_params_map:
+                delta[delta_params_map[key]] = self.repeat[key]
 
+        ORIGINAL_DAY = 'original_day'
         last_notify_time = self.notify_time
+        original_day = self.repeat.get(ORIGINAL_DAY, last_notify_time.day)
         while self.notify_time <= _now:
             self.time += relativedelta(**delta)
+            # fix monthly edge case
+            if REPEAT_KEY_MONTH in self.repeat and self.time.day != original_day:
+                try:
+                    self.time = self.time.replace(day=original_day)
+                except ValueError:
+                    # the day field is out of range for the current month, e.g., 30th in February
+                    self.repeat[ORIGINAL_DAY] = original_day
             self.update_notify_time()
             if self.notify_time <= last_notify_time:
                 logger.warn('Dead loop when rescheduling %s', self)
