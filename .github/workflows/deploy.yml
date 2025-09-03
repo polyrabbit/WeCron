@@ -9,7 +9,7 @@ on:
 jobs:
   unit-test:
     name: Unit Test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     services:
       postgres:
         image: postgres:14
@@ -43,7 +43,7 @@ jobs:
 
   docker-build-push:
     name: Docker Build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     # needs: unit-test  # TODO: enable back after migrating from python 2.7
     steps:
       - uses: actions/checkout@v3
@@ -65,7 +65,7 @@ jobs:
 
   fly-deploy:
     name: Fly Deploy
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: docker-build-push
     steps:
       - uses: actions/checkout@v3

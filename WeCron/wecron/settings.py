@@ -15,7 +15,6 @@ import os
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
 
@@ -106,7 +105,7 @@ DATABASES = {
         'USER': os.environ.get('WECRON_DB_USER', 'postgres'),
         # GRANT ALL PRIVILEGES ON DATABASE "___" to "__";
         'PASSWORD': os.environ.get('WECRON_DB_PASSWORD', ''),
-        'CONN_MAX_AGE': 60*60*4,
+        'CONN_MAX_AGE': 600,
     }
 }
 
@@ -129,6 +128,7 @@ DATABASES = {
 # delete from time_remind where done=true and notify_time <'2024-01-01' and repeat='{}';
 
 from django.conf.global_settings import DATETIME_INPUT_FORMATS
+
 DATETIME_INPUT_FORMATS += (
     '%Y-%m-%dT%H:%M:%S',
     '%Y-%m-%dT%H:%M',
@@ -165,7 +165,7 @@ USE_ETAGS = True
 
 AUTH_USER_MODEL = 'wechat_user.WechatUser'
 
-SESSION_COOKIE_AGE = 30*24*60*60
+SESSION_COOKIE_AGE = 30 * 24 * 60 * 60
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
@@ -189,7 +189,7 @@ LOGGING = {
         }
     },
     'handlers': {
-        'console':{
+        'console': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
             'formatter': 'standard'
