@@ -1,5 +1,4 @@
 # coding: utf-8
-from __future__ import unicode_literals, absolute_import
 
 from datetime import timedelta
 from django.test import TestCase
@@ -17,7 +16,7 @@ def create_qrcode_mock(url, request):
     content = {
         'ticket': 'gQH47joAAAAAAAAAASxodHRwOi8vd2VpeGluLnFxLmNvbS9xL2taZ2Z3TVRtNzJXV1Brb3ZhYmJJAAIEZ23sUwMEmm3sUw==',
         'expires_in': 30,
-        'url': 'http:\/\/weixin.qq.com\/q\/kZgfwMTm72WWPkovabbI',
+        'url': 'http://weixin.qq.com/q/kZgfwMTm72WWPkovabbI',
     }
     headers = {
         'Content-Type': 'application/json'
@@ -58,7 +57,7 @@ class RemindSerializerTestCase(TestCase):
     def test_uuid_format(self):
         serializer = RemindSerializer(instance=self.r, context={'request': self.request})
         with HTTMock(access_token_mock, create_qrcode_mock):
-            self.assertRegexpMatches(serializer.data['id'], r'\w{32}')
+            self.assertRegex(serializer.data['id'], r'\w{32}')
 
     def test_default_title(self):
         r = Remind(time=timezone.now(), owner_id='miao', desc='吃饭饭', done=True)

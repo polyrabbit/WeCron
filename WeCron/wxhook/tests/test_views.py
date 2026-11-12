@@ -1,7 +1,6 @@
 # coding: utf-8
-from __future__ import unicode_literals, absolute_import
 from django.test import TestCase
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 
 
 class ViewsTestCase(TestCase):
@@ -19,7 +18,7 @@ class ViewsTestCase(TestCase):
                                          'timestamp': timestamp,
                                          'nonce': nonce})
             self.assertEqual(resp.status_code, 200)
-            self.assertEqual(resp.content, echostr)
+            self.assertEqual(resp.content.decode(), echostr)
 
             resp = self.client.get(reverse('weixin_callback'),
                                    data={'echostr': echostr,
@@ -27,4 +26,4 @@ class ViewsTestCase(TestCase):
                                          'timestamp': timestamp,
                                          'nonce': nonce})
             self.assertEqual(resp.status_code, 200)
-            self.assertNotEqual(resp.content, echostr)
+            self.assertNotEqual(resp.content.decode(), echostr)

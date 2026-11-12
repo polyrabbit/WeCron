@@ -1,9 +1,8 @@
 # coding: utf-8
-from __future__ import unicode_literals, absolute_import
 from datetime import timedelta
 
+from django.core.cache import cache
 from django.utils import timezone
-from lru import lru_cache_function
 from common import wechat_client
 
 
@@ -50,13 +49,17 @@ def nature_time(dt, precision=2, past_tense='{}前', future_tense='{}后'):
     return the_tense.format(human_delta)
 
 
-@lru_cache_function(max_size=100, expiration=86400*2)  # cache for 2 days
 def get_qrcode_url(scene_id):
-    ticket = wechat_client.qrcode.create({
-        'expire_seconds': 2592000,
-        'action_name': 'QR_STR_SCENE',
-        'action_info': {
-            'scene': {'scene_str': scene_id},
-        }
-    })
-    return wechat_client.qrcode.get_url(ticket)
+    key = 'qrcode:' + scene_id
+    url = cache.get(key)
+    if url is None:
+        ticket = wechat_client.qrcode.create({
+            'expire_seconds': 2592000,
+            'action_name': 'QR_STR_SCENE',
+            'action_info': {
+                'scene': {'scene_str': scene_id},
+            }
+        })
+        url = wechat_client.qrcode.get_url(ticket)
+        cache.set(key, url, 86400*2)  # cache for 2 days
+    return url

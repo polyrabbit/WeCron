@@ -1,8 +1,7 @@
 # coding: utf-8
-from __future__ import unicode_literals, absolute_import
 
 import logging
-from urlparse import urljoin
+from urllib.parse import urljoin
 from django.core.management import BaseCommand
 from django.contrib.auth import get_user_model
 from django.utils import timezone

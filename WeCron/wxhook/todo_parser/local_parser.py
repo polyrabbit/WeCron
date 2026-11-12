@@ -1,5 +1,4 @@
 # coding: utf-8
-from __future__ import unicode_literals, absolute_import
 import os
 import re
 import logging
@@ -61,10 +60,11 @@ def init_jieba():
     if jieba.dt.initialized:
         return
     jieba.initialize()
-    for word in open(os.path.join(os.path.dirname(__file__), 'ignore_words.txt')):
-        if word.strip():
-            # Wait until #350 of jieba is fixed
-            jieba.add_word(word.strip(), 1e-9)
+    with open(os.path.join(os.path.dirname(__file__), 'ignore_words.txt'), encoding='utf-8') as f:
+        for word in f:
+            if word.strip():
+                # Wait until #350 of jieba is fixed
+                jieba.add_word(word.strip(), 1e-9)
     jieba.add_word(u'下月', 9999)
 
 
@@ -93,7 +93,7 @@ def parse_cn_number(cn_sentence):
             words_with_digit2[-1] += word
         else:
             words_with_digit2.append(word)
-    return ''.join(map(unicode, words_with_digit2[1:]))
+    return ''.join(map(str, words_with_digit2[1:]))
 
 
 DEFAULT_HOUR = 8
@@ -117,7 +117,7 @@ class LocalParser(object):
     def parse_by_rules(self, text):
         import jieba.posseg as pseg # already imported in `init_jieba`
         # TODO: refine me, here is an ad-hoc patch to distinguish weekday and hour
-        _text = re.sub(ur'([周|星期]\w)(\d)', r'\1 \2', text, flags=re.U)
+        _text = re.sub(r'([周|星期]\w)(\d)', r'\1 \2', text, flags=re.U)
         self.words = pseg.lcut(parse_cn_number(_text), HMM=False)
         while self.has_next():
             self.parse_beginning = self.get_index()

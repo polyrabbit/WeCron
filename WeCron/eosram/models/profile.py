@@ -1,13 +1,11 @@
 # coding: utf-8
-from __future__ import unicode_literals
 import logging
-from urlparse import urljoin
+from urllib.parse import urljoin
 
-from tomorrow import threads
 from django.utils.timezone import now
 from django.db import models
 from django.conf import settings
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.formats import date_format
 from django.contrib.auth import get_user_model
@@ -47,7 +45,6 @@ class Profile(models.Model):
     def available_quota(self):
         return self.recharge/RATIO + self.reward - self.used
 
-    @threads(10, timeout=60)  # async function
     def send_wechat_alert(self, title, content, additional=''):
         owner = get_user_model().objects.filter(pk=self.owner_id).first()
         if not owner:
@@ -72,7 +69,6 @@ class Profile(models.Model):
             'user_id': owner.pk,
             'template_id': '2piojX2y-fxOFiNeVaLahNItiKaeVaZENnRd1_cpwYQ',
             'url': urljoin(settings.HOST_NAME, reverse('ram_index') + '?from=notification'),
-            'top_color': '#459ae9',
             'data': {
                 "first": {
                     "value": '\U000026A0 %s\n' % title,

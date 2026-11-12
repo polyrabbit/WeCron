@@ -11,7 +11,7 @@ from wechat_user.models import WechatUser
 from remind.share_post import draw_post, TPL_IMAGE_PATH
 
 
-DISPLAY_POST = True
+DISPLAY_POST = False
 
 
 @urlmatch(netloc=r'(.*\.)?mp\.weixin\.qq\.com$', path='.*showqrcode')

@@ -12,18 +12,24 @@
   #   - keys.yml
 
   tasks:
+    # Python 3.12 is required (same as the Docker image), e.g. Ubuntu 24.04
     - name: Install system packages
-      apt: pkg="{{ item }}" state=installed
-      with_items:
-        - python2.7
-        - python-dev
-        - python-pip
-        - git
-        - supervisor
-        - libpq-dev
-        - ntpdate
-        - libffi-dev
-        - libssl-dev
+      apt:
+        update_cache: yes
+        name:
+          - python3
+          - python3-dev
+          - python3-venv
+          # uWSGI is built from source
+          - build-essential
+          - libpcre2-dev
+          - zlib1g-dev
+          # pydub converts voice messages with ffmpeg
+          - ffmpeg
+          - git
+          - supervisor
+          - cron
+          - ntpdate
 
 ### App
     - name: Create directories
@@ -32,13 +38,10 @@
           - "{{ PROJ_HOME }}"
           - "{{ PROJ_HOME }}/log"
 
-    - name: Install virtualenv
-      pip: name=virtualenv state=present version=1.11.4
-
     - name: Create a virtualenv for wecron
       become_user: www-data
-      shell: virtualenv "{{ PROJ_VENV }}"
-             creates="{{ PROJ_VENV }}/bin/activate"
+      command: python3 -m venv "{{ PROJ_VENV }}"
+               creates="{{ PROJ_VENV }}/bin/activate"
       notify:
         - Install python dependencies
 
@@ -49,12 +52,6 @@
       copy: src=../requirements.txt dest="{{ PROJ_HOME }}/requirements.txt"
       notify:
         - Install python dependencies
-
-    # - name: Install oneapm
-    #   pip:
-    #     name: blueware
-    #     extra_args: '-i http://pypi.oneapm.com/simple'
-    #     virtualenv: "{{ PROJ_VENV }}"
 
     - name: Update Makefile
       copy: src=../Makefile dest="{{ PROJ_HOME }}/Makefile"
@@ -88,7 +85,7 @@
     - name: Install nginx
       become: yes
       become_method: sudo
-      apt: pkg=nginx state=installed update_cache=yes
+      apt: pkg=nginx state=present update_cache=yes
       notify:
         - Start nginx
 
@@ -111,6 +108,7 @@
       become: yes
       become_method: sudo
       notify:
+        - Start supervisor
         - Load wecron with supervisord
 
 #### uwsgi
@@ -118,10 +116,6 @@
       template: src=conf/uwsgi.ini.j2 dest="{{ PROJ_HOME }}/uwsgi.ini"
       notify:
           - Load wecron with supervisord
-
-### oneapm
-    - name: Update oneapm config
-      template: src=conf/blueware.ini.j2 dest="{{ PROJ_HOME }}/blueware.ini"
 
   handlers:
     # Handlers run in the order written

@@ -1,5 +1,4 @@
 # coding: utf-8
-from __future__ import absolute_import
 from collections import namedtuple
 
 from django.core.management import BaseCommand
@@ -51,10 +50,10 @@ class Command(BaseCommand):
             cursor.execute(query, params)
             twins_qs = namedtuplefetchall(cursor)
             if len(twins_qs) == 0:
-                print 'no twins found matching nickname=%s' % nickname
+                print('no twins found matching nickname=%s' % nickname)
             elif len(twins_qs) != 1:
                 raise RuntimeError('found %d twins for %s, ambiguous!\nsql: \n%s' % (len(twins_qs), nickname, twin_query))
             else:
                 twins = twins_qs[0]
                 cursor.execute('update time_remind set owner_id=%s where owner_id=%s', [twins.new_id, twins.old_id])
-                print 'migrate %s(%s -> %s), records %d' % (nickname, twins.old_id, twins.new_id, cursor.rowcount)
+                print('migrate %s(%s -> %s), records %d' % (nickname, twins.old_id, twins.new_id, cursor.rowcount))

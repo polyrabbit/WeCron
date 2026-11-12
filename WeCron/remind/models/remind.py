@@ -1,17 +1,17 @@
 # coding: utf-8
-from __future__ import unicode_literals, absolute_import
 import logging
 import uuid
-from urlparse import urljoin
+from concurrent.futures import ThreadPoolExecutor
+from urllib.parse import urljoin
 
-from tomorrow import threads
 from dateutil.relativedelta import relativedelta
-from django.db import models
-from django.core.urlresolvers import reverse
+from django.db import models, transaction
+from django.urls import reverse
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.utils.timezone import localtime, now, timedelta
 from django.utils.formats import date_format
-from django.contrib.postgres.fields import ArrayField, JSONField
+from django.contrib.postgres.fields import ArrayField
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from common import wechat_client
@@ -20,6 +20,7 @@ from remind.signals import participant_modified
 from wechatpy import WeChatException
 
 logger = logging.getLogger(__name__)
+notify_executor = ThreadPoolExecutor(10)
 
 REPEAT_KEY_YEAR = 'year'
 REPEAT_KEY_MONTH = 'month'
@@ -45,14 +46,14 @@ class Remind(models.Model):
     external_url = models.URLField('外部链接地址', max_length=120, blank=True, null=True)
     # year, month, day, week, hour, minute
     # repeat = ArrayField(models.IntegerField(), size=5, verbose_name='重复', default=list)
-    repeat = JSONField(verbose_name='重复', default=dict)
+    repeat = models.JSONField(verbose_name='重复', default=dict)
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, verbose_name='创建者',
                               related_name='time_reminds_created', on_delete=models.DO_NOTHING)
     # participants = models.ManyToManyField('wechat_user.WechatUser', verbose_name='订阅者',
     #                                       related_name='time_reminds_participate')
     participants = ArrayField(models.CharField(max_length=40), verbose_name='订阅者', default=list)
-    done = models.NullBooleanField('状态', default=False,
-                                   choices=((False, '未发送'), (True, '已发送'),))
+    done = models.BooleanField('状态', null=True, default=False,
+                               choices=((False, '未发送'), (True, '已发送'),))
 
     default_title = u'闹钟'
 
@@ -71,7 +72,7 @@ class Remind(models.Model):
         for unit, minutes in units:
             if self.defer % minutes == 0:
                 return '%s %s %s' % ('提前' if self.defer < 0 else '延后',
-                                     abs(self.defer / minutes), unit)
+                                     abs(self.defer) // minutes, unit)
 
     def local_time_string(self, fmt=None):
         """
@@ -98,9 +99,10 @@ class Remind(models.Model):
     # @threads(10, timeout=60)
     def notify_user_by_id(self, uid):
         # TODO: wechatpy is not thread-safe
+        UserModel = get_user_model()
         try:
-            user = self.owner._default_manager.get(pk=uid)
-        except self.owner.DoesNotExist:
+            user = UserModel.objects.get(pk=uid)
+        except UserModel.DoesNotExist:
             logger.info('User %s is not found, skip sending notification' % uid)
             return
         name = user.get_full_name()
@@ -114,7 +116,6 @@ class Remind(models.Model):
             'user_id': uid,
             'template_id': '4Az0yqszw8TBJE9hLhjghZ4aA8HwYXM_VVr62wLnTUo',
             'url': self.get_absolute_url(full=True),
-            'top_color': '#459ae9',
             'data': {
                 "first": {
                     "value": '\U0001F552 %s' % self.title(),
@@ -143,10 +144,11 @@ class Remind(models.Model):
                 ('重复：' + self.get_repeat_text() + '\n') if self.has_repeat() else '',
                 '<a href="%s">详情</a>' % self.get_absolute_url(True))
             message_params['raw_text'] = raw_text
-        self.send_template_message_async(message_params, self.desc, user)
+        # Send only after the scheduler commits, a rolled back batch would otherwise be sent again on retry
+        transaction.on_commit(lambda: notify_executor.submit(self.send_template_message, message_params, self.desc, user),
+                              robust=True)
 
-    @threads(10, timeout=60)
-    def send_template_message_async(self, message_params, desc, user):
+    def send_template_message(self, message_params, desc, user):
         uname = user.get_full_name()
         if 'raw_text' in message_params:
             try:
@@ -174,7 +176,7 @@ class Remind(models.Model):
             return False
         self.participants.append(uid)
         self.save(update_fields=['participants'])
-        participant_modified.send(sender=self, participant=self.owner._default_manager.get(pk=uid), add=True)
+        participant_modified.send(sender=self, participant=get_user_model().objects.get(pk=uid), add=True)
         return True
 
     def remove_participant(self, uid):
@@ -237,7 +239,7 @@ class Remind(models.Model):
                     self.repeat[ORIGINAL_DAY] = original_day
             self.update_notify_time()
             if self.notify_time <= last_notify_time:
-                logger.warn('Dead loop when rescheduling %s', self)
+                logger.warning('Dead loop when rescheduling %s', self)
                 return False
         return True
 
@@ -260,7 +262,7 @@ class Remind(models.Model):
     def get_api_endpoint(self):
         return reverse('remind-detail', kwargs={'pk': self.pk.hex})
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s: %s (%s)' % (self.owner.get_full_name(), self.desc or self.event,
                                 self.local_time_string('Y/n/j G:i:s'))
 

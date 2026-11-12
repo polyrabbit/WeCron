@@ -2,7 +2,6 @@
 
 [![license](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://github.com/polyrabbit/WeCron/blob/master/LICENSE)
 [![Build Status](https://github.com/polyrabbit/WeCron/actions/workflows/deploy.yml/badge.svg)](https://github.com/polyrabbit/WeCron/actions)
-[![codecov](https://codecov.io/gh/polyrabbit/WeCron/branch/master/graph/badge.svg)](https://codecov.io/gh/polyrabbit/WeCron)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/polyrabbit/WeCron/pulls)
 
 微信上的定时提醒 - Cron on WeChat

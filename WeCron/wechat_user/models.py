@@ -1,17 +1,17 @@
 #coding: utf-8
-from __future__ import unicode_literals, absolute_import
-from datetime import datetime
-import pytz
-import six
+from datetime import datetime, timezone as dt_timezone
+from zoneinfo import ZoneInfo, available_timezones
 
 from django.db import models
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.utils import timezone
 from django.conf import settings
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, update_last_login
 
 from common import wechat_client
 from remind.models import Remind
+
+ALL_TIMEZONES = available_timezones()
 
 
 class UserManager(BaseUserManager):
@@ -26,19 +26,12 @@ class UserManager(BaseUserManager):
         return self.create(**self.amend_model_params(**user_dict))
 
     def amend_model_params(self, **kwargs):
-        params = kwargs.copy()
+        field_names = {f.name for f in WechatUser._meta.concrete_fields}
+        params = {k: v for k, v in kwargs.items() if k in field_names and v != ''}
         if 'subscribe_time' in params:
-            params['subscribe_time'] = \
-                datetime.fromtimestamp(params['subscribe_time'], pytz.utc)
+            params['subscribe_time'] = datetime.fromtimestamp(params['subscribe_time'], dt_timezone.utc)
         params['subscribe'] = bool(params['subscribe'])
         params['last_login'] = timezone.now()
-        # TODO get_all_field_names is deprecated, need test case here
-        field_list = WechatUser._meta.get_all_field_names()
-        for field in params.keys():
-            if field not in field_list:
-                params.pop(field)
-            elif isinstance(params[field], six.string_types) and len(params[field]) == 0:
-                params.pop(field)
         return params
 
     def create_superuser(self, openid, password, **extra_fields):
@@ -52,8 +45,8 @@ class UserManager(BaseUserManager):
 
 class WechatUser(AbstractBaseUser):
     openid = models.CharField(max_length=40, primary_key=True)
-    subscribe = models.NullBooleanField('是否订阅', default=False,
-                                        choices=((False, '未定阅'), (True, '已订阅'),))
+    subscribe = models.BooleanField('是否订阅', null=True, default=False,
+                                    choices=((False, '未定阅'), (True, '已订阅'),))
     nickname = models.CharField('昵称', max_length=40, null=True)
     sex = models.SmallIntegerField('性别', null=True, choices=
             ((0, '未知'), (1, '男性'), (2, '女性'),))
@@ -66,7 +59,7 @@ class WechatUser(AbstractBaseUser):
     remark = models.CharField('备注', max_length=200, null=True)
     groupid = models.IntegerField('分组ID', null=True)
     morning_greeting = models.TimeField('早报时间', null=True, default='08:00')
-    notify_subscription = models.NullBooleanField('提醒被订阅通知', default=True)
+    notify_subscription = models.BooleanField('提醒被订阅通知', null=True, default=True)
     timezone = models.CharField('默认时区', max_length=64, default=settings.TIME_ZONE)
     source = models.CharField('用户来源，区分从那个公众号关注过来', max_length=32, null=True)
 
@@ -84,7 +77,7 @@ class WechatUser(AbstractBaseUser):
     def id(self):
         return self.openid
 
-    def __unicode__(self):
+    def __str__(self):
         return self.nickname
 
     def get_full_name(self):
@@ -102,9 +95,9 @@ class WechatUser(AbstractBaseUser):
 
     def get_timezone(self):
         tzname = self.timezone
-        if tzname not in pytz.all_timezones_set:
+        if tzname not in ALL_TIMEZONES:
             tzname = settings.TIME_ZONE
-        return pytz.timezone(tzname)
+        return ZoneInfo(tzname)
 
     def activate_timezone(self):
         timezone.activate(self.get_timezone())

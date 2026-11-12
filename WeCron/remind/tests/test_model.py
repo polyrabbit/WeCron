@@ -1,13 +1,14 @@
 # coding: utf-8
-from __future__ import unicode_literals, absolute_import
 
 import datetime
 from datetime import timedelta
+from unittest import mock
 
 from django.test import TestCase
 from django.utils import timezone
 from remind.models import Remind
 from remind.models.remind import REPEAT_KEY_DAY, REPEAT_KEY_MONTH
+from remind.models.scheduler import RemindScheduler
 from wechat_user.models import WechatUser
 
 
@@ -55,3 +56,25 @@ class RemindModelTestCase(TestCase):
         # next reschedule should correct to 30
         self.assertTrue(r.reschedule(r.notify_time))
         self.assertEqual(r.notify_time, datetime.datetime(2024, 3, 30, 10, 0, tzinfo=timezone.get_default_timezone()))
+
+    @mock.patch('remind.models.scheduler.close_old_connections')
+    @mock.patch('remind.models.remind.notify_executor')
+    def test_scheduler_skips_missed_repeat(self, executor, _):
+        now = timezone.now()
+        due = Remind(time=now - timedelta(minutes=1), owner_id='miao', desc='due')
+        due.save()
+        missed = Remind(time=now, owner_id='miao', desc='missed', repeat={REPEAT_KEY_DAY: 1})
+        missed.save()
+        # Simulate a downtime, bypassing the pre_save hook which reschedules on save
+        missed_time = now - timedelta(hours=3)
+        Remind.objects.filter(pk=missed.pk).update(time=missed_time, notify_time=missed_time)
+
+        with self.captureOnCommitCallbacks(execute=True):
+            RemindScheduler()._process_jobs()
+
+        executor.submit.assert_called_once()  # only the due remind is sent
+        due.refresh_from_db()
+        missed.refresh_from_db()
+        self.assertTrue(due.done)
+        self.assertFalse(missed.done)
+        self.assertEqual(missed.notify_time, missed_time + timedelta(days=1))

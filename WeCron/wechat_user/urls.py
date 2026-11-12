@@ -1,6 +1,5 @@
 # coding: utf-8
-from __future__ import unicode_literals, absolute_import
-from django.conf.urls import url
+from django.urls import re_path
 from wechat_user.views import ProfileViewSet
 
 profile_detail = ProfileViewSet.as_view({
@@ -9,5 +8,5 @@ profile_detail = ProfileViewSet.as_view({
 })
 
 urlpatterns = [
-    url(r'^api/$', profile_detail, name='profile-detail'),
+    re_path(r'^api/$', profile_detail, name='profile-detail'),
 ]

@@ -1,5 +1,4 @@
 # coding: utf-8
-from __future__ import unicode_literals, absolute_import
 import logging
 
 from django.contrib.auth import authenticate
@@ -16,10 +15,11 @@ logger = logging.getLogger(__name__)
 
 def OAuthComplete(request, *args, **kwargs):
     redirect_to = request.GET.get('state', '/')
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         return HttpResponseRedirect(redirect_to)
     if 'code' in request.GET:
         user = authenticate(
+                request,
                 code=request.GET['code'],
                 redirect_uri=request.build_absolute_uri(),
                 state=None)

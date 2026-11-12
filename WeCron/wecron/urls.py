@@ -13,22 +13,22 @@ Including another URLconf
     1. Add an import:  from blog import urls as blog_urls
     2. Add a URL to urlpatterns:  url(r'^blog/', include(blog_urls))
 """
-from django.conf.urls import include, url
+from django.urls import include, re_path
 from django.views.generic import TemplateView, RedirectView
 
 from wxhook.views import WeiXinHook
 from wechat_user.views import OAuthComplete
 
 urlpatterns = [
-    url(r'^$',
+    re_path(r'^$',
         TemplateView.as_view(template_name='common_index.html'), name='index'),
-    url(r'^wxhook$', WeiXinHook.as_view(), name='weixin_callback'),
-    url(r'^reminds/', include('remind.urls')),
-    url(r'^profile/', include('wechat_user.urls')),
-    url(r'^login/weixin/', OAuthComplete, name='oauth_complete'),
-    url(r'^under_construction$',
+    re_path(r'^wxhook$', WeiXinHook.as_view(), name='weixin_callback'),
+    re_path(r'^reminds/', include('remind.urls')),
+    re_path(r'^profile/', include('wechat_user.urls')),
+    re_path(r'^login/weixin/', OAuthComplete, name='oauth_complete'),
+    re_path(r'^under_construction$',
         TemplateView.as_view(template_name='under_construction.html'), name='under_construction'),
 
-    url(r'^eosram/', include('eosram.urls')),
+    re_path(r'^eosram/', include('eosram.urls')),
     # url(r'^admin/', include(admin.site.urls)),  # Tuning django's user model is a disaster
 ]

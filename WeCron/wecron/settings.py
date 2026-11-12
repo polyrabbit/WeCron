@@ -20,7 +20,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 if 'DJ_SECRET_KEY' not in os.environ:
-    print 'WARNING: need to set DJ_SECRET_KEY in the environment'
+    print('WARNING: need to set DJ_SECRET_KEY in the environment')
     os.environ['DJ_SECRET_KEY'] = 'wb7dh*#f!x1y_=0d8$i_rgafhy9gpv9jf3^=jasewr^vmmd7)n'
 SECRET_KEY = os.environ['DJ_SECRET_KEY']
 
@@ -28,6 +28,8 @@ SECRET_KEY = os.environ['DJ_SECRET_KEY']
 DEBUG = 'DJ_DEBUG' in os.environ
 
 ALLOWED_HOSTS = ['wecron.fly.dev', 'localhost', '.hackernews.im', '.mybluemix.net', '.betacat.io']
+# TLS is terminated by the proxy, CSRF origin checks need to know the original scheme
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 HOST_NAME = os.environ.get('HTTP_HOST', 'http://wecron.betacat.io')
 
 # Application definition
@@ -53,9 +55,12 @@ AUTHENTICATION_BACKENDS = (
     'wechat_user.backends.WechatBackend',
 )
 
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE = (
+    # Django now sets Content-Length, which disables uWSGI's http-auto-gzip
+    'django.middleware.gzip.GZipMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'django.middleware.http.ConditionalGetMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -86,7 +91,13 @@ CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
         'LOCATION': '/tmp/django_cache',
-    }
+    },
+    # WeChat tokens shared by uWSGI workers and cron jobs, expiry is managed by wechatpy
+    'wechat': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': '/tmp/wecron_storage',
+        'TIMEOUT': None,
+    },
 }
 
 WSGI_APPLICATION = 'wecron.wsgi.application'
@@ -96,7 +107,7 @@ WSGI_APPLICATION = 'wecron.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'ENGINE': 'django.db.backends.postgresql',
         'HOST': os.environ.get('WECRON_DB_HOST', 'localhost'),
         'PORT': os.environ.get('WECRON_DB_PORT', 5432),
         # create database "___" WITH OWNER "__" TEMPLATE template0 ENCODING='UTF8' CONNECTION LIMIT=-1;
@@ -106,8 +117,11 @@ DATABASES = {
         # GRANT ALL PRIVILEGES ON DATABASE "___" to "__";
         'PASSWORD': os.environ.get('WECRON_DB_PASSWORD', ''),
         'CONN_MAX_AGE': 600,
+        'CONN_HEALTH_CHECKS': True,
     }
 }
+
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 # cleanup db
 # Show table size:
@@ -161,18 +175,22 @@ USE_I18N = True
 
 USE_TZ = True
 
-USE_ETAGS = True
-
 AUTH_USER_MODEL = 'wechat_user.WechatUser'
 
 SESSION_COOKIE_AGE = 30 * 24 * 60 * 60
+# Omit SameSite like Django 1.9 did, WeChat's iOS webview drops Lax cookies on XHR writes
+SESSION_COOKIE_SAMESITE = None
+CSRF_COOKIE_SAMESITE = None
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATIC_URL = '/static/'
-STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.CachedStaticFilesStorage'
+STORAGES = {
+    'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
+    'staticfiles': {'BACKEND': 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'},
+}
 
 LOGGING = {
     'version': 1,
@@ -202,11 +220,6 @@ LOGGING = {
             'propagate': True,
         },
         'django.db.backends': {
-            'handlers': ['console'],
-            'level': 'WARNING',
-            'propagate': True,
-        },
-        'blueware': {
             'handlers': ['console'],
             'level': 'WARNING',
             'propagate': True,

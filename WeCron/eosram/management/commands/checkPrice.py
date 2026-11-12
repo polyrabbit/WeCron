@@ -1,9 +1,9 @@
 # coding: utf-8
-from __future__ import unicode_literals, absolute_import
 import logging
 import requests
 import time
 import random
+from concurrent.futures import ThreadPoolExecutor
 
 from django.db.models import Q
 from django.core.management import BaseCommand
@@ -13,6 +13,7 @@ from eosram.models import PriceThresholdChange, PricePercentageChange, PriceHist
 
 
 logger = logging.getLogger(__name__)
+alert_executor = ThreadPoolExecutor(10)
 EOS_ACCOUNT = 'bitcoinrocks'
 UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) ' \
      'Chrome/67.0.3396.99 Safari/537.36'
@@ -66,7 +67,7 @@ def alert_user(user, title, content, additional=''):
     user_profile = Profile.objects.filter(owner_id=user.pk).first()
     if not user_profile:
         user_profile = Profile.objects.create(owner_id=user.pk)
-    user_profile.send_wechat_alert(title, content, additional)
+    alert_executor.submit(user_profile.send_wechat_alert, title, content, additional)
 
 # Back up
 def get_ram_price2():
@@ -123,7 +124,7 @@ def toggle_price_percent_change(price):
                 if not change.done:
                     period_for_human = '%s分钟' % change.period
                     if change.period % 60 == 0:
-                        period_for_human = '%s小时' % (change.period / 60)
+                        period_for_human = '%s小时' % (change.period // 60)
                     increase_for_human = '上涨' if change.increase else '下跌'
 
                     alert_user(change.owner, 'EOS Ram价格%s内%s超过%s%%' % (period_for_human, increase_for_human, change.threshold),

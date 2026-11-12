@@ -1,9 +1,8 @@
 # coding: utf-8
-from __future__ import unicode_literals, absolute_import
 
 from django.test import TestCase, LiveServerTestCase
 from django.db.models.signals import post_save
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from httmock import urlmatch, response, HTTMock
 from wechat_user.models import WechatUser
 

@@ -1,5 +1,4 @@
 # coding: utf-8
-from __future__ import unicode_literals, absolute_import
 
 from django.test import TestCase
 from django.db.models.signals import post_save
@@ -53,6 +52,11 @@ def send_message_mock(url, request):
         'Content-Type': 'application/json'
     }
     return response(200, content, headers, request=request)
+
+
+@urlmatch(netloc=r'(.*\.)?api\.weixin\.qq\.com$', path='/cgi-bin/media/get')
+def empty_media_mock(url, request):
+    return response(200, b'', request=request)
 
 
 class MessageHandlerTestCase(TestCase):
@@ -180,8 +184,9 @@ class MessageHandlerTestCase(TestCase):
         </xml>
         """ % (media_id)
         wechat_msg = self.build_wechat_msg(req_text)
-        resp_xml = handle_message(wechat_msg)  # Should have no exception
-        self.assertIn('识别错了', resp_xml)
+        with HTTMock(empty_media_mock):
+            resp_xml = handle_message(wechat_msg)  # Should have no exception
+        self.assertIn('语音转文字功能又双叒叕罬蝃抽风了', resp_xml)
 
     def test_video(self):
         req_text = """

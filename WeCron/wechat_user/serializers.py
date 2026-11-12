@@ -1,5 +1,4 @@
 #coding: utf-8
-from __future__ import unicode_literals, absolute_import
 import logging
 
 from django.contrib.auth import get_user_model

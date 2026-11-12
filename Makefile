@@ -3,13 +3,13 @@
 VCAP_APP_PORT ?= 8000
 PORT ?= $(VCAP_APP_PORT)
 UWSGI_WORKERS ?= 1
+UWSGI_INI ?= deploy/conf/uwsgi.ini
 
 run:
 	python WeCron/manage.py runserver 0.0.0.0:$(PORT)
 
-run-in-prod: clean syncdb collectstatic reschedule
-	# uwsgi --ini=deploy/conf/uwsgi.ini.j2 --http :$(PORT) 
-	exec uwsgi --ini=deploy/conf/uwsgi.ini --http :$(PORT)
+run-in-prod: clean syncdb collectstatic
+	exec uwsgi --ini=$(UWSGI_INI) --http :$(PORT)
 
 run-uwsgi-test:
 	uwsgi --chdir=WeCron \
@@ -36,9 +36,6 @@ clean:
 
 syncdb:
 	python WeCron/manage.py migrate --noinput
-
-reschedule:
-	python WeCron/manage.py missing_reschedule
 
 release: test
 	ansible-playbook deploy/playbook.yml -v

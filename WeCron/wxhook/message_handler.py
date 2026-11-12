@@ -1,5 +1,4 @@
 # coding: utf-8
-from __future__ import unicode_literals, absolute_import
 import logging
 import json
 import os
@@ -10,7 +9,6 @@ from django.utils import timezone
 from django.contrib.auth import get_user_model
 from wechatpy.replies import TextReply, TransferCustomerServiceReply, ImageReply
 from wechatpy.exceptions import WeChatClientException
-from shove import Shove
 from pydub import AudioSegment
 
 from common import wechat_client
@@ -50,7 +48,7 @@ class WechatMessage(object):
     def handle_text(self, reminder=None):
         try:
             if not reminder:
-                if re.search('(^eos\s*ram$)|(^ram$)', self.message.content, re.I):
+                if re.search(r'(^eos\s*ram$)|(^ram$)', self.message.content, re.I):
                     return self.text_reply('EOS Ram价格提醒<a href="http://wecron.betacat.io/eosram/">请点击这里</a>')
 
                 reminder = parse(self.message.content, uid=self.message.source)
@@ -70,7 +68,7 @@ class WechatMessage(object):
             reply_lines.append('\n<a href="%s">修改/分享</a>' % reminder.get_absolute_url(True))
             return self.text_reply('\n'.join(reply_lines))
         except ParseError as e:
-            return self.text_reply(unicode(e))
+            return self.text_reply(str(e))
         except (WeChatClientException, KeyError):  # TODO: refine it
             pass
         except Exception as e:  # Catch all kinds of wired errors
@@ -121,7 +119,7 @@ class WechatMessage(object):
             subscribe_remind = Remind.objects.filter(id=self.message.scene_id).first()
         if subscribe_remind:
             if subscribe_remind.add_participant(self.user.openid):
-                logger.info('User(%s) participants a remind(%s)', self.user.get_full_name(), unicode(subscribe_remind))
+                logger.info('User(%s) participants a remind(%s)', self.user.get_full_name(), subscribe_remind)
             return self.handle_text(subscribe_remind)
         logger.warning('Cannot find remind from scene id %s', self.message.scene_id)
         return self.text_reply('处理不了的scene id呢: %s' % self.message.scene_id)
@@ -245,7 +243,7 @@ def speech_to_text(media_id):
     media_url = wechat_client.media.get_url(media_id).replace('http://', 'https://')
     media_resp = wechat_client.get(media_url)
     if len(media_resp.content) == 0:
-        logger.warn('Failed to download media id %s', media_id)
+        logger.warning('Failed to download media id %s', media_id)
         return ''
 
     fname = 'audio.amr'
@@ -268,7 +266,7 @@ def speech_to_text(media_id):
     submit_url = 'https://api.weixin.qq.com/cgi-bin/media/voice/addvoicetorecofortext?access_token=%s&format=mp3&voice_id=%s' % (wechat_client.access_token, media_id)
     submit_json = wechat_client.post(submit_url, files={fname: mp3_content})
     if submit_json.get('errcode') != 0 and submit_json.get('errcode') != '0':
-        logger.warn('Failed to submit media id %s: %s', media_id, submit_json)
+        logger.warning('Failed to submit media id %s: %s', media_id, submit_json)
         return ''
 
     text_url = 'https://api.weixin.qq.com/cgi-bin/media/voice/queryrecoresultfortext?access_token=%s&voice_id=%s&lang=zh_CN' % (wechat_client.access_token, media_id)

@@ -1,5 +1,4 @@
 #coding: utf-8
-from __future__ import unicode_literals, absolute_import
 import logging
 from django.contrib.auth import get_user_model
 from django.conf import settings
@@ -18,7 +17,7 @@ def make_guest(**kw):
 
 class WechatBackend(object):
 
-    def authenticate(self, code=None, redirect_uri=None, state=None):
+    def authenticate(self, request, code=None, redirect_uri=None, state=None):
         oauth_client = WeChatOAuth(
             app_id=settings.WX_APPID,
             secret=settings.WX_APPSECRET,

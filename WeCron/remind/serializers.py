@@ -1,12 +1,11 @@
 #coding: utf-8
-from __future__ import unicode_literals, absolute_import
 import logging
-from datetime import datetime
+from datetime import datetime, timezone as dt_timezone
 
 from django.utils.dateformat import format
 from django.contrib.auth import get_user_model
 from django.utils import timezone
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError, PermissionDenied
 from remind.utils import get_qrcode_url
@@ -38,7 +37,7 @@ class TimestampField(serializers.DateTimeField):
 
     def to_internal_value(self, value):
         try:
-            return datetime.fromtimestamp(int(value)/1000.0, timezone.utc)
+            return datetime.fromtimestamp(int(value)/1000.0, dt_timezone.utc)
         except ValueError:
             raise ValidationError('Invalid format')
 
@@ -61,7 +60,7 @@ class ParticipantSerializer(serializers.Field):
 
     def to_internal_value(self, participants):
         logger.info('User(%s) subscribes a remind(%s)',
-                    self.parent.context['request'].user.get_full_name(), unicode(self.parent.instance))
+                    self.parent.context['request'].user.get_full_name(), self.parent.instance)
         participant_modified.send(sender=self.parent.instance, participant=self.parent.context['request'].user, add=True)
         return list(set(p['id'] for p in participants if UserModel.objects.filter(pk=p['id'], subscribe=True).first()))
 
@@ -99,7 +98,7 @@ class RemindSerializer(serializers.ModelSerializer):
         # for token authentication is used for API, when doing an API request, the QR code should be returned.
         if user.subscribe and not self._created:
             return None
-        logger.info('%s requests QR code for %s', user.get_full_name(), unicode(remind))
+        logger.info('%s requests QR code for %s', user.get_full_name(), remind)
         return get_qrcode_url(remind.id.hex)
 
     def create(self, validated_data):

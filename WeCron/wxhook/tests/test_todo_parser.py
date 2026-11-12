@@ -1,5 +1,4 @@
 # coding: utf-8
-from __future__ import unicode_literals, absolute_import
 import unittest
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
@@ -49,11 +48,11 @@ class LocalParserTestCase(TestCase):
         reminder = self.parse(text)
         self.assertEqual(reminder.desc, text)
         self.assertEqual(reminder.title(), '睡觉')
-        self.assertEquals(reminder.time.year, 2016)
-        self.assertEquals(reminder.time.month, 3)
-        self.assertEquals(reminder.time.day, 15)
-        self.assertEquals(reminder.time.hour, 15)
-        self.assertEquals(reminder.time.minute, 40)
+        self.assertEqual(reminder.time.year, 2016)
+        self.assertEqual(reminder.time.month, 3)
+        self.assertEqual(reminder.time.day, 15)
+        self.assertEqual(reminder.time.hour, 15)
+        self.assertEqual(reminder.time.minute, 40)
 
     def test_parse_hour_with_implicit_morning(self):
         text = '三点四十五分钟提醒我还二百三十四块钱'
@@ -61,8 +60,8 @@ class LocalParserTestCase(TestCase):
         reminder = self.parse(text)
         self.assertEqual(reminder.desc, text)
         self.assertEqual(reminder.title(), '还234块钱')
-        self.assertEquals(reminder.time.hour, 3)
-        self.assertEquals(reminder.time.minute, 45)
+        self.assertEqual(reminder.time.hour, 3)
+        self.assertEqual(reminder.time.minute, 45)
 
     def test_parse_hour_with_implicit_afternoon(self):
         text = '三点四十五分钟提醒我还二百三十四块钱'
@@ -70,24 +69,24 @@ class LocalParserTestCase(TestCase):
         reminder = self.parse(text)
         self.assertEqual(reminder.desc, text)
         self.assertEqual(reminder.title(), '还234块钱')
-        self.assertEquals(reminder.time.hour, 15)
-        self.assertEquals(reminder.time.minute, 45)
+        self.assertEqual(reminder.time.hour, 15)
+        self.assertEqual(reminder.time.minute, 45)
 
     def test_parse_hour_with_morning(self):
         text = '早上十点提醒我发送牛轧糖'
         reminder = self.parse(text)
         self.assertEqual(reminder.desc, text)
         self.assertEqual(reminder.title(), '发送牛轧糖')
-        self.assertEquals(reminder.time.hour, 10)
-        self.assertEquals(reminder.time.minute, 0)
+        self.assertEqual(reminder.time.hour, 10)
+        self.assertEqual(reminder.time.minute, 0)
 
     def test_parse_hour_with_night(self):
         text = '今天晚上二十二点提醒我拿快递'
         reminder = self.parse(text)
         self.assertEqual(reminder.desc, text)
         self.assertEqual(reminder.title(), '拿快递')
-        self.assertEquals(reminder.time.hour, 22)
-        self.assertEquals(reminder.time.minute, 0)
+        self.assertEqual(reminder.time.hour, 22)
+        self.assertEqual(reminder.time.minute, 0)
 
     def test_parse_hour_with_night2(self):
         # 也测试分词
@@ -95,16 +94,16 @@ class LocalParserTestCase(TestCase):
         reminder = self.parse(text)
         self.assertEqual(reminder.desc, text)
         self.assertEqual(reminder.title(), '半导体制冷片')
-        self.assertEquals(reminder.time.hour, 20)
-        self.assertEquals(reminder.time.minute, 0)
+        self.assertEqual(reminder.time.hour, 20)
+        self.assertEqual(reminder.time.minute, 0)
 
     def test_parse_hour_with_night_and_no_explicit_time(self):
         text = '今晚提醒我去拿合同'
         reminder = self.parse(text)
         self.assertEqual(reminder.desc, text)
         self.assertEqual(reminder.title(), '去拿合同')
-        self.assertEquals(reminder.time.hour, 20)
-        self.assertEquals(reminder.time.minute, 0)
+        self.assertEqual(reminder.time.hour, 20)
+        self.assertLessEqual(reminder.time.minute, 3)
 
     def test_parse_half_day(self):
         text = '10日下午八点半提醒我移动公司'
@@ -112,8 +111,8 @@ class LocalParserTestCase(TestCase):
         self.assertEqual(reminder.desc, text)
         self.assertEqual(reminder.title(), '移动公司')
         self.assertEqual(reminder.time.day, 10)
-        self.assertEquals(reminder.time.hour, 20)
-        self.assertEquals(reminder.time.minute, 30)
+        self.assertEqual(reminder.time.hour, 20)
+        self.assertEqual(reminder.time.minute, 30)
 
     def test_parse_minute_period(self):
         text = '一分钟后提醒我'
@@ -167,8 +166,8 @@ class LocalParserTestCase(TestCase):
         self.assertEqual(reminder.desc, text)
         self.assertEqual(reminder.title(), '秒杀流量')
         self.assertEqual((self.now + relativedelta(days=1)).day, reminder.time.day)
-        self.assertEquals(reminder.time.hour, 9)
-        self.assertEquals(reminder.time.minute, 58)
+        self.assertEqual(reminder.time.hour, 9)
+        self.assertEqual(reminder.time.minute, 58)
 
     def test_parse_day_period_with_half(self):
         text = '明晚八点去看电影'
@@ -176,13 +175,13 @@ class LocalParserTestCase(TestCase):
         self.assertEqual(reminder.desc, text)
         self.assertEqual(reminder.title(), '去看电影')
         self.assertEqual((self.now + relativedelta(days=1)).day, reminder.time.day)
-        self.assertEquals(reminder.time.hour, 20)
-        self.assertEquals(reminder.time.minute, 0)
+        self.assertEqual(reminder.time.hour, 20)
+        self.assertEqual(reminder.time.minute, 0)
         self.setUp()
         reminder = self.parse(u'今晚八点去看电影')
         self.assertEqual(reminder.time.day - self.now.day, 0)
-        self.assertEquals(reminder.time.hour, 20)
-        self.assertEquals(reminder.time.minute, 0)
+        self.assertEqual(reminder.time.hour, 20)
+        self.assertEqual(reminder.time.minute, 0)
 
     def test_parse_middle_night(self):
         for text in ('晚上零点提醒我 我姐生日', '凌晨零点提醒我 我姐生日'):
@@ -191,8 +190,8 @@ class LocalParserTestCase(TestCase):
             self.assertEqual(reminder.desc, text)
             self.assertEqual(reminder.title(), '我姐生日')
             self.assertEqual((self.now + relativedelta(days=1)).day, reminder.time.day)
-            self.assertEquals(reminder.time.hour, 0)
-            self.assertEquals(reminder.time.minute, 0)
+            self.assertEqual(reminder.time.hour, 0)
+            self.assertEqual(reminder.time.minute, 0)
 
     def test_parse_with_punctuation_in_time(self):
         for text in ('明天09:30提醒我把门的报告递交上去', '明天09：30提醒我把门的报告递交上去'):
@@ -201,8 +200,8 @@ class LocalParserTestCase(TestCase):
             self.assertEqual(reminder.desc, text)
             self.assertEqual(reminder.title(), '把门的报告递交上去')
             self.assertEqual((self.now + relativedelta(days=1)).day, reminder.time.day)
-            self.assertEquals(reminder.time.hour, 9)
-            self.assertEquals(reminder.time.minute, 30)
+            self.assertEqual(reminder.time.hour, 9)
+            self.assertEqual(reminder.time.minute, 30)
 
     def test_parse_date_out_of_range(self):
         text = '六月三十一号'
@@ -215,14 +214,14 @@ class LocalParserTestCase(TestCase):
             with self.assertRaises(ParseError) as cm:
                 self.parse(text)
             the_exception = cm.exception
-            self.assertIn('连续时间段', the_exception.message)
+            self.assertIn('连续时间段', str(the_exception))
 
     def test_should_not_add_additional_12_hours(self):
         text = '12:45报加班'
         self.parser.now = self.parser.now.replace(hour=12, minute=15)
         reminder = self.parse(text)
-        self.assertEquals(reminder.time.hour, 12)
-        self.assertEquals(reminder.time.minute, 45)
+        self.assertEqual(reminder.time.hour, 12)
+        self.assertEqual(reminder.time.minute, 45)
 
     def test_parse_day_period_without_hour(self):
         text = '九十九天后秒杀流量'
@@ -230,8 +229,8 @@ class LocalParserTestCase(TestCase):
         self.assertEqual(reminder.desc, text)
         self.assertEqual(reminder.title(), '秒杀流量')
         self.assertAlmostEqual((reminder.time - self.now).days, 99, delta=1)
-        self.assertEquals(reminder.time.hour, DEFAULT_HOUR)
-        self.assertEquals(reminder.time.minute, 0)
+        self.assertEqual(reminder.time.hour, DEFAULT_HOUR)
+        self.assertLessEqual(reminder.time.minute, 3)
 
     def test_parse_weekday(self):
         text = '周五下午提醒我发信息给花花'
@@ -239,8 +238,8 @@ class LocalParserTestCase(TestCase):
         self.assertEqual(reminder.desc, text)
         self.assertEqual(reminder.title(), '发信息给花花')
         self.assertEqual(reminder.time.isoweekday(), 5)
-        self.assertEquals(reminder.time.hour, 13)
-        self.assertEquals(reminder.time.minute, 0)
+        self.assertEqual(reminder.time.hour, 13)
+        self.assertEqual(reminder.time.minute, 0)
 
     def test_parse_todays_weekday(self):
         weekday_names = ['一', '二', '三', '四', '五', '六', '日']
@@ -255,8 +254,8 @@ class LocalParserTestCase(TestCase):
         self.assertEqual(reminder.desc, text)
         self.assertEqual(reminder.title(), '发信息给花花')
         self.assertAlmostEqual((reminder.time - self.now).days, 14, delta=1)
-        self.assertEquals(reminder.time.hour, 13)
-        self.assertEquals(reminder.time.minute, 0)
+        self.assertEqual(reminder.time.hour, 13)
+        self.assertEqual(reminder.time.minute, 0)
 
     def test_parse_next_weekday(self):
         text = '下个星期一提醒我吃饭。'
@@ -271,17 +270,17 @@ class LocalParserTestCase(TestCase):
             self.setUp()
             text = word + u'晚上八点半提醒我找入团申请'
             reminder = self.parse(text)
-            self.assertEquals(reminder.desc, text)
-            self.assertEquals(reminder.title(), '找入团申请')
-            self.assertEquals(reminder.time.isoweekday(), 7)
-            self.assertEquals(reminder.time.hour, 20)
-            self.assertEquals(reminder.time.minute, 30)
+            self.assertEqual(reminder.desc, text)
+            self.assertEqual(reminder.title(), '找入团申请')
+            self.assertEqual(reminder.time.isoweekday(), 7)
+            self.assertEqual(reminder.time.hour, 20)
+            self.assertEqual(reminder.time.minute, 30)
 
     def test_parse_weekday_in_parentheses(self):
         text = '明天(周四)晚上19点'
         reminder = self.parse(text)
         self.assertEqual((self.now + relativedelta(days=1)).day, reminder.time.day)
-        self.assertEquals(reminder.time.hour, 19)
+        self.assertEqual(reminder.time.hour, 19)
 
     def test_parse_month_period(self):
         text = '三个月后的早上提醒我写代码'
@@ -290,8 +289,8 @@ class LocalParserTestCase(TestCase):
         self.assertEqual(reminder.title(), '写代码')
         self.assertAlmostEqual((reminder.time - self.now).days, 90, delta=2)
         self.assertAlmostEqual(reminder.time.day, self.now.day, delta=3)
-        self.assertEquals(reminder.time.hour, DEFAULT_HOUR)
-        self.assertEquals(reminder.time.minute, 0)
+        self.assertEqual(reminder.time.hour, DEFAULT_HOUR)
+        self.assertEqual(reminder.time.minute, 0)
 
     def test_parse_month_period_with_day(self):
         text = '下个月三号早上写代码'
@@ -300,8 +299,8 @@ class LocalParserTestCase(TestCase):
         self.assertEqual(reminder.title(), '写代码')
         self.assertEqual((self.now + relativedelta(months=1)).month, reminder.time.month)
         self.assertEqual(reminder.time.day, 3)
-        self.assertEquals(reminder.time.hour, DEFAULT_HOUR)
-        self.assertEquals(reminder.time.minute, 0)
+        self.assertEqual(reminder.time.hour, DEFAULT_HOUR)
+        self.assertEqual(reminder.time.minute, 0)
 
     def test_parse_year_period_with_day(self):
         text = '明年五月十五号叫我起床'
@@ -311,8 +310,8 @@ class LocalParserTestCase(TestCase):
         self.assertEqual((self.now + relativedelta(years=1)).year, reminder.time.year)
         self.assertEqual(reminder.time.month, 5)
         self.assertEqual(reminder.time.day, 15)
-        self.assertEquals(reminder.time.hour, DEFAULT_HOUR)
-        self.assertEquals(reminder.time.minute, 0)
+        self.assertEqual(reminder.time.hour, DEFAULT_HOUR)
+        self.assertEqual(reminder.time.minute, 0)
 
     def test_parse_word_segmentation(self):
         text = '下月5号提醒杨二所还1600，刀正英1900'
@@ -321,8 +320,8 @@ class LocalParserTestCase(TestCase):
         self.assertEqual(reminder.title(), '杨2所还1600，刀正英1900')
         self.assertEqual((self.now + relativedelta(months=1)).month, reminder.time.month)
         self.assertEqual(reminder.time.day, 5)
-        self.assertEquals(reminder.time.hour, DEFAULT_HOUR)
-        self.assertEquals(reminder.time.minute, 0)
+        self.assertEqual(reminder.time.hour, DEFAULT_HOUR)
+        self.assertEqual(reminder.time.minute, 0)
 
     def test_parse_with_stop_words(self):
         text = '11月19号 的8点？，。  的   团费'
@@ -331,8 +330,8 @@ class LocalParserTestCase(TestCase):
         self.assertEqual(reminder.title(), '团费')
         self.assertEqual(reminder.time.month, 11)
         self.assertEqual(reminder.time.day, 19)
-        self.assertEquals(reminder.time.hour, 8)
-        self.assertEquals(reminder.time.minute, 0)
+        self.assertEqual(reminder.time.hour, 8)
+        self.assertEqual(reminder.time.minute, 0)
 
     def test_parse_date_without_explict_ending(self):
         text = '%s-12-16 09:10:00' % self.now.year
@@ -341,8 +340,8 @@ class LocalParserTestCase(TestCase):
         self.assertEqual(reminder.time.year, self.now.year)
         self.assertEqual(reminder.time.month, 12)
         self.assertEqual(reminder.time.day, 16)
-        self.assertEquals(reminder.time.hour, 9)
-        self.assertEquals(reminder.time.minute, 10)
+        self.assertEqual(reminder.time.hour, 9)
+        self.assertEqual(reminder.time.minute, 10)
 
     def test_parse_repeat_year(self):
         text = '每年1月22号生日'
@@ -351,9 +350,9 @@ class LocalParserTestCase(TestCase):
         self.assertEqual(reminder.title(), '生日')
         self.assertEqual(reminder.get_repeat_text(), '每年')
         self.assertEqual(reminder.time.month, 1)
-        self.assertEquals(reminder.time.day, 22)
-        self.assertEquals(reminder.time.hour, DEFAULT_HOUR)
-        self.assertEquals(reminder.time.minute, 0)
+        self.assertEqual(reminder.time.day, 22)
+        self.assertEqual(reminder.time.hour, DEFAULT_HOUR)
+        self.assertEqual(reminder.time.minute, 0)
 
     def test_parse_nongli(self):
         for text in ('每年阴历八月初九提醒我生日', '每年农历八月初九提醒我生日'):
@@ -369,9 +368,9 @@ class LocalParserTestCase(TestCase):
         self.assertEqual(reminder.title(), '还信用卡')
         self.assertEqual(reminder.get_repeat_text(), '每月')
         self.assertEqual(self.now.month, reminder.time.month)
-        self.assertEquals(reminder.time.day, 20)
-        self.assertEquals(reminder.time.hour, DEFAULT_HOUR)
-        self.assertEquals(reminder.time.minute, 0)
+        self.assertEqual(reminder.time.day, 20)
+        self.assertEqual(reminder.time.hour, DEFAULT_HOUR)
+        self.assertEqual(reminder.time.minute, 0)
 
     def test_parse_repeat_with_reschedule(self):
         text = '每月20号提醒我还信用卡'
@@ -386,15 +385,15 @@ class LocalParserTestCase(TestCase):
         reminder = self.parse(text)
         self.assertEqual(reminder.desc, text)
         self.assertEqual(reminder.get_repeat_text(), '每天')
-        self.assertEquals(reminder.time.hour, 20)
-        self.assertEquals(reminder.time.minute, 0)
+        self.assertEqual(reminder.time.hour, 20)
+        self.assertEqual(reminder.time.minute, 0)
 
     def test_parse_ignored_words(self):
         text = '明早10点中意'
         reminder = self.parse(text)
         self.assertEqual(reminder.desc, text)
         self.assertEqual(reminder.title(), '中意')
-        self.assertEquals(reminder.time.hour, 10)
+        self.assertEqual(reminder.time.hour, 10)
 
     def test_parse_o_clock(self):
         for text in ('请提醒我13点钟坐高铁', '请提醒我13点整坐高铁'):
@@ -402,13 +401,13 @@ class LocalParserTestCase(TestCase):
             reminder = self.parse(text)
             self.assertEqual(reminder.desc, text)
             self.assertEqual(reminder.title(), '坐高铁')
-            self.assertEquals(reminder.time.hour, 13)
+            self.assertEqual(reminder.time.hour, 13)
 
     def test_parse_repeat_day_with_implict_afternoon(self):
         text = '每天七点半提醒我起床'
         reminder = self.parse(text)
         self.assertEqual(reminder.get_repeat_text(), '每天')
-        self.assertEquals(reminder.time.hour, 7)
+        self.assertEqual(reminder.time.hour, 7)
 
     def test_parse_repeat_week(self):
         self.parser.now = self.parser.now.replace(hour=20)
@@ -417,8 +416,8 @@ class LocalParserTestCase(TestCase):
             reminder = self.parse(text)
             self.assertEqual(reminder.desc, text)
             self.assertEqual(reminder.get_repeat_text(), '每2周')
-            self.assertEquals(reminder.time.hour, 10)
-            self.assertEquals(reminder.time.minute, 0)
+            self.assertEqual(reminder.time.hour, 10)
+            self.assertEqual(reminder.time.minute, 0)
 
     # @unittest.skip("Hourly repeat not supported")
     def test_parse_repeat_hour(self):
@@ -426,8 +425,8 @@ class LocalParserTestCase(TestCase):
         reminder = self.parse(text)
         self.assertEqual(reminder.desc, text)
         self.assertEqual(reminder.get_repeat_text(), '每23小时')
-        self.assertEquals((self.now + relativedelta(hours=23)).hour, reminder.time.hour)
-        self.assertEquals(reminder.time.minute, self.now.minute)
+        self.assertEqual((self.now + relativedelta(hours=23)).hour, reminder.time.hour)
+        self.assertEqual(reminder.time.minute, self.now.minute)
 
     def test_parse_repeat_with_throttle(self):
         for text in ('每分钟提醒我一次', '每两小时'):

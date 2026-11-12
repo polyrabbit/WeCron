@@ -15,6 +15,7 @@ stopasgroup = true
 ; Set secret keys here to make migrate happy
 environment = 
     PATH="{{ PROJ_VENV }}/bin:%(ENV_PATH)s",
+    UWSGI_INI="{{ PROJ_HOME }}/uwsgi.ini",
     TZ="Asia/Shanghai",
     WX_APPID="{{ WX_APPID }}",
     WX_APPSECRET="{{ WX_APPSECRET }}",
