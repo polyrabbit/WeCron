@@ -28,7 +28,7 @@ class Command(BaseCommand):
         # Wechat only allows replying users active in the last 48 hours
         time_threshold = now - timezone.timedelta(hours=48)
         needs_notify = get_user_model().objects.filter(pk__in=users_to_notify, subscribe=True,
-                                                       last_login__gt=time_threshold, morning_greeting__isnull=False)
+                                                       last_message_time__gt=time_threshold, morning_greeting__isnull=False)
         for user in needs_notify:
             if not user:
                 continue
@@ -55,8 +55,8 @@ class Command(BaseCommand):
             except WeChatException as e:
                 ignore_msg = ''
                 if e.errcode == 45015:
-                    user.last_login = time_threshold
-                    user.save(update_fields=['last_login'])
+                    user.last_message_time = time_threshold
+                    user.save(update_fields=['last_message_time'])
                     ignore_msg = ', ignoring'
                 logger.info('Failed to send morning greeting to user %s, %s%s', user.get_full_name(), e, ignore_msg)
             except Exception as e:

@@ -47,6 +47,8 @@ class LoginTestCase(TestCase):
             self.assertEqual(self.client.session['_auth_user_id'], self.user.pk)
             self.assertEqual(resp.status_code, 302)
             self.assertEqual('remind-list-blah', resp.url)
+            self.user.refresh_from_db()
+            self.assertIsNone(self.user.last_message_time)  # web logins don't open WeChat's messaging window
 
     def test_guest(self):
         guest_id = 'fake_user1xxx'

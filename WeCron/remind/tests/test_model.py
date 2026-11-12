@@ -15,7 +15,7 @@ from wechat_user.models import WechatUser
 class RemindModelTestCase(TestCase):
 
     def setUp(self):
-        u = WechatUser(openid='miao', nickname='miaomiao', subscribe=True, last_login=timezone.now())
+        u = WechatUser(openid='miao', nickname='miaomiao', subscribe=True, last_message_time=timezone.now())
         u.save()
 
     def test_add_add_participant(self):

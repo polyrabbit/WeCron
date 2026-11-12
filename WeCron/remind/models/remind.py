@@ -135,7 +135,7 @@ class Remind(models.Model):
             },
 
         }
-        if user.last_login and now() - user.last_login < timedelta(hours=48):
+        if user.last_message_time and now() - user.last_message_time < timedelta(hours=48):
             raw_text = '\U0001F552 %s\n\n备注：%s\n时间：%s\n提醒：%s\n%s\n%s' % (
                 self.title(),
                 self.desc,
@@ -157,8 +157,8 @@ class Remind(models.Model):
                 return res
             except WeChatException as e:
                 if e.errcode == 45015:
-                    user.last_login = now() - timedelta(hours=49)
-                    user.save(update_fields=['last_login'])
+                    user.last_message_time = now() - timedelta(hours=49)
+                    user.save(update_fields=['last_message_time'])
             except:
                 logger.exception('Failed to send text notification(%s) to user %s', desc, uname)
         try:
@@ -168,7 +168,7 @@ class Remind(models.Model):
             return res
         except WeChatException as e:
             logger.exception('Failed to send template notification(%s) to user %s', desc, uname)
-            if e.errcode == 43101:
+            if e.errcode in (43004, 43101):  # unsubscribed, or refused to receive
                 user.unsubscribe()
 
     def add_participant(self, uid):
@@ -286,7 +286,7 @@ def notify_participant_modified(sender, participant, add, **kwargs):
         notification = '\U0001F494 %s退出了你的提醒：<a href="%s">%s</a>\n%s' % (
             participant.get_full_name(), sender.get_absolute_url(True), sender.title(), settings_link)
     logger.info('Trying to notify user %s for participant modification on %s', sender.owner.get_full_name(), sender.desc)
-    if sender.owner.last_login and now() - sender.owner.last_login < timedelta(hours=48):
+    if sender.owner.last_message_time and now() - sender.owner.last_message_time < timedelta(hours=48):
         try:
             wechat_client.message.send_text(sender.owner_id, notification)
         except Exception as e:

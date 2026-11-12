@@ -6,7 +6,7 @@ from django.db import models
 from django.urls import reverse
 from django.utils import timezone
 from django.conf import settings
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, update_last_login
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 
 from common import wechat_client
 from remind.models import Remind
@@ -19,8 +19,6 @@ class UserManager(BaseUserManager):
     def get_or_fetch(self, pk):
         u = self.filter(pk=pk).first()
         if u:
-            # Set last_login field for the updating queue
-            update_last_login(None, u)
             return u
         user_dict = wechat_client.user.get(pk)
         return self.create(**self.amend_model_params(**user_dict))
@@ -31,7 +29,6 @@ class UserManager(BaseUserManager):
         if 'subscribe_time' in params:
             params['subscribe_time'] = datetime.fromtimestamp(params['subscribe_time'], dt_timezone.utc)
         params['subscribe'] = bool(params['subscribe'])
-        params['last_login'] = timezone.now()
         return params
 
     def create_superuser(self, openid, password, **extra_fields):
@@ -62,6 +59,9 @@ class WechatUser(AbstractBaseUser):
     notify_subscription = models.BooleanField('提醒被订阅通知', null=True, default=True)
     timezone = models.CharField('默认时区', max_length=64, default=settings.TIME_ZONE)
     source = models.CharField('用户来源，区分从那个公众号关注过来', max_length=32, null=True)
+    # WeChat only allows text messages within 48 hours since the user last messaged us
+    last_message_time = models.DateTimeField('最后发消息时间', null=True, blank=True)
+    last_login = None  # Drop the inherited field, web logins don't open the messaging window
 
     objects = UserManager()
 

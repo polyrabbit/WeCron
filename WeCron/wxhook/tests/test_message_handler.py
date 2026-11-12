@@ -347,3 +347,14 @@ class MessageHandlerTestCase(TestCase):
         r.save()
         self.assertEqual(WechatUser.objects.get(pk='abc').get_time_reminds().first(), r)
 
+    def test_only_user_messages_refresh_last_message_time(self):
+        tpl = '<xml><ToUserName>gh</ToUserName><FromUserName>FromUser</FromUserName><CreateTime>1</CreateTime>%s</xml>'
+        handle_message(parse_message(tpl % '<MsgType>event</MsgType><Event>TEMPLATESENDJOBFINISH</Event>'))
+        self.user.refresh_from_db()
+        self.assertIsNone(self.user.last_message_time)
+        handle_message(parse_message(tpl % '<MsgType>event</MsgType><Event>CLICK</Event><EventKey>donate</EventKey>'))
+        self.user.refresh_from_db()
+        self.assertIsNone(self.user.last_message_time)
+        handle_message(parse_message(tpl % '<MsgType>text</MsgType><Content>hi</Content><MsgId>1</MsgId>'))
+        self.user.refresh_from_db()
+        self.assertIsNotNone(self.user.last_message_time)

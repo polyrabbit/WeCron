@@ -17,12 +17,18 @@ from .todo_parser import parse, ParseError
 
 logger = logging.getLogger(__name__)
 
+# Only messages from users open WeChat's 48 hours window for text messages, events allow a few replies within a minute
+USER_MESSAGES = frozenset(['text', 'image', 'voice', 'video', 'shortvideo', 'location', 'link'])
+
 
 class WechatMessage(object):
 
     def __init__(self, message):
         self.message = message
         self.user = get_user_model().objects.get_or_fetch(message.source)
+        if message.type in USER_MESSAGES:
+            self.user.last_message_time = timezone.now()
+            self.user.save(update_fields=['last_message_time'])
         self.user.activate_timezone()
 
     @property

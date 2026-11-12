@@ -26,7 +26,7 @@ def get_qr_image_mock(url, request):
 class SharePostTestCase(TestCase):
 
     def setUp(self):
-        self.user = WechatUser(openid='miao', nickname='miaomiao', subscribe=True, last_login=timezone.now())
+        self.user = WechatUser(openid='miao', nickname='miaomiao', subscribe=True, last_message_time=timezone.now())
         self.user.save()
 
     @with_httmock(access_token_mock, create_qrcode_mock, get_qr_image_mock)
