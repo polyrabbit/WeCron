@@ -18,6 +18,7 @@ from django.views.generic import TemplateView, RedirectView
 
 from wxhook.views import WeiXinHook
 from wechat_user.views import OAuthComplete
+from wechat_user.miniapp import MiniAppLoginView
 
 urlpatterns = [
     re_path(r'^$',
@@ -26,6 +27,7 @@ urlpatterns = [
     re_path(r'^reminds/', include('remind.urls')),
     re_path(r'^profile/', include('wechat_user.urls')),
     re_path(r'^login/weixin/', OAuthComplete, name='oauth_complete'),
+    re_path(r'^miniprogram/login$', MiniAppLoginView.as_view(), name='miniapp_login'),
     re_path(r'^under_construction$',
         TemplateView.as_view(template_name='under_construction.html'), name='under_construction'),
 

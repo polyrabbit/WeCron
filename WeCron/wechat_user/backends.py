@@ -2,6 +2,8 @@
 import logging
 from django.contrib.auth import get_user_model
 from django.conf import settings
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.exceptions import AuthenticationFailed
 from wechatpy import WeChatOAuth, WeChatOAuthException
 
 logger = logging.getLogger(__name__)
@@ -40,3 +42,13 @@ class WechatBackend(object):
             return UserModel.objects.get(pk=open_id)
         except UserModel.DoesNotExist:
             return make_guest(pk=open_id, nickname=open_id)
+
+
+class SubscribedTokenAuthentication(TokenAuthentication):
+    """Tokens stop working once their users unsubscribe the official account"""
+
+    def authenticate_credentials(self, key):
+        user, token = super(SubscribedTokenAuthentication, self).authenticate_credentials(key)
+        if not user.subscribe:
+            raise AuthenticationFailed('请先关注公众号')
+        return user, token

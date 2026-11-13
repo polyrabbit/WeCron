@@ -1,0 +1,47 @@
+<nav-bar title="设置" />
+
+<subscribe-guide wx:if="{{notSubscribed}}" bindretry="load" />
+
+<view class="hint" wx:elif="{{failed}}" bindtap="load">
+  <view class="guide-title">加载失败</view>
+  <view class="guide-desc">请检查网络后点击重试</view>
+</view>
+
+<block wx:elif="{{profile}}">
+  <view class="profile">
+    <avatar class="profile-avatar" src="{{avatar}}" name="{{profile.nickname}}" size="112" />
+    <view class="profile-name">{{profile.nickname || '微信用户'}}</view>
+  </view>
+
+  <view class="item-divider"></view>
+
+  <view class="setting">
+    <view class="setting-main">
+      <view class="setting-title">早报</view>
+      <switch checked="{{hasMorningGreeting}}" color="#387ef5" bindchange="onMorningGreetingChange" />
+    </view>
+    <view class="setting-desc">开启后，微定时会在每天早晨推送今天的提醒列表，方便亲们提前做好准备。</view>
+  </view>
+
+  <view class="setting">
+    <view class="setting-main">
+      <view class="setting-title">提醒被订阅通知</view>
+      <switch checked="{{notifySubscription}}" color="#387ef5" bindchange="onNotifyChange" />
+    </view>
+    <view class="setting-desc">开启后，每当有人订阅你分享出去的提醒时，微定时会给你发条通知。</view>
+  </view>
+
+  <picker range="{{timezoneLabels}}" value="{{timezoneIndex}}" bindchange="onTimezoneChange">
+    <view class="setting">
+      <view class="setting-main">
+        <view class="setting-title">默认时区</view>
+        <view class="setting-value">{{timezoneLabels[timezoneIndex]}}</view>
+        <image class="chevron" src="/images/chevron-grey.png" />
+      </view>
+    </view>
+  </picker>
+
+  <view class="footer">在公众号「微定时」里直接说出你的提醒，例如“明天早上8点提醒我开会”</view>
+
+  <ad-banner position="settings" />
+</block>

@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/1.8/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+import secrets
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -19,10 +20,11 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-if 'DJ_SECRET_KEY' not in os.environ:
-    print('WARNING: need to set DJ_SECRET_KEY in the environment')
-    os.environ['DJ_SECRET_KEY'] = 'wb7dh*#f!x1y_=0d8$i_rgafhy9gpv9jf3^=jasewr^vmmd7)n'
-SECRET_KEY = os.environ['DJ_SECRET_KEY']
+SECRET_KEY = os.environ.get('DJ_SECRET_KEY')
+if not SECRET_KEY:
+    # Random per process, so sessions neither survive restarts nor are shared between uWSGI workers
+    print('WARNING: need to set DJ_SECRET_KEY in the environment, using a random one')
+    SECRET_KEY = secrets.token_urlsafe(50)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = 'DJ_DEBUG' in os.environ
@@ -158,6 +160,7 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_THROTTLE_RATES': {
         'remind.create': '20/hour',
+        'miniapp.login': '60/hour',
         'user': '1000/day'
     }
 }
@@ -230,3 +233,7 @@ LOGGING = {
 WX_APPID = os.environ.get('WX_APPID', 'xxx')
 WX_APPSECRET = os.environ.get('WX_APPSECRET', 'xxx')
 WX_SIGN_TOKEN = os.environ.get('WX_SIGN_TOKEN', 'xxx')
+
+# WeChat mini program
+WX_MINIAPP_APPID = os.environ.get('WX_MINIAPP_APPID', '')
+WX_MINIAPP_SECRET = os.environ.get('WX_MINIAPP_SECRET', '')

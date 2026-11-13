@@ -13,6 +13,7 @@ from common import wechat_client
 from eosram.models import PriceThresholdChange, PricePercentageChange, Profile
 from eosram.serializers import ThresholdSerializer, PercentageSerializer
 from remind.views import WWWAuthenticateHeaderMixIn
+from wechat_user.backends import SubscribedTokenAuthentication
 from eosram.management.commands.checkPrice import EOS_ACCOUNT
 
 logger = logging.getLogger(__name__)
@@ -40,7 +41,7 @@ class IndexView(TemplateView):
 
 class EosRamAlertView(WWWAuthenticateHeaderMixIn, RetrieveUpdateAPIView):
     http_method_names = ['post', 'get', 'patch', 'delete']
-    authentication_classes = (authentication.SessionAuthentication, authentication.TokenAuthentication)
+    authentication_classes = (authentication.SessionAuthentication, SubscribedTokenAuthentication)
 
     def get_alerts(self):
         resp = {}

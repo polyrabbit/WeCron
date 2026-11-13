@@ -1,0 +1,8 @@
+<view class="guide">
+  <official-account></official-account>
+  <view class="guide-title">请先关注公众号「微定时」</view>
+  <view class="guide-desc">
+    微定时通过公众号给你发送提醒。关注后，在公众号里说一句话，例如“明天早上8点提醒我开会”，就能设好提醒，再回到这里查看和管理。
+  </view>
+  <button class="guide-button" bindtap="retry">我已关注，刷新</button>
+</view>

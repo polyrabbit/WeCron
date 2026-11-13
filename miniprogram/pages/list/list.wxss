@@ -1,0 +1,102 @@
+.pull-hint {
+  text-align: center;
+  font-size: 24rpx;
+  color: var(--text-placeholder);
+  padding: 12rpx 0;
+  background-color: var(--divider-bg);
+}
+
+.swipe-cell {
+  position: relative;
+  overflow: hidden;
+}
+
+.swipe-action {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 160rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--assertive);
+  color: #fff;
+  font-size: 30rpx;
+  /* Never show a sliver of it at rest, in case rounding leaves a gap */
+  visibility: hidden;
+}
+.swipe-cell.swiping .swipe-action {
+  visibility: visible;
+}
+
+.item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 24rpx 32rpx;
+  min-height: 144rpx;
+  box-sizing: border-box;
+  background-color: #fff;
+  border-bottom: 1rpx solid var(--border);
+}
+.swipe-cell:last-child .item {
+  border-bottom: none;
+}
+.item-animated {
+  transition: transform 0.2s ease-out;
+}
+.item-hover {
+  background-color: #f0f0f0;
+}
+
+.item-body {
+  flex: 1;
+  min-width: 0;
+  margin-left: 32rpx;
+}
+.item-title {
+  font-size: 32rpx;
+  color: #444;
+  margin-bottom: 4rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.item-sub {
+  font-size: 28rpx;
+  color: var(--text-light);
+  display: flex;
+  align-items: center;
+}
+
+.tag {
+  margin-left: 16rpx;
+  padding: 0 10rpx;
+  font-size: 22rpx;
+  line-height: 34rpx;
+  border-radius: 6rpx;
+  color: var(--positive);
+  background-color: rgba(56, 126, 245, 0.1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 260rpx;
+}
+.tag-shared {
+  color: #b78a2b;
+  background-color: rgba(255, 201, 0, 0.15);
+}
+
+.chevron {
+  width: 36rpx;
+  height: 36rpx;
+  margin-left: 16rpx;
+  flex-shrink: 0;
+}
+
+.hint-end {
+  color: var(--text-placeholder);
+  font-size: 24rpx;
+}

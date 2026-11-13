@@ -42,6 +42,7 @@ class UserManager(BaseUserManager):
 
 class WechatUser(AbstractBaseUser):
     openid = models.CharField(max_length=40, primary_key=True)
+    unionid = models.CharField('UnionID', max_length=64, null=True, blank=True)
     subscribe = models.BooleanField('是否订阅', null=True, default=False,
                                     choices=((False, '未定阅'), (True, '已订阅'),))
     nickname = models.CharField('昵称', max_length=40, null=True)
@@ -72,6 +73,8 @@ class WechatUser(AbstractBaseUser):
     class Meta:
         ordering = ["-subscribe_time"]
         db_table = 'user'
+        # unique=True would also create a LIKE index on PostgreSQL
+        constraints = [models.UniqueConstraint(fields=['unionid'], name='user_unionid_uniq')]
 
     @property
     def id(self):

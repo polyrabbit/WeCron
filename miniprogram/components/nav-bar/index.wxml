@@ -1,0 +1,10 @@
+<view class="nav-bar" style="padding-top: {{statusBarHeight}}px">
+  <view class="nav-inner" style="height: {{navHeight}}px">
+    <view class="nav-back" wx:if="{{back}}" bindtap="onBack" hover-class="nav-back-hover">
+      <image class="nav-back-icon" src="/images/chevron-white.png" />
+    </view>
+    <view class="nav-title">{{title}}</view>
+  </view>
+</view>
+<!-- Placeholder, keeps the content below the fixed bar -->
+<view style="height: {{statusBarHeight + navHeight}}px"></view>

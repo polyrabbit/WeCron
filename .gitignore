@@ -67,3 +67,14 @@ staticfiles/
 
 playbook.retry
 .env
+.env.*
+.venv/
+.vscode/
+/dev.sh
+*.key
+*.pem
+
+# WeChat mini program
+node_modules/
+miniprogram/project.private.config.json
+miniprogram/**/screenshots/

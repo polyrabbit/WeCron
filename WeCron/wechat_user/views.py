@@ -9,6 +9,7 @@ from django.dispatch import receiver
 from rest_framework import viewsets, mixins, authentication
 from remind.views import WWWAuthenticateHeaderMixIn
 from wechat_user.serializers import UserSerializer
+from wechat_user.backends import SubscribedTokenAuthentication
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +38,7 @@ def signals_receiver(sender, request, user, **kwargs):
 class ProfileViewSet(WWWAuthenticateHeaderMixIn, mixins.RetrieveModelMixin,
                    mixins.UpdateModelMixin, viewsets.GenericViewSet):
     http_method_names = ['patch', 'get']
-    authentication_classes = (authentication.SessionAuthentication, authentication.TokenAuthentication)
+    authentication_classes = (authentication.SessionAuthentication, SubscribedTokenAuthentication)
     serializer_class = UserSerializer
 
     def get_object(self):

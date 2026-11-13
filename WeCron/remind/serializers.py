@@ -10,7 +10,6 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError, PermissionDenied
 from remind.utils import get_qrcode_url
 from remind.models import Remind
-from remind.signals import participant_modified
 
 
 logger = logging.getLogger(__name__)
@@ -58,12 +57,6 @@ class UserSerializer(serializers.ModelSerializer):
 
 class ParticipantSerializer(serializers.Field):
 
-    def to_internal_value(self, participants):
-        logger.info('User(%s) subscribes a remind(%s)',
-                    self.parent.context['request'].user.get_full_name(), self.parent.instance)
-        participant_modified.send(sender=self.parent.instance, participant=self.parent.context['request'].user, add=True)
-        return list(set(p['id'] for p in participants if UserModel.objects.filter(pk=p['id'], subscribe=True).first()))
-
     def to_representation(self, participant_id_list):
         active_participants = []
         for uid in participant_id_list:
@@ -80,7 +73,7 @@ class RemindSerializer(serializers.ModelSerializer):
     owner = UserSerializer(read_only=True)
     time = TimestampField()
     title = TitleField(source='event')
-    participants = ParticipantSerializer(default=list)
+    participants = ParticipantSerializer(read_only=True)
     participate_qrcode = serializers.SerializerMethodField()
     post_url = serializers.SerializerMethodField()
 
@@ -110,7 +103,17 @@ class RemindSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         instance.done = False
-        return super(RemindSerializer, self).update(instance, validated_data)
+        if 'time' in validated_data and timezone.localdate(validated_data['time']) != timezone.localdate(instance.time):
+            # The day kept for monthly repeats in short months belongs to the old date
+            repeat = dict(validated_data.get('repeat', instance.repeat) or {})
+            repeat.pop('original_day', None)
+            validated_data['repeat'] = repeat
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        # Subscribers change participants concurrently, never write back the copy loaded here
+        instance.save(update_fields=[f.name for f in Remind._meta.concrete_fields
+                                    if f.name not in ('id', 'participants')])
+        return instance
 
     def get_post_url(self, remind):
         return self.context['request'].build_absolute_uri(

@@ -157,11 +157,17 @@ angular.module('remind', ['ionic'])
             get: function (id, onSuccess) {
                 return httpRequest('/reminds/api/'+id+'/', 'get', onSuccess);
             },
-            update: function (id, payload, onSuccess, msg) {
+            update: function (id, payload, onSuccess) {
                 return httpRequest('/reminds/api/'+id+'/', 'patch', function (resp) {
-                    indicator.show(msg || '更新成功', 2000);
+                    indicator.show('更新成功', 2000);
                     onSuccess && onSuccess(resp);
                 }, payload);
+            },
+            subscribe: function (id, onSuccess) {
+                return httpRequest('/reminds/api/'+id+'/subscribe/', 'post', function (resp) {
+                    indicator.show('订阅成功', 2000);
+                    onSuccess && onSuccess(resp);
+                });
             },
             getProfile: function () {
                 return httpRequest('/profile/api/', 'get').then(function (resp) {
@@ -287,12 +293,10 @@ angular.module('remind', ['ionic'])
                         label: '确认',
                         type: 'primary',
                         onClick: function () {
-                            remindManager.update($stateParams.id, {
-                                participants: remind.participants.concat([{id: userID}])
-                            }, function (newRemind) {
+                            remindManager.subscribe($stateParams.id, function (newRemind) {
                                 newRemind.time = new Date(newRemind.time);
                                 ctrl.model = newRemind;
-                            }, '订阅成功');
+                            });
                         }
                     }]
                 });

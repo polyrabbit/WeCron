@@ -1,0 +1,12 @@
+{
+  "navigationBarTitleText": "我的提醒",
+  "enablePullDownRefresh": true,
+  "onReachBottomDistance": 100,
+  "usingComponents": {
+    "subscribe-guide": "/components/subscribe-guide/index",
+    "ad-banner": "/components/ad-banner/index",
+    "nav-bar": "/components/nav-bar/index",
+    "avatar": "/components/avatar/index"
+  },
+  "navigationStyle": "custom"
+}

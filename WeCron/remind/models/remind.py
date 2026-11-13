@@ -6,6 +6,7 @@ from urllib.parse import urljoin
 
 from dateutil.relativedelta import relativedelta
 from django.db import models, transaction
+from django.db.models import F, Func, Value
 from django.urls import reverse
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -171,19 +172,22 @@ class Remind(models.Model):
             if e.errcode in (43004, 43101):  # unsubscribed, or refused to receive
                 user.unsubscribe()
 
+    # Changed in a single UPDATE, so concurrent subscriptions and quits can't overwrite each other
+    def update_participants(self, queryset, function, uid):
+        updated = queryset.filter(pk=self.pk).update(participants=Func(
+            F('participants'), Value(uid), function=function, output_field=self._meta.get_field('participants')))
+        self.refresh_from_db(fields=['participants'])
+        return bool(updated)
+
     def add_participant(self, uid):
-        if uid == self.owner_id or uid in self.participants:
+        candidates = Remind.objects.exclude(owner_id=uid).exclude(participants__contains=[uid])
+        if not self.update_participants(candidates, 'array_append', uid):
             return False
-        self.participants.append(uid)
-        self.save(update_fields=['participants'])
         participant_modified.send(sender=self, participant=get_user_model().objects.get(pk=uid), add=True)
         return True
 
     def remove_participant(self, uid):
-        if uid not in self.participants:
-            return
-        self.participants.remove(uid)
-        self.save(update_fields=['participants'])
+        return self.update_participants(Remind.objects.filter(participants__contains=[uid]), 'array_remove', uid)
 
     def has_repeat(self):
         if not self.repeat:

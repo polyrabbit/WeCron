@@ -1,0 +1,43 @@
+<nav-bar title="我的提醒" />
+
+<subscribe-guide wx:if="{{notSubscribed}}" bindretry="reload" />
+
+<block wx:else>
+  <view class="pull-hint" wx:if="{{refreshing}}">正在加载之前的提醒...</view>
+  <view class="pull-hint" wx:elif="{{hasPrevious}}">下拉查看之前的提醒</view>
+
+  <view class="group" wx:for="{{groups}}" wx:for-item="group" wx:for-index="g" wx:key="title">
+    <view class="item-divider">{{group.title}}</view>
+    <view class="swipe-cell {{remind.offset !== 0 ? 'swiping' : ''}}"
+          wx:for="{{group.reminds}}" wx:for-item="remind" wx:for-index="i" wx:key="id">
+      <view class="swipe-action" data-id="{{remind.id}}" catchtap="deleteRemind">
+        {{remind.isOwner ? '删除' : '退出'}}
+      </view>
+      <view class="item {{remind.offset === 0 ? 'item-animated' : ''}}"
+            style="{{remind.offset ? 'transform: translateX(' + remind.offset + 'px)' : ''}}"
+            data-id="{{remind.id}}" data-g="{{g}}" data-i="{{i}}"
+            bindtap="viewDetail"
+            bindtouchstart="onTouchStart" bindtouchmove="onTouchMove"
+            bindtouchend="onTouchEnd" bindtouchcancel="onTouchEnd"
+            hover-class="item-hover" hover-stay-time="50">
+        <avatar src="{{remind.avatar}}" name="{{remind.owner.nickname}}" size="80" />
+        <view class="item-body">
+          <view class="item-title">{{remind.title}}</view>
+          <view class="item-sub">
+            <text>{{remind.timeText}}</text>
+            <text class="tag" wx:if="{{remind.repeatText}}">{{remind.repeatText}}</text>
+            <text class="tag tag-shared" wx:if="{{!remind.isOwner}}">来自 {{remind.owner.nickname}}</text>
+          </view>
+        </view>
+        <image class="chevron" src="/images/chevron-grey.png" />
+      </view>
+    </view>
+  </view>
+
+  <view class="hint" wx:if="{{failed}}" bindtap="retry">加载失败，点击重试</view>
+  <view class="hint" wx:if="{{loaded && !failed && !groups.length}}">这里空空如也，下拉查看之前的提醒~</view>
+  <view class="hint" wx:if="{{loadingNext}}">加载中...</view>
+  <view class="hint hint-end" wx:if="{{loaded && groups.length && !hasNext}}">没有更多了</view>
+
+  <ad-banner wx:if="{{loaded}}" position="list" />
+</block>

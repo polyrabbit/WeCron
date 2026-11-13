@@ -29,12 +29,12 @@ class Command(BaseCommand):
                 print(e)
 
     def clear_user(self):
-        with connection.cursor() as cursor:
-            try:
-                cursor.execute('delete from "user" where subscribe=false')
-                print('deleted %d users' % cursor.rowcount)
-            except DatabaseError as e:
-                print(e)
+        try:
+            # Through the ORM, which deletes their tokens as well
+            _, deleted = get_user_model().objects.filter(subscribe=False).delete()
+            print('deleted %d users' % deleted.get('wechat_user.WechatUser', 0))
+        except DatabaseError as e:
+            print(e)
 
     def check_subscribtion(self):
         start = time.time()

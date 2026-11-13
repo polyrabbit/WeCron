@@ -1,0 +1,3 @@
+.guide-button {
+  width: 400rpx !important;
+}

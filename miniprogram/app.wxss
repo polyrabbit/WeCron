@@ -1,0 +1,55 @@
+page {
+  --positive: #387ef5;
+  --positive-dark: #0c60ee;
+  --assertive: #ef473a;
+  --balanced: #33cd5f;
+  --border: #ddd;
+  --divider-bg: #f5f5f5;
+  --text: #444;
+  --text-light: #666;
+  --text-placeholder: #aaa;
+
+  background-color: #fff;
+  color: var(--text);
+  font-size: 32rpx;
+  font-family: -apple-system, "Helvetica Neue", "PingFang SC", "Roboto", "Segoe UI", sans-serif;
+  line-height: 1.4;
+}
+
+.item-divider {
+  padding: 16rpx 32rpx;
+  min-height: 60rpx;
+  box-sizing: border-box;
+  background-color: var(--divider-bg);
+  color: #222;
+  font-size: 30rpx;
+  border-bottom: 1rpx solid var(--border);
+}
+
+.hint {
+  padding: 40rpx 32rpx;
+  text-align: center;
+  color: var(--text-light);
+  font-size: 28rpx;
+}
+
+.guide {
+  padding: 120rpx 60rpx;
+  text-align: center;
+}
+.guide-title {
+  font-size: 36rpx;
+  color: #222;
+  margin-bottom: 24rpx;
+}
+.guide-desc {
+  font-size: 28rpx;
+  color: var(--text-light);
+  line-height: 1.7;
+}
+.guide-button {
+  margin-top: 60rpx;
+  background-color: var(--positive) !important;
+  color: #fff !important;
+  font-weight: normal !important;
+}

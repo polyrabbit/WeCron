@@ -1,0 +1,109 @@
+<nav-bar title="提醒详情" back bindback="goHome" />
+
+<subscribe-guide wx:if="{{notSubscribed}}" bindretry="load" />
+
+<view class="hint" wx:elif="{{loadFailed}}" bindtap="load">
+  <view class="guide-title">加载失败</view>
+  <view class="guide-desc">请检查网络后点击重试</view>
+</view>
+
+<view class="hint" wx:elif="{{notFound}}">
+  <view class="guide-title">没找到这个提醒</view>
+  <view class="guide-desc">它是不是被删了，或者你进错了地方？</view>
+  <button class="guide-button home-button" bindtap="goHome">返回我的提醒</button>
+</view>
+
+<block wx:elif="{{model}}">
+  <view class="page-body">
+    <view class="title-box">
+      <input class="title-input" value="{{model.title}}" disabled="{{!canEdit}}"
+             placeholder="请输入提醒内容" placeholder-class="title-placeholder"
+             maxlength="100" data-field="title" bindinput="onTextInput" />
+      <view class="owner" wx:if="{{!isOwner}}">来自 {{people[0].nickname}}</view>
+    </view>
+
+    <view class="list">
+      <view class="row">
+        <image class="row-icon" src="/images/clock-grey.png" />
+        <picker class="row-picker" mode="date" value="{{view.date}}" disabled="{{!canEdit}}" bindchange="onDateChange">
+          <view class="row-value">{{view.dateText}}</view>
+        </picker>
+        <picker mode="time" value="{{view.time}}" disabled="{{!canEdit}}" bindchange="onTimeChange">
+          <view class="row-value row-time">{{view.time}}</view>
+        </picker>
+      </view>
+
+      <picker mode="multiSelector" range="{{deferRange}}" value="{{deferIndex}}"
+              disabled="{{!canEdit}}" bindchange="onDeferChange">
+        <view class="row">
+          <image class="row-icon" src="/images/bell-grey.png" />
+          <view class="row-label">提醒时间</view>
+          <view class="row-value row-right">{{view.defer}}</view>
+          <image wx:if="{{canEdit}}" class="row-chevron" src="/images/chevron-grey.png" />
+        </view>
+      </picker>
+
+      <picker mode="multiSelector" range="{{repeatRange}}" value="{{repeatIndex}}"
+              disabled="{{!canEdit}}" bindchange="onRepeatChange">
+        <view class="row">
+          <image class="row-icon" src="/images/repeat-grey.png" />
+          <view class="row-label">重复周期</view>
+          <view class="row-value row-right">{{view.repeat}}</view>
+          <image wx:if="{{canEdit}}" class="row-chevron" src="/images/chevron-grey.png" />
+        </view>
+      </picker>
+
+      <view class="row" bindtap="openParticipants" hover-class="row-hover">
+        <image class="row-icon" src="/images/users-grey.png" />
+        <view class="row-label">{{people.length}}人参与</view>
+        <view class="avatars">
+          <avatar class="mini-avatar" wx:for="{{people}}" wx:key="id" wx:if="{{index < 6}}"
+                  src="{{item.avatar}}" name="{{item.nickname}}" size="56" />
+        </view>
+        <image class="row-chevron" src="/images/chevron-grey.png" />
+      </view>
+
+      <view class="row row-top">
+        <image class="row-icon" src="/images/note-grey.png" />
+        <!-- A native textarea would cover the popup -->
+        <textarea wx:if="{{!showParticipants}}" class="desc" value="{{model.desc}}" disabled="{{!canEdit}}"
+                  placeholder="请输入备注(可选)" placeholder-class="desc-placeholder"
+                  auto-height maxlength="-1" disable-default-padding data-field="desc" bindinput="onTextInput" />
+        <view wx:else class="desc">{{model.desc}}</view>
+      </view>
+    </view>
+
+    <ad-banner position="detail" />
+  </view>
+
+  <view class="action-bar">
+    <view class="action" wx:if="{{canEdit}}" bindtap="save" hover-class="{{modified ? 'action-hover' : 'none'}}">
+      <view class="save-icon {{modified ? 'save-active' : ''}}">
+        <image src="/images/check-white.png" />
+      </view>
+      <text class="{{modified ? 'positive' : ''}}">保存</text>
+    </view>
+    <view class="action" bindtap="remove" hover-class="action-hover">
+      <image class="action-icon" src="{{isOwner ? '/images/trash-dark.png' : '/images/quit-dark.png'}}" />
+      <text>{{isOwner ? '删除' : '退出'}}</text>
+    </view>
+    <button class="action action-button" open-type="share" hover-class="action-hover">
+      <image class="action-icon" src="/images/share-dark.png" />
+      <text>分享</text>
+    </button>
+  </view>
+
+  <view class="mask" wx:if="{{showParticipants}}" bindtap="closeParticipants" catchtouchmove="noop">
+    <view class="sheet" catchtap="noop">
+      <view class="sheet-title">参与者</view>
+      <scroll-view scroll-y class="sheet-body" style="height: {{people.length > 8 ? '60vh' : people.length * 96 + 'rpx'}}">
+        <view class="person" wx:for="{{people}}" wx:key="id">
+          <avatar src="{{item.avatar}}" name="{{item.nickname}}" size="80" />
+          <view class="person-name">{{item.nickname}}</view>
+          <view class="person-tag" wx:if="{{index === 0}}">创建者</view>
+        </view>
+      </scroll-view>
+      <view class="sheet-button" bindtap="closeParticipants">好的</view>
+    </view>
+  </view>
+</block>

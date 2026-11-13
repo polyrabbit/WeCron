@@ -1,0 +1,37 @@
+{
+  "pages": [
+    "pages/list/list",
+    "pages/settings/settings",
+    "pages/detail/detail"
+  ],
+  "window": {
+    "navigationBarBackgroundColor": "#387ef5",
+    "navigationBarTextStyle": "white",
+    "navigationBarTitleText": "微定时",
+    "backgroundColor": "#f5f5f5",
+    "backgroundTextStyle": "dark"
+  },
+  "tabBar": {
+    "color": "#c3d8fc",
+    "selectedColor": "#ffffff",
+    "backgroundColor": "#387ef5",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/list/list",
+        "text": "提醒",
+        "iconPath": "images/tab-remind.png",
+        "selectedIconPath": "images/tab-remind-active.png"
+      },
+      {
+        "pagePath": "pages/settings/settings",
+        "text": "设置",
+        "iconPath": "images/tab-settings.png",
+        "selectedIconPath": "images/tab-settings-active.png"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

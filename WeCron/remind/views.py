@@ -4,6 +4,8 @@ import time
 from urllib.parse import quote_plus
 
 from rest_framework import viewsets, permissions, pagination, authentication
+from rest_framework.decorators import action
+from rest_framework.response import Response
 from rest_framework.generics import get_object_or_404
 from django.views.generic import TemplateView
 from django.http import Http404, StreamingHttpResponse, JsonResponse, HttpResponse
@@ -15,6 +17,7 @@ from wechatpy.utils import random_string
 
 from common import wechat_client
 from remind.models import Remind
+from wechat_user.backends import SubscribedTokenAuthentication
 from remind.serializers import RemindSerializer
 from remind.signals import participant_modified
 from remind.utils import get_qrcode_url
@@ -57,6 +60,12 @@ class CursorPaginationStartsToday(pagination.CursorPagination):
 class WWWAuthenticateHeaderMixIn(object):
     permission_classes = (permissions.IsAuthenticated,)
 
+    def initial(self, request, *args, **kwargs):
+        super(WWWAuthenticateHeaderMixIn, self).initial(request, *args, **kwargs)
+        # Token authenticated users are not visible to TimezoneMiddleware
+        if hasattr(request.user, 'activate_timezone'):
+            request.user.activate_timezone()
+
     def get_authenticate_header(self, request):
         """
         If a request is unauthenticated, set wechat login url in the WWW-Authenticate header.
@@ -74,7 +83,7 @@ class WWWAuthenticateHeaderMixIn(object):
 
 class RemindViewSet(WWWAuthenticateHeaderMixIn, viewsets.ModelViewSet):
     http_method_names = ['post', 'get', 'patch', 'delete']
-    authentication_classes = (authentication.SessionAuthentication, authentication.TokenAuthentication)
+    authentication_classes = (authentication.SessionAuthentication, SubscribedTokenAuthentication)
     serializer_class = RemindSerializer
     pagination_class = CursorPaginationStartsToday
 
@@ -90,21 +99,27 @@ class RemindViewSet(WWWAuthenticateHeaderMixIn, viewsets.ModelViewSet):
             self.throttle_scope = 'remind.' + self.action
         return super(RemindViewSet, self).get_throttles()
 
+    @action(detail=True, methods=['post'])
+    def subscribe(self, request, pk=None):
+        # Guests and unsubscribed users can't receive the notifications
+        if not request.user.subscribe:
+            self.permission_denied(request, message='请先关注公众号')
+        remind = self.get_object()
+        if remind.add_participant(request.user.pk):
+            logger.info('User(%s) subscribes a remind(%s)', request.user.get_full_name(), remind)
+        return Response(self.get_serializer(remind).data)
+
     def perform_update(self, serializer):
-        # TODO: refine me
-        # Check permission in serializer, for 'participants' needs no authorization
-        if serializer.instance.owner_id == self.request.user.pk or serializer.initial_data.keys() == {'participants'}:
-            return super(RemindViewSet, self).perform_update(serializer)
-        self.permission_denied(self.request, message=u'Unauthorized!')
+        if serializer.instance.owner_id != self.request.user.pk:
+            self.permission_denied(self.request, message=u'Unauthorized!')
+        super(RemindViewSet, self).perform_update(serializer)
 
     def perform_destroy(self, instance):
         user = self.request.user
         if instance.owner_id == user.pk:
             instance.delete()
             logger.info('User(%s) deletes a remind(%s)', user.get_full_name(), instance)
-        elif user.pk in instance.participants:
-            instance.participants.remove(self.request.user.pk)
-            instance.save(update_fields=['participants'])
+        elif instance.remove_participant(user.pk):
             logger.info('User(%s) quites a remind(%s)', user.get_full_name(), instance)
             participant_modified.send(sender=instance, participant=user, add=False)
         else:

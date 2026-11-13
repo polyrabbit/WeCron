@@ -1,0 +1,68 @@
+page {
+  background-color: var(--divider-bg);
+}
+
+.profile {
+  display: flex;
+  align-items: center;
+  padding: 40rpx 32rpx;
+  background-color: var(--positive);
+}
+.profile-avatar {
+  border-radius: 50%;
+  border: 4rpx solid rgba(255, 255, 255, 0.6);
+  overflow: hidden;
+}
+.profile-name {
+  margin-left: 32rpx;
+  font-size: 36rpx;
+  color: #fff;
+}
+
+.item-divider {
+  min-height: 40rpx;
+  padding: 0;
+}
+
+.setting {
+  padding: 28rpx 32rpx;
+  background-color: #fff;
+  border-bottom: 1rpx solid var(--border);
+}
+.setting-main {
+  display: flex;
+  align-items: center;
+  min-height: 64rpx;
+}
+.setting-title {
+  flex: 1;
+  font-size: 32rpx;
+  color: var(--text);
+}
+.setting-value {
+  max-width: 420rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 28rpx;
+  color: var(--text-light);
+}
+.setting-desc {
+  margin-top: 16rpx;
+  padding-right: 120rpx;
+  font-size: 28rpx;
+  color: var(--text-placeholder);
+  line-height: 1.5;
+}
+.chevron {
+  width: 32rpx;
+  height: 32rpx;
+  margin-left: 8rpx;
+}
+
+.footer {
+  padding: 48rpx 48rpx;
+  font-size: 24rpx;
+  text-align: center;
+  color: var(--text-placeholder);
+}
