@@ -7,6 +7,7 @@ from django.utils import timezone
 from httmock import urlmatch, response, HTTMock
 from rest_framework.authtoken.models import Token
 
+from common.tests import access_token_mock
 from remind.models import Remind
 from wechat_user.backends import make_guest
 from wechat_user.miniapp import MiniAppLoginView
@@ -191,10 +192,30 @@ class MiniAppNotConfiguredTestCase(MiniAppTestCase):
         self.assertEqual(resp.json()['code'], 'not_configured')
 
 
+@urlmatch(netloc=r'(.*\.)?api\.weixin\.qq\.com$', path='/cgi-bin/user/info')
+def user_info_mock(url, request):
+    content = {'subscribe': 1, 'openid': 'mp_openid', 'nickname': 'miao', 'unionid': 'the_unionid'}
+    return response(200, content, {'Content-Type': 'application/json'}, request=request)
+
+
 class UnionIDTestCase(TestCase):
 
     def test_new_user_gets_unionid(self):
-        params = WechatUser.objects.amend_model_params(
-            subscribe=1, openid='mp_openid', unionid='the_unionid', subscribe_time=1500000000, tagid_list=[])
-        self.assertEqual(params['unionid'], 'the_unionid')
-        self.assertNotIn('tagid_list', params)
+        with HTTMock(access_token_mock, user_info_mock):
+            user = WechatUser.objects.get_or_fetch('mp_openid')
+        self.assertEqual(user.unionid, 'the_unionid')
+
+    def test_existing_user_without_unionid_gets_it(self):
+        WechatUser.objects.create(openid='mp_openid', nickname='miao', subscribe=True)
+        with HTTMock(access_token_mock, user_info_mock):
+            WechatUser.objects.get_or_fetch('mp_openid')
+        self.assertEqual(WechatUser.objects.get(pk='mp_openid').unionid, 'the_unionid')
+        # Not fetched again once it is known
+        self.assertEqual(WechatUser.objects.get_or_fetch('mp_openid').unionid, 'the_unionid')
+
+    def test_existing_user_usable_when_fetching_unionid_fails(self):
+        WechatUser.objects.create(openid='mp_openid', nickname='miao', subscribe=True)
+        with HTTMock(access_token_mock, lambda url, request: response(500, request=request)):
+            user = WechatUser.objects.get_or_fetch('mp_openid')
+        self.assertEqual(user.pk, 'mp_openid')
+        self.assertIsNone(user.unionid)

@@ -74,7 +74,7 @@ class MessageHandlerTestCase(TestCase):
         init_jieba()
 
     def setUp(self):
-        self.user = WechatUser(openid='FromUser', nickname='UserName')
+        self.user = WechatUser(openid='FromUser', nickname='UserName', unionid='FromUnion')
         self.user.save()
         self.settings(WX_APPID='123').enable()
         wechat_client.appid = '123'

@@ -1,4 +1,5 @@
 #coding: utf-8
+import logging
 from datetime import datetime, timezone as dt_timezone
 from zoneinfo import ZoneInfo, available_timezones
 
@@ -8,9 +9,13 @@ from django.utils import timezone
 from django.conf import settings
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 
+from requests import RequestException
+from wechatpy.exceptions import WeChatClientException
+
 from common import wechat_client
 from remind.models import Remind
 
+logger = logging.getLogger(__name__)
 ALL_TIMEZONES = available_timezones()
 
 
@@ -18,10 +23,17 @@ class UserManager(BaseUserManager):
 
     def get_or_fetch(self, pk):
         u = self.filter(pk=pk).first()
-        if u:
-            return u
-        user_dict = wechat_client.user.get(pk)
-        return self.create(**self.amend_model_params(**user_dict))
+        if u is None:
+            return self.create(**self.amend_model_params(**wechat_client.user.get(pk)))
+        if not u.unionid:
+            # Mini program logins match users by it, e.g. users kept after unsubscribing may lack it
+            try:
+                u.unionid = wechat_client.user.get(pk).get('unionid')
+            except (WeChatClientException, RequestException):
+                logger.warning('Failed to fetch the UnionID of %s, retry on the next message', pk, exc_info=True)
+            if u.unionid:
+                u.save(update_fields=['unionid'])
+        return u
 
     def amend_model_params(self, **kwargs):
         field_names = {f.name for f in WechatUser._meta.concrete_fields}
