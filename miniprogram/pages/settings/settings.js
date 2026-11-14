@@ -4,11 +4,14 @@ const TIMEZONES = require('../../utils/timezones');
 
 const DEFAULT_TZ = 'Asia/Shanghai';
 
+const app = getApp();
+
 Page({
   data: {
     profile: null,
     failed: false,
     avatar: '',
+    nickname: '',
     hasMorningGreeting: false,
     notifySubscription: true,
     timezoneLabels: TIMEZONES.map((t) => t.label),
@@ -35,6 +38,7 @@ Page({
         if (timezoneIndex < 0) timezoneIndex = TIMEZONES.findIndex((t) => t.value === DEFAULT_TZ);
         this.lastGreetingTime = profile.morning_greeting;
         this.confirmed = {
+          nickname: profile.nickname || '',
           hasMorningGreeting: !!profile.morning_greeting,
           notifySubscription: !!profile.notify_subscription,
           timezoneIndex
@@ -43,6 +47,7 @@ Page({
           profile,
           notSubscribed: false,
           avatar: fmt.avatar(profile.headimgurl),
+          nickname: profile.nickname || '',
           hasMorningGreeting: !!profile.morning_greeting,
           notifySubscription: !!profile.notify_subscription,
           timezoneIndex
@@ -63,8 +68,8 @@ Page({
   latest: {},
   seq: 0,
 
-  // Saves one field. Requests are serialised so the server ends up with the last choice, and a failure only
-  // reverts the field when no newer save of it is pending, back to what the server really has
+  // Saves one field, resolves to whether it succeeded. Requests are serialised so the server ends up with
+  // the last choice, and a failure only reverts the field when no newer save of it is pending
   save(field, value, patch) {
     const seq = ++this.seq;
     this.latest[field] = seq;
@@ -74,10 +79,44 @@ Page({
       .then(() => {
         this.confirmed[field] = value;
         if (this.latest[field] === seq) wx.showToast({ title: '已保存', icon: 'success' });
+        return true;
       })
       .catch(() => {
         if (this.latest[field] === seq) this.setData({ [field]: this.confirmed[field] });
+        return false;
       });
+    return this.pending;
+  },
+
+  // WeChat reviews the nickname input after blur and clears it if rejected, only what passed is saved.
+  // A review result can't tell which value it was for, so any edit while one is pending voids it.
+  onNicknameBlur(e) {
+    const value = e.detail.value.trim();
+    if (this.reviewing !== undefined) this.uncertain = true;
+    if (value && value !== this.confirmed.nickname) this.reviewing = value;
+  },
+
+  onNicknameInput() {
+    if (this.reviewing !== undefined) this.uncertain = true;
+  },
+
+  onNicknameReview(e) {
+    const value = this.reviewing;
+    const uncertain = this.uncertain;
+    this.reviewing = undefined;
+    this.uncertain = false;
+    if (!e.detail.pass || uncertain || value === undefined) {
+      this.setData({ nickname: this.confirmed.nickname });
+      if (!e.detail.pass) wx.showToast({ title: '昵称未通过审核', icon: 'none' });
+      return;
+    }
+    this.save('nickname', value, { nickname: value }).then((saved) => {
+      if (!saved) return;
+      // The list shows the nickname on every remind, it may already be on screen
+      app.globalData.listDirty = true;
+      const page = getCurrentPages().pop();
+      if (page.route === 'pages/list/list') page.reload();
+    });
   },
 
   onMorningGreetingChange(e) {

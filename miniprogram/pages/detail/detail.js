@@ -1,5 +1,6 @@
 const api = require('../../utils/api');
 const fmt = require('../../utils/format');
+const { nameOf } = require('../../utils/avatar');
 
 const app = getApp();
 
@@ -43,6 +44,7 @@ Page({
     loadFailed: false,
     showParticipants: false,
     people: [],
+    ownerName: '',
     // Ranges are rebuilt from the current value on every render, see refreshView()
     deferRange: [DEFER_DIRECTIONS.map((d) => d.label), COUNTS.map(String), fmt.DEFER_UNITS.map((u) => u.label)],
     deferIndex: [0, 0, 0],
@@ -95,9 +97,11 @@ Page({
       modified: false,
       people: [remind.owner].concat(remind.participants || []).map((p) => ({
         id: p.id,
-        nickname: p.nickname || '微信用户',
+        nickname: p.nickname || '',
+        name: nameOf(p, p.id === userID),
         avatar: fmt.avatar(p.headimgurl)
-      }))
+      })),
+      ownerName: nameOf(remind.owner, isOwner, '好友')
     });
     this.refreshView();
   },

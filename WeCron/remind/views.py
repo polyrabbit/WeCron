@@ -1,7 +1,6 @@
 #coding: utf-8
 import logging
 import time
-from urllib.parse import quote_plus
 
 from rest_framework import viewsets, permissions, pagination, authentication
 from rest_framework.decorators import action
@@ -10,14 +9,13 @@ from rest_framework.generics import get_object_or_404
 from django.views.generic import TemplateView
 from django.http import Http404, StreamingHttpResponse, JsonResponse, HttpResponse
 from django.utils import timezone
-from django.urls import reverse
 from django.conf import settings
-from wechatpy import WeChatOAuth, WeChatClientException
+from wechatpy import WeChatClientException
 from wechatpy.utils import random_string
 
 from common import wechat_client
 from remind.models import Remind
-from wechat_user.backends import SubscribedTokenAuthentication
+from wechat_user.backends import SubscribedTokenAuthentication, authorize_url
 from remind.serializers import RemindSerializer
 from remind.signals import participant_modified
 from remind.utils import get_qrcode_url
@@ -71,14 +69,7 @@ class WWWAuthenticateHeaderMixIn(object):
         If a request is unauthenticated, set wechat login url in the WWW-Authenticate header.
         """
         current_state = request.META.get('HTTP_X_REFERER') or request.META.get('HTTP_REFERER', '/')
-        oauth_client = WeChatOAuth(
-            app_id=settings.WX_APPID,
-            secret=settings.WX_APPSECRET,
-            redirect_uri=self.request.build_absolute_uri(reverse('oauth_complete')),
-            scope='snsapi_base',
-            state=quote_plus(current_state)
-        )
-        return oauth_client.authorize_url
+        return authorize_url(request, current_state)
 
 
 class RemindViewSet(WWWAuthenticateHeaderMixIn, viewsets.ModelViewSet):

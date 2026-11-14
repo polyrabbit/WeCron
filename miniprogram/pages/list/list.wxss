@@ -1,3 +1,33 @@
+.page {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+.scroller {
+  flex: 1;
+  height: 0;
+}
+
+/* As tall as the refresher threshold in list.js */
+.refresher {
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24rpx;
+  color: var(--text-placeholder);
+}
+.refresher-arrow {
+  width: 28rpx;
+  height: 28rpx;
+  margin-right: 8rpx;
+  transform: rotate(90deg);
+  transition: transform 0.2s;
+}
+.refresher-arrow-up {
+  transform: rotate(-90deg);
+}
+
 .pull-hint {
   text-align: center;
   font-size: 24rpx;

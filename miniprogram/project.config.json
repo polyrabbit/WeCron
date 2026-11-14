@@ -8,10 +8,6 @@
       {
         "value": "tools",
         "type": "folder"
-      },
-      {
-        "value": "config.local.js",
-        "type": "file"
       }
     ],
     "include": []

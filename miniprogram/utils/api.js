@@ -125,7 +125,7 @@ function showError(err) {
     content = '请稍后再试（' + err.message + '）';
   } else if (err.code === 'not_subscribed') {
     title = '需要先关注公众号';
-    content = '请关注公众号「微定时」后再试';
+    content = '请关注公众号「微定时WeCron」后再试';
   } else if (err.code === 'not_configured') {
     title = '服务暂不可用';
     content = '小程序登录尚未配置，请稍后再试';

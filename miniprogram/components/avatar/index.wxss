@@ -19,3 +19,7 @@
   box-sizing: border-box;
   user-select: none;
 }
+
+.avatar-icon {
+  display: block;
+}

@@ -1,8 +1,11 @@
 const api = require('../../utils/api');
 const fmt = require('../../utils/format');
+const { nameOf } = require('../../utils/avatar');
 
 const app = getApp();
 const DELETE_BUTTON_RPX = 160;
+// Pulling this far (px) and releasing loads the previous reminds
+const REFRESHER_THRESHOLD = 50;
 
 Page({
   data: {
@@ -13,6 +16,9 @@ Page({
     hasPrevious: false,
     hasNext: false,
     refreshing: false,
+    refresherThreshold: REFRESHER_THRESHOLD,
+    // Pulled past the threshold, releasing loads
+    pullReady: false,
     loadingNext: false
   },
 
@@ -67,6 +73,7 @@ Page({
       avatar: fmt.avatar(r.owner.headimgurl),
       repeatText: fmt.getRepeat(r.repeat) ? fmt.formatRepeat(r.repeat) : '',
       isOwner: r.owner.id === userID,
+      ownerName: nameOf(r.owner, r.owner.id === userID, '好友'),
       offset: 0
     }));
     this.openKey = null;
@@ -82,11 +89,18 @@ Page({
     this.reload();
   },
 
-  onPullDownRefresh() {
-    const done = () => {
-      this.setData({ refreshing: false });
-      wx.stopPullDownRefresh();
-    };
+  onRefresherPulling(e) {
+    const ready = e.detail.dy >= REFRESHER_THRESHOLD;
+    if (ready !== this.data.pullReady) this.setData({ pullReady: ready });
+  },
+
+  onRefresherRestore() {
+    if (this.data.pullReady) this.setData({ pullReady: false });
+  },
+
+  onRefresherRefresh() {
+    this.setData({ refreshing: true, pullReady: false });
+    const done = () => this.setData({ refreshing: false });
     if (this.data.notSubscribed || !this.data.loaded || this.data.failed) {
       this.setData({ failed: false });
       this.reload().finally(done);
@@ -98,11 +112,9 @@ Page({
     }
     if (!this.previousUrl) {
       done();
-      wx.showToast({ title: '没有更早的提醒了', icon: 'none' });
       return;
     }
     const generation = this.generation;
-    this.setData({ refreshing: true });
     api.getList(this.previousUrl)
       .then((page) => {
         if (generation !== this.generation) return;
@@ -116,7 +128,7 @@ Page({
       .finally(done);
   },
 
-  onReachBottom() {
+  onScrollToLower() {
     // The cursor belongs to the list being replaced
     if (!this.nextUrl || this.data.loadingNext || this.reloading) return;
     const generation = this.generation;
@@ -216,7 +228,7 @@ Page({
     }
   },
 
-  onPageScroll() {
+  onScroll() {
     if (this.openKey && !this.swipe) this.closeSwipe();
   }
 });

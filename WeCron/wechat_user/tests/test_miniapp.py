@@ -170,6 +170,27 @@ class MiniAppLoginTestCase(MiniAppTestCase):
         resp = self.client.patch(url, {'timezone': 'SST'}, content_type='application/json', **auth)
         self.assertEqual(resp.status_code, 400)
 
+    def test_profile_nickname(self):
+        auth = {'HTTP_AUTHORIZATION': 'Token ' + self.login().json()['token']}
+        url = reverse('profile-detail')
+
+        resp = self.client.patch(url, {'nickname': '  小明 '}, content_type='application/json', **auth)
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(resp.json()['nickname'], '小明')
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.nickname, '小明')
+
+        for bad in ('', ' ', '<a href="x">x</a>', 'x' * 41):
+            resp = self.client.patch(url, {'nickname': bad}, content_type='application/json', **auth)
+            self.assertEqual(resp.status_code, 400, bad)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.nickname, '小明')
+
+        # The avatar stays read only
+        self.client.patch(url, {'headimgurl': 'https://evil/x.png'}, content_type='application/json', **auth)
+        self.user.refresh_from_db()
+        self.assertIsNone(self.user.headimgurl)
+
     def test_invalid_token(self):
         resp = self.client.get(reverse('remind-list'), HTTP_AUTHORIZATION='Token bad')
         self.assertEqual(resp.status_code, 401)

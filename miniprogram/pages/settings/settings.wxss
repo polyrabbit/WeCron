@@ -39,6 +39,18 @@ page {
   font-size: 32rpx;
   color: var(--text);
 }
+.nickname-input {
+  flex: 1;
+  margin-left: 32rpx;
+  text-align: right;
+  font-size: 30rpx;
+  /* CSS variables are not inherited by the native input */
+  color: #444;
+}
+.nickname-placeholder {
+  color: #aaa;
+}
+
 .setting-value {
   max-width: 420rpx;
   overflow: hidden;

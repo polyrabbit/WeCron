@@ -70,7 +70,7 @@ class MiniAppLoginView(APIView):
         user = UserModel.objects.filter(unionid=unionid, subscribe=True).first()
         if user is None:
             logger.info('Mini program user(unionid=%s) has not subscribed the official account', unionid)
-            return Response({'code': 'not_subscribed', 'detail': '请先关注公众号「微定时」'},
+            return Response({'code': 'not_subscribed', 'detail': '请先关注公众号「微定时WeCron」'},
                             status=status.HTTP_403_FORBIDDEN)
 
         token, _ = Token.objects.get_or_create(user=user)

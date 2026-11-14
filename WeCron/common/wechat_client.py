@@ -14,5 +14,7 @@ for there is only one instance of access_token globally.
 wechat_client = WeChatClient(
     appid=settings.WX_APPID,
     secret=settings.WX_APPSECRET,
-    session=caches['wechat']
+    session=caches['wechat'],
+    # Replies to WeChat's callbacks must be sent within 5 seconds, and requests waits forever by default
+    timeout=4,
 )

@@ -1,5 +1,3 @@
-<nav-bar title="设置" />
-
 <subscribe-guide wx:if="{{notSubscribed}}" bindretry="load" />
 
 <view class="hint" wx:elif="{{failed}}" bindtap="load">
@@ -9,11 +7,21 @@
 
 <block wx:elif="{{profile}}">
   <view class="profile">
-    <avatar class="profile-avatar" src="{{avatar}}" name="{{profile.nickname}}" size="112" />
-    <view class="profile-name">{{profile.nickname || '微信用户'}}</view>
+    <avatar class="profile-avatar" src="{{avatar}}" name="{{nickname}}" uid="{{profile.id}}" size="112" />
+    <view class="profile-name">{{nickname || '未设置昵称'}}</view>
   </view>
 
   <view class="item-divider"></view>
+
+  <view class="setting">
+    <view class="setting-main">
+      <view class="setting-title">昵称</view>
+      <input class="nickname-input" type="nickname" value="{{nickname}}" maxlength="20"
+             placeholder="点击设置" placeholder-class="nickname-placeholder"
+             bindinput="onNicknameInput" bindblur="onNicknameBlur" bindnicknamereview="onNicknameReview" />
+    </view>
+    <view class="setting-desc">会显示在你的头像和分享出去的提醒上。</view>
+  </view>
 
   <view class="setting">
     <view class="setting-main">
@@ -41,7 +49,7 @@
     </view>
   </picker>
 
-  <view class="footer">在公众号「微定时」里直接说出你的提醒，例如“明天早上8点提醒我开会”</view>
+  <view class="footer">在公众号「微定时WeCron」里直接说出你的提醒，例如“明天早上8点提醒我开会”</view>
 
   <ad-banner position="settings" />
 </block>

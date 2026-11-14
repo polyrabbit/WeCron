@@ -1,3 +1,9 @@
 .guide-button {
   width: 400rpx !important;
 }
+
+.guide-note {
+  margin-top: 32rpx;
+  font-size: 24rpx;
+  color: #aaa;
+}

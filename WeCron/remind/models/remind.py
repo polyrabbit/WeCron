@@ -167,9 +167,10 @@ class Remind(models.Model):
             res = wechat_client.message.send_template(**message_params)
             logger.info('Successfully send notification(%s) to user %s in template mode', desc, uname)
             return res
-        except WeChatException as e:
+        # Anything, e.g. a timeout, would vanish in the executor without being logged
+        except Exception as e:
             logger.exception('Failed to send template notification(%s) to user %s', desc, uname)
-            if e.errcode in (43004, 43101):  # unsubscribed, or refused to receive
+            if getattr(e, 'errcode', None) in (43004, 43101):  # unsubscribed, or refused to receive
                 user.unsubscribe()
 
     # Changed in a single UPDATE, so concurrent subscriptions and quits can't overwrite each other

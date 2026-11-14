@@ -52,6 +52,7 @@ ICONS = {
     'share': '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>'
              '<line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>',
     'check': '<polyline points="20 6 9 17 4 12"/>',
+    'user': '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
     'chevron': '<polyline points="9 18 15 12 9 6"/>',
 }
 
@@ -99,8 +100,8 @@ def main():
     variants = {'grey': GREY, 'dark': DARK, 'white': '#ffffff'}
     needed = {
         'clock': ['grey'], 'bell': ['grey'], 'repeat': ['grey'], 'users': ['grey'], 'note': ['grey'],
-        'chevron': ['grey', 'white'], 'trash': ['dark'], 'quit': ['dark'],
-        'share': ['dark'], 'check': ['white'],
+        'chevron': ['grey'], 'trash': ['dark'], 'quit': ['dark'],
+        'share': ['dark'], 'check': ['white'], 'user': ['white'],
     }
     for name, colors in needed.items():
         for color in colors:
