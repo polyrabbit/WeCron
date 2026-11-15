@@ -4,6 +4,8 @@ app = "wecron"
 kill_signal = "SIGINT"
 kill_timeout = 5
 processes = []
+# Covers rare memory spikes, as memory is trimmed below to save cost
+swap_size_mb = 512
 
 [build]
   image = "polyrabbit/wecron:latest"
@@ -16,6 +18,11 @@ processes = []
 
 [deploy]
   strategy = "bluegreen"
+
+# Trimmed from 1GB to save memory and keep the bill under Fly's $5 waiver, two uWSGI workers peak at ~630MB
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "768mb"
 
 [[services]]
   http_checks = []
