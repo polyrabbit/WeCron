@@ -1,5 +1,6 @@
 #coding: utf-8
 import logging
+from functools import partial
 
 from django.conf import settings
 from django.core.cache import caches
@@ -18,3 +19,5 @@ wechat_client = WeChatClient(
     # Replies to WeChat's callbacks must be sent within 5 seconds, and requests waits forever by default
     timeout=4,
 )
+# wechatpy fetches access tokens without passing the timeout, so make it the session's default
+wechat_client._http.request = partial(wechat_client._http.request, timeout=wechat_client.timeout)

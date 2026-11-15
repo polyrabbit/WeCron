@@ -25,7 +25,6 @@ swap_size_mb = 512
   memory = "768mb"
 
 [[services]]
-  http_checks = []
   internal_port = 8000
   processes = ["app"]
   protocol = "tcp"
@@ -43,11 +42,16 @@ swap_size_mb = 512
     handlers = ["tls", "http"]
     port = 443
 
-  [[services.tcp_checks]]
-    grace_period = "1s"
+  # Passes once Django is loaded rather than when the port opens, so bluegreen deploys switch over in time
+  [[services.http_checks]]
+    grace_period = "30s"
     interval = "15s"
-    restart_limit = 0
     timeout = "2s"
+    method = "get"
+    path = "/?healthy"
+    protocol = "http"
+    [services.http_checks.headers]
+      Host = "wecron.fly.dev"
 
 [[statics]]
   guest_path = "/staticfiles"

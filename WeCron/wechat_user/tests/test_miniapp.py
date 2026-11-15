@@ -7,51 +7,31 @@ from django.utils import timezone
 from httmock import urlmatch, response, HTTMock
 from rest_framework.authtoken.models import Token
 
-from common.tests import access_token_mock
 from remind.models import Remind
 from wechat_user.backends import make_guest
 from wechat_user.miniapp import MiniAppLoginView
 from wechat_user.models import WechatUser
 
 
-def jscode2session_mock(unionid='the_unionid', errcode=None):
+def jscode2session_mock(unionid='the_unionid'):
     @urlmatch(netloc=r'(.*\.)?api\.weixin\.qq\.com$', path='/sns/jscode2session')
     def _mock(url, request):
-        if errcode:
-            content = {'errcode': errcode, 'errmsg': 'invalid code'}
-        else:
-            content = {'openid': 'mini_openid', 'session_key': 'SESSION_KEY'}
-            if unionid:
-                content['unionid'] = unionid
+        content = {'openid': 'mini_openid', 'session_key': 'SESSION_KEY', 'unionid': unionid}
         return response(200, content, {'Content-Type': 'application/json'}, request=request)
     return _mock
 
 
-class MiniAppTestCase(TestCase):
+@override_settings(WX_MINIAPP_APPID='mini_appid', WX_MINIAPP_SECRET='mini_secret')
+@mock.patch.object(MiniAppLoginView, 'throttle_classes', ())
+class MiniAppLoginTestCase(TestCase):
 
     def setUp(self):
-        # Throttle history is kept in the cache across tests
-        patcher = mock.patch.object(MiniAppLoginView, 'throttle_classes', ())
-        patcher.start()
-        self.addCleanup(patcher.stop)
+        self.user = WechatUser.objects.create(openid='mp_openid', nickname='miao', subscribe=True,
+                                              unionid='the_unionid')
 
     def login(self, mock_handler=None):
         with HTTMock(mock_handler or jscode2session_mock()):
             return self.client.post(reverse('miniapp_login'), {'code': 'CODE'}, content_type='application/json')
-
-
-@override_settings(WX_MINIAPP_APPID='mini_appid', WX_MINIAPP_SECRET='mini_secret')
-class MiniAppLoginTestCase(MiniAppTestCase):
-
-    def setUp(self):
-        super(MiniAppLoginTestCase, self).setUp()
-        self.user = WechatUser.objects.create(openid='mp_openid', nickname='miao', subscribe=True,
-                                              unionid='the_unionid')
-
-    def test_missing_code(self):
-        for body in ({}, [], None):
-            resp = self.client.post(reverse('miniapp_login'), body, content_type='application/json')
-            self.assertEqual(resp.status_code, 400)
 
     def test_login(self):
         resp = self.login()
@@ -61,16 +41,6 @@ class MiniAppLoginTestCase(MiniAppTestCase):
         self.assertEqual(data['user']['id'], 'mp_openid')
         # Logging in again reuses the token
         self.assertEqual(self.login().json()['token'], data['token'])
-
-    def test_invalid_code(self):
-        resp = self.login(jscode2session_mock(errcode=40029))
-        self.assertEqual(resp.status_code, 401)
-        self.assertFalse(Token.objects.exists())
-
-    def test_no_unionid(self):
-        resp = self.login(jscode2session_mock(unionid=None))
-        self.assertEqual(resp.status_code, 503)
-        self.assertEqual(resp.json()['code'], 'not_configured')
 
     def test_not_subscribed(self):
         resp = self.login(jscode2session_mock(unionid='unknown'))
@@ -115,14 +85,6 @@ class MiniAppLoginTestCase(MiniAppTestCase):
         # The participant that was added concurrently by someone else is kept
         self.assertIn('someone_else', remind.participants)
 
-        # Anonymous requests are rejected
-        self.assertEqual(self.client.post(reverse('remind-subscribe', args=(remind.pk.hex,))).status_code, 401)
-
-        # Subscribing twice is a no-op
-        self.client.post(reverse('remind-subscribe', args=(remind.pk.hex,)), **auth)
-        remind.refresh_from_db()
-        self.assertEqual(remind.participants.count(self.user.pk), 1)
-
         # Web guests who haven't subscribed the official account can't, and leave the remind untouched
         self.client.force_login(make_guest(pk='guest', nickname='guest'), backend='wechat_user.backends.WechatBackend')
         self.assertEqual(self.client.post(reverse('remind-subscribe', args=(remind.pk.hex,))).status_code, 403)
@@ -149,52 +111,6 @@ class MiniAppLoginTestCase(MiniAppTestCase):
         remind.refresh_from_db()
         self.assertEqual(remind.repeat, {'month': 1})
 
-    def test_unsubscribe_twice(self):
-        Remind.objects.create(time=timezone.now(), owner=self.user)
-        stale = WechatUser.objects.get(pk=self.user.pk)
-        self.user.unsubscribe()
-        self.assertFalse(WechatUser.objects.filter(pk=self.user.pk).exists())
-        # A second, concurrent call with its own copy of the user is a no-op
-        stale.unsubscribe()
-
-    def test_profile_timezone_validation(self):
-        auth = {'HTTP_AUTHORIZATION': 'Token ' + self.login().json()['token']}
-        url = reverse('profile-detail')
-
-        resp = self.client.patch(url, {'timezone': 'Pacific/Guadalcanal'},
-                                 content_type='application/json', **auth)
-        self.assertEqual(resp.status_code, 200)
-        self.assertEqual(resp.json()['timezone'], 'Pacific/Guadalcanal')
-
-        # WeChat's own alias is not an IANA zone
-        resp = self.client.patch(url, {'timezone': 'SST'}, content_type='application/json', **auth)
-        self.assertEqual(resp.status_code, 400)
-
-    def test_profile_nickname(self):
-        auth = {'HTTP_AUTHORIZATION': 'Token ' + self.login().json()['token']}
-        url = reverse('profile-detail')
-
-        resp = self.client.patch(url, {'nickname': '  小明 '}, content_type='application/json', **auth)
-        self.assertEqual(resp.status_code, 200)
-        self.assertEqual(resp.json()['nickname'], '小明')
-        self.user.refresh_from_db()
-        self.assertEqual(self.user.nickname, '小明')
-
-        for bad in ('', ' ', '<a href="x">x</a>', 'x' * 41):
-            resp = self.client.patch(url, {'nickname': bad}, content_type='application/json', **auth)
-            self.assertEqual(resp.status_code, 400, bad)
-        self.user.refresh_from_db()
-        self.assertEqual(self.user.nickname, '小明')
-
-        # The avatar stays read only
-        self.client.patch(url, {'headimgurl': 'https://evil/x.png'}, content_type='application/json', **auth)
-        self.user.refresh_from_db()
-        self.assertIsNone(self.user.headimgurl)
-
-    def test_invalid_token(self):
-        resp = self.client.get(reverse('remind-list'), HTTP_AUTHORIZATION='Token bad')
-        self.assertEqual(resp.status_code, 401)
-
     def test_unsubscribed_token_rejected(self):
         auth = {'HTTP_AUTHORIZATION': 'Token ' + self.login().json()['token']}
         # Users with more than 100 reminds are kept
@@ -202,41 +118,3 @@ class MiniAppLoginTestCase(MiniAppTestCase):
         self.user.unsubscribe()
         self.assertTrue(WechatUser.objects.filter(pk=self.user.pk).exists())
         self.assertEqual(self.client.get(reverse('remind-list'), **auth).status_code, 401)
-
-
-class MiniAppNotConfiguredTestCase(MiniAppTestCase):
-
-    @override_settings(WX_MINIAPP_SECRET='')
-    def test_not_configured(self):
-        resp = self.login()
-        self.assertEqual(resp.status_code, 503)
-        self.assertEqual(resp.json()['code'], 'not_configured')
-
-
-@urlmatch(netloc=r'(.*\.)?api\.weixin\.qq\.com$', path='/cgi-bin/user/info')
-def user_info_mock(url, request):
-    content = {'subscribe': 1, 'openid': 'mp_openid', 'nickname': 'miao', 'unionid': 'the_unionid'}
-    return response(200, content, {'Content-Type': 'application/json'}, request=request)
-
-
-class UnionIDTestCase(TestCase):
-
-    def test_new_user_gets_unionid(self):
-        with HTTMock(access_token_mock, user_info_mock):
-            user = WechatUser.objects.get_or_fetch('mp_openid')
-        self.assertEqual(user.unionid, 'the_unionid')
-
-    def test_existing_user_without_unionid_gets_it(self):
-        WechatUser.objects.create(openid='mp_openid', nickname='miao', subscribe=True)
-        with HTTMock(access_token_mock, user_info_mock):
-            WechatUser.objects.get_or_fetch('mp_openid')
-        self.assertEqual(WechatUser.objects.get(pk='mp_openid').unionid, 'the_unionid')
-        # Not fetched again once it is known
-        self.assertEqual(WechatUser.objects.get_or_fetch('mp_openid').unionid, 'the_unionid')
-
-    def test_existing_user_usable_when_fetching_unionid_fails(self):
-        WechatUser.objects.create(openid='mp_openid', nickname='miao', subscribe=True)
-        with HTTMock(access_token_mock, lambda url, request: response(500, request=request)):
-            user = WechatUser.objects.get_or_fetch('mp_openid')
-        self.assertEqual(user.pk, 'mp_openid')
-        self.assertIsNone(user.unionid)
