@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 132 132">
+  <!-- Avatar of the mini program, the official account's in reverse colours so the two can be told apart.
+       Export: rsvg-convert -w 1024 -h 1024 -o wecron-miniprogram.png wecron-miniprogram.svg -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#46DCC8"/>
+      <stop offset="1" stop-color="#2AAED8"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="2.2"/>
+    </filter>
+    <!-- The shadow only falls on the short arm -->
+    <clipPath id="on-short">
+      <line x1="36" y1="59" x2="63" y2="84" stroke="#000" stroke-width="26" stroke-linecap="round"/>
+    </clipPath>
+  </defs>
+  <rect width="132" height="132" fill="url(#bg)"/>
+  <!-- See-through, so it reads as lying under the long arm -->
+  <line x1="36" y1="59" x2="63" y2="84" stroke="#FFFFFF" stroke-opacity="0.78" stroke-width="26" stroke-linecap="round"/>
+  <g clip-path="url(#on-short)">
+    <line x1="63" y1="84" x2="109" y2="40" stroke="#0E6E86" stroke-opacity="0.28" stroke-width="26"
+          stroke-linecap="round" filter="url(#shadow)" transform="translate(-1.5 1.5)"/>
+  </g>
+  <line x1="63" y1="84" x2="109" y2="40" stroke="#FFFFFF" stroke-width="26" stroke-linecap="round"/>
+</svg>

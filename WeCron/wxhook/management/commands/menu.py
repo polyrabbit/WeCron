@@ -1,8 +1,12 @@
 # coding: utf-8
 
 import json
+from urllib.parse import urljoin
+
+from django.conf import settings
 from django.core.management import BaseCommand
 from common import wechat_client
+from remind.utils import MINIAPP_LIST_PAGE, MINIAPP_SETTINGS_PAGE, WEB_SETTINGS_URL
 
 
 class Command(BaseCommand):
@@ -13,8 +17,11 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         new_menu = {"button": [
             {"name": "我的提醒", "sub_button": [
-                {"url": "http://wecron.betacat.io/reminds/#/settings", "type": "view", "name": "设置", "sub_button": []},
-                {"url": "http://wecron.betacat.io/reminds/", "type": "view", "name": "所有提醒", "sub_button": []},
+                # url is for WeChat versions that can't open the mini program
+                {"type": "miniprogram", "name": "设置", "url": WEB_SETTINGS_URL,
+                 "appid": settings.WX_MINIAPP_APPID, "pagepath": MINIAPP_SETTINGS_PAGE, "sub_button": []},
+                {"type": "miniprogram", "name": "所有提醒", "url": urljoin(settings.HOST_NAME, '/reminds/'),
+                 "appid": settings.WX_MINIAPP_APPID, "pagepath": MINIAPP_LIST_PAGE, "sub_button": []},
                 {"type": "click", "name": "明天", "key": "time_remind_tomorrow", "sub_button": []},
                 {"type": "click", "name": "今天", "key": "time_remind_today", "sub_button": []}]},
             {"type": "click", "name": "使用方法", "key": "time_remind_create", "sub_button": []},

@@ -102,7 +102,6 @@ class RemindSerializer(serializers.ModelSerializer):
         return super(RemindSerializer, self).create(validated_data)
 
     def update(self, instance, validated_data):
-        instance.done = False
         if 'time' in validated_data and timezone.localdate(validated_data['time']) != timezone.localdate(instance.time):
             # The day kept for monthly repeats in short months belongs to the old date
             repeat = dict(validated_data.get('repeat', instance.repeat) or {})
@@ -110,6 +109,10 @@ class RemindSerializer(serializers.ModelSerializer):
             validated_data['repeat'] = repeat
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
+        # Re-arm only when the notify time is still ahead, so editing a fired remind keeps it sent
+        instance.update_notify_time()
+        if instance.notify_time > timezone.now():
+            instance.done = False
         # Subscribers change participants concurrently, never write back the copy loaded here
         instance.save(update_fields=[f.name for f in Remind._meta.concrete_fields
                                     if f.name not in ('id', 'participants')])

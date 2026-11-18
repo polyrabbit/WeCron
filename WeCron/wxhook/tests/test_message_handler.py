@@ -1,6 +1,8 @@
 # coding: utf-8
+from unittest import mock
 
 from django.test import TestCase
+from django.core.cache import cache
 from django.db.models.signals import post_save
 from django.utils import timezone
 from wechatpy import parse_message
@@ -74,6 +76,8 @@ class MessageHandlerTestCase(TestCase):
         init_jieba()
 
     def setUp(self):
+        # Seen message ids live in the file cache, which outlasts a test run
+        cache.clear()
         self.user = WechatUser(openid='FromUser', nickname='UserName', unionid='FromUnion')
         self.user.save()
         self.settings(WX_APPID='123').enable()
@@ -99,6 +103,9 @@ class MessageHandlerTestCase(TestCase):
         resp_xml = handle_message(wechat_msg)
         self.assertIn('时间:', resp_xml)
         self.assertNotIn('重复:', resp_xml)
+        # A resend of the same message gets an empty reply and creates no other remind
+        self.assertEqual(handle_message(self.build_wechat_msg(req_text)), '')
+        self.assertEqual(self.user.get_time_reminds().count(), 1)
 
     def test_repeat_text(self):
         req_text = """
@@ -142,33 +149,18 @@ class MessageHandlerTestCase(TestCase):
         <MsgType><![CDATA[voice]]></MsgType>
         <MediaId><![CDATA[media_id]]></MediaId>
         <Format><![CDATA[Format]]></Format>
-        <Recognition><![CDATA[%s]]></Recognition>
         <MsgId>12345678901234564</MsgId>
+        <MediaId16K><![CDATA[media_id_16k]]></MediaId16K>
         </xml>
-        """ % self.remind_desc
+        """
         wechat_msg = self.build_wechat_msg(req_text)
-        resp_xml = handle_message(wechat_msg)
+        # The 16k copy is transcribed first, the original one only when that fails
+        with mock.patch('wxhook.message_handler.speech_to_text', side_effect=['', self.remind_desc]) as speech_to_text:
+            resp_xml = handle_message(wechat_msg)
+        self.assertEqual(speech_to_text.call_args_list, [mock.call('media_id_16k'), mock.call('media_id')])
         self.assertIn('时间:', resp_xml)
-
-    def test_voice_with_media_id(self):
-        media_id = '1sew2_7_hbIOymbtyeZEoxaAnR83Hff0PM9b8ChEUmt5FRVA6-fHrmHdGre6iKGN'
-        req_text = """
-        <xml>
-        <ToUserName><![CDATA[toUser]]></ToUserName>
-        <FromUserName><![CDATA[FromUser]]></FromUserName>
-        <CreateTime>1357290913</CreateTime>
-        <MsgType><![CDATA[voice]]></MsgType>
-        <MediaId><![CDATA[%s]]></MediaId>
-        <Format><![CDATA[Format]]></Format>
-        <Recognition><![CDATA[%s]]></Recognition>
-        <MsgId>12345678901234565</MsgId>
-        </xml>
-        """ % (media_id, self.remind_desc)
-        wechat_msg = self.build_wechat_msg(req_text)
-        resp_xml = handle_message(wechat_msg)
-        r = self.user.get_time_reminds().first()
-        self.assertEqual(media_id, r.media_id)
-        r.delete()
+        # The original one is kept for playing it back on the web page
+        self.assertEqual(self.user.get_time_reminds().first().media_id, 'media_id')
 
     def test_speech_to_text(self):
         media_id = 'aZCOJETyQl-PVZhye4aKMb6V89gmsiGX9sCyiWpAwjd9dvEYwXxgXAZY3G29nc2b'

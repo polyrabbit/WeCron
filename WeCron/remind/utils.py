@@ -1,9 +1,23 @@
 # coding: utf-8
 from datetime import timedelta
+from urllib.parse import urljoin
 
+from django.conf import settings
 from django.core.cache import cache
 from django.utils import timezone
 from common import wechat_client
+
+
+MINIAPP_LIST_PAGE = 'pages/list/list'
+MINIAPP_SETTINGS_PAGE = 'pages/settings/settings'
+# Opened by WeChat versions that can't open the mini program
+WEB_SETTINGS_URL = urljoin(settings.HOST_NAME, '/reminds/#/settings')
+
+
+def miniapp_link(text, page, url):
+    """A link in text messages that opens a page of the mini program, url is for WeChat versions that can't"""
+    return '<a href="%s" data-miniprogram-appid="%s" data-miniprogram-path="%s">%s</a>' % (
+        url, settings.WX_MINIAPP_APPID, page, text)
 
 
 def delta2dict( delta ):

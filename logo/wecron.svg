@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 132 132">
+  <!-- Avatar of the official account 微定时WeCron. Export: rsvg-convert -w 1024 -h 1024 -o wecron.png wecron.svg -->
+  <defs>
+    <linearGradient id="short" gradientUnits="userSpaceOnUse" x1="36" y1="59" x2="63" y2="84">
+      <stop offset="0" stop-color="#42D6D5"/>
+      <stop offset="0.75" stop-color="#25A8B8"/>
+    </linearGradient>
+    <linearGradient id="long" gradientUnits="userSpaceOnUse" x1="63" y1="84" x2="109" y2="40">
+      <stop offset="0" stop-color="#44D9D5"/>
+      <stop offset="1" stop-color="#2AB8D9"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="2.2"/>
+    </filter>
+    <!-- The shadow only falls on the short arm -->
+    <clipPath id="on-short">
+      <line x1="36" y1="59" x2="63" y2="84" stroke="#000" stroke-width="26" stroke-linecap="round"/>
+    </clipPath>
+  </defs>
+  <rect width="132" height="132" fill="#FFFFFF"/>
+  <line x1="36" y1="59" x2="63" y2="84" stroke="url(#short)" stroke-width="26" stroke-linecap="round"/>
+  <!-- The long arm lies on the short one -->
+  <g clip-path="url(#on-short)">
+    <line x1="63" y1="84" x2="109" y2="40" stroke="#0E6E86" stroke-opacity="0.28" stroke-width="26"
+          stroke-linecap="round" filter="url(#shadow)" transform="translate(-1.5 1.5)"/>
+  </g>
+  <line x1="63" y1="84" x2="109" y2="40" stroke="url(#long)" stroke-width="26" stroke-linecap="round"/>
+</svg>

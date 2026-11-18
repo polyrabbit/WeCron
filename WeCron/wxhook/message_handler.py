@@ -5,11 +5,13 @@ import os
 import re
 
 from datetime import timedelta
+from django.core.cache import cache
 from django.utils import timezone
 from django.contrib.auth import get_user_model
 from wechatpy.replies import TextReply, TransferCustomerServiceReply, ImageReply
 from wechatpy.exceptions import WeChatClientException
 from pydub import AudioSegment
+from pydub.exceptions import CouldntDecodeError
 
 from common import wechat_client
 from remind.models import Remind
@@ -152,11 +154,11 @@ class WechatMessage(object):
         # )
 
     def handle_voice(self):
-        self.message.content = getattr(self.message, 'recognition', '')
+        # WeChat stopped sending Recognition; the 16k copy transcribes better than the 8k MediaId,
+        # which stays as the fallback in case the 16k one can't be decoded
+        media_16k = self.message._data.get('MediaId16K')
+        self.message.content = (media_16k and speech_to_text(media_16k)) or speech_to_text(self.message.media_id)
         if not self.message.content:
-            self.message.content = speech_to_text(getattr(self.message, 'media_id', ''))
-        if not self.message.content:
-            logger.info('No "recognition" field for media_id "%s" and speech_to_text returns nothing', getattr(self.message, 'media_id', 'NOT_EXIST'))
             return self.text_reply(
                 '\U0001F648哎呀，看起来微信的语音转文字功能又双叒叕罬蝃抽风了，请重试一遍，或者直接发文字给我~'
             )
@@ -228,19 +230,19 @@ class WechatMessage(object):
         return remind_text_list
 
 
-# shove = Shove('file:///tmp/wecron_last_msgid', sync=1)
-
 def handle_message(msg):
-    # msgid = str(msg.id)
-    # if msgid not in ['0', 'None'] and shove.get('last_msgid') == msgid:  # Duplicated message
-    #     return TextReply(
-    #         content='',
-    #         message=msg,
-    #     ).render()
-    # TODO unique based on msgid
-    resp_msg = WechatMessage(msg).handle()
-    # shove['last_msgid'] = msgid
-    return resp_msg
+    # WeChat resends a push it got no reply to within 5s. An empty reply to the resend ends the retries
+    # without handling the message twice; pushes without a MsgId (id 0), like clicks, pass through.
+    key = 'wechat-msg:%s' % msg.id
+    if msg.id and not cache.add(key, True, 60):
+        logger.info('Dropped a resend of %s message %s from %s', msg.type, msg.id, msg.source)
+        return ''
+    try:
+        return WechatMessage(msg).handle()
+    except Exception:
+        # Forget a failed message, so that WeChat's resend gets another try
+        cache.delete(key)
+        raise
 
 
 def speech_to_text(media_id):
@@ -263,9 +265,13 @@ def speech_to_text(media_id):
 
     try:
         audio = AudioSegment.from_file(fpath)
-        out_file = audio.export(format='mp3')
+        # The speech API only takes 16k mono mp3
+        out_file = audio.set_frame_rate(16000).set_channels(1).export(format='mp3')
         mp3_content = out_file.read()
         out_file.close()
+    except CouldntDecodeError:
+        logger.warning('Failed to decode media id %s', media_id)
+        return ''
     finally:
         os.remove(fpath)
 
@@ -277,5 +283,5 @@ def speech_to_text(media_id):
 
     text_url = 'https://api.weixin.qq.com/cgi-bin/media/voice/queryrecoresultfortext?access_token=%s&voice_id=%s&lang=zh_CN' % (wechat_client.access_token, media_id)
     text_json = wechat_client.post(text_url)
-    logger.info('Speech to text result: "%s"', text_json.get('result'))
+    logger.info('Speech to text result of media id %s: "%s"', media_id, text_json.get('result'))
     return text_json.get('result')

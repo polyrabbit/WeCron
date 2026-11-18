@@ -2,8 +2,10 @@
 
 import datetime
 from datetime import timedelta
+from io import StringIO
 from unittest import mock
 
+from django.core.management import call_command
 from django.test import TestCase
 from django.utils import timezone
 from remind.models import Remind
@@ -78,3 +80,16 @@ class RemindModelTestCase(TestCase):
         self.assertTrue(due.done)
         self.assertFalse(missed.done)
         self.assertEqual(missed.notify_time, missed_time + timedelta(days=1))
+
+    def test_purge_reminds(self):
+        now = timezone.now()
+        old = now - timedelta(days=5 * 366)
+        # bulk_create skips the pre_save hook, which would reschedule the stopped one
+        sent, stopped, repeating, just_created = Remind.objects.bulk_create([
+            Remind(time=old, create_time=old, owner_id='miao', done=True),
+            Remind(time=old, create_time=old, owner_id='miao', repeat={REPEAT_KEY_DAY: 1}),
+            Remind(time=now + timedelta(days=1), create_time=old, owner_id='miao', repeat={REPEAT_KEY_DAY: 1}),
+            Remind(time=old, owner_id='miao'),
+        ])
+        call_command('purge_reminds', stdout=StringIO())
+        self.assertCountEqual(Remind.objects.values_list('pk', flat=True), [repeating.pk, just_created.pk])

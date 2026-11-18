@@ -37,7 +37,7 @@ class RemindSerializerTestCase(TestCase):
     def test_change_defer(self):
         update_data = {
             'title': self.r.event,
-            'time': TimestampField().to_representation(self.r.time),
+            'time': TimestampField().to_representation(self.r.time + timedelta(days=1)),
             'defer': -2*60
         }
         self.assertTrue(self.r.done)

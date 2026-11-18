@@ -140,8 +140,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 # REINDEX TABLE time_remind;
 # VACUUM FULL time_remind;
 
-# cleanup obsolete:
-# delete from time_remind where done=true and notify_time <'2024-01-01' and repeat='{}';
+# Obsolete reminds are purged daily by `manage.py purge_reminds`
 
 from django.conf.global_settings import DATETIME_INPUT_FORMATS
 
